@@ -1,0 +1,7 @@
+{
+  "name": "Suno Fusion Prompt Generator",
+  "description": "Ultimate prompt generator for Suno AI with 374 genres, 8.6M+ fusion combinations, curated style libraries, metatags, and AI co-producer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
