@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Suno Fusion - Studio & AutoFill Sidekick",
+  "version": "2.1.0",
+  "description": "Complete music prompt creator & 1-click AutoFill for Suno AI (suno.com). Fills Style of Music, Lyrics, Titles, Exclude Styles, Vocal Gender, Weirdness, Style Influence, and more.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Suno Fusion Studio Sidekick"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://suno.com/*",
+    "https://*.suno.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://suno.com/*",
+        "https://*.suno.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

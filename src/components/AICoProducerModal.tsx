@@ -25,6 +25,7 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
     suggestedMetatags?: string[];
     customLyrics?: string;
     aiPowered?: boolean;
+    notice?: string;
   } | null>(null);
 
   // Inspire state
@@ -38,8 +39,10 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
     conceptTitle?: string;
     vibeDescription?: string;
     aiPowered?: boolean;
+    notice?: string;
   } | null>(null);
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -53,6 +56,7 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
   const runEnhance = async () => {
     if (!promptToEnhance) return;
     setIsEnhancing(true);
+    setErrorMessage(null);
     try {
       const res = await fetch('/api/ai/enhance', {
         method: 'POST',
@@ -65,10 +69,14 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
           key: promptToEnhance.key
         })
       });
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
       const data = await res.json();
       setEnhancedResult(data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      console.warn("Enhance request error:", err);
+      setErrorMessage(err instanceof Error ? err.message : 'Unable to complete enhancement request');
     } finally {
       setIsEnhancing(false);
     }
@@ -77,16 +85,21 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
   const runInspire = async () => {
     if (!ideaInput.trim()) return;
     setIsInspiring(true);
+    setErrorMessage(null);
     try {
       const res = await fetch('/api/ai/inspire', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idea: ideaInput.trim() })
       });
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
       const data = await res.json();
       setInspireResult(data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      console.warn("Inspire request error:", err);
+      setErrorMessage(err instanceof Error ? err.message : 'Unable to complete inspiration request');
     } finally {
       setIsInspiring(false);
     }
@@ -184,6 +197,26 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
                   </>
                 )}
               </button>
+
+              {errorMessage && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
+                  <span>{errorMessage}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrorMessage(null)}
+                    className="text-rose-400 hover:text-white text-xs px-1.5 py-0.5 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {enhancedResult?.notice && (
+                <div className="text-[11px] px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/25 flex items-center gap-1.5">
+                  <span className="font-semibold">⚡ Note:</span>
+                  <span>{enhancedResult.notice}</span>
+                </div>
+              )}
 
               {/* Enhanced Output */}
               {enhancedResult && (
@@ -295,6 +328,26 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
                   </button>
                 ))}
               </div>
+
+              {errorMessage && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
+                  <span>{errorMessage}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrorMessage(null)}
+                    className="text-rose-400 hover:text-white text-xs px-1.5 py-0.5 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {inspireResult?.notice && (
+                <div className="text-[11px] px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/25 flex items-center gap-1.5">
+                  <span className="font-semibold">⚡ Note:</span>
+                  <span>{inspireResult.notice}</span>
+                </div>
+              )}
 
               {/* Match Result */}
               {inspireResult && (

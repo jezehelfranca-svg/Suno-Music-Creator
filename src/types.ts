@@ -60,6 +60,34 @@ export interface GeneratedPrompt {
   selectedInstruments?: string[];
   lyricSnippet?: string;
   structureTags?: string[];
+  excludeStyles?: string;
+  vocalGender?: 'Male' | 'Female' | 'Duet' | 'None';
+  duration?: string;
+  weirdness?: number;
+  styleInfluence?: number;
+  variety?: 'Low' | 'Medium' | 'High';
+  maxMode?: boolean;
+  isInstrumental?: boolean;
   createdAt: number;
   isFavorite?: boolean;
+}
+
+export interface CustomTemplateState {
+  genre1?: string;
+  genre2?: string;
+  genre3?: string;
+  timeSig?: string;
+  bpm?: number;
+  minBpm?: number;
+  maxBpm?: number;
+  instruments?: string[];
+  excludeStyles?: string;
+  vocalGender?: 'Male' | 'Female' | 'Duet' | 'None';
+  duration?: string;
+  weirdness?: number;
+  styleInfluence?: number;
+  variety?: 'Low' | 'Medium' | 'High';
+  maxMode?: boolean;
+  isInstrumental?: boolean;
+  restoredPrompt?: GeneratedPrompt;
 }

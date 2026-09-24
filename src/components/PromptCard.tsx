@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Copy, Check, Heart, Sparkles, Volume2, ChevronDown, ChevronUp, Layers, Music, FileText } from 'lucide-react';
+import { Copy, Check, Heart, Sparkles, Volume2, ChevronDown, ChevronUp, Layers, Music, FileText, Zap } from 'lucide-react';
 import { GeneratedPrompt, SunoPromptFormat } from '../types';
 import { formatPromptForCopy } from '../utils/sunoFormatter';
+import { syncCreationToExtension } from '../utils/extensionSync';
 
 interface PromptCardProps {
   prompt: GeneratedPrompt;
@@ -9,6 +10,7 @@ interface PromptCardProps {
   onToggleFavorite: (prompt: GeneratedPrompt) => void;
   onTestMetronome: (bpm: number, timeSig: string) => void;
   onAiEnhance: (prompt: GeneratedPrompt) => void;
+  onOpenExtensionModal?: (prompt: GeneratedPrompt) => void;
 }
 
 export const PromptCard: React.FC<PromptCardProps> = ({
@@ -16,7 +18,8 @@ export const PromptCard: React.FC<PromptCardProps> = ({
   isFavorite,
   onToggleFavorite,
   onTestMetronome,
-  onAiEnhance
+  onAiEnhance,
+  onOpenExtensionModal
 }) => {
   const [copiedFormat, setCopiedFormat] = useState<SunoPromptFormat | null>(null);
   const [showLyrics, setShowLyrics] = useState(false);
@@ -170,6 +173,38 @@ export const PromptCard: React.FC<PromptCardProps> = ({
             )}
           </div>
         )}
+
+        {/* Suno Settings & Parameters Pill Row */}
+        {(prompt.vocalGender || prompt.weirdness !== undefined || prompt.excludeStyles || prompt.duration) && (
+          <div className="mb-3 p-2 bg-zinc-950/60 rounded-lg border border-zinc-800/80 flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
+            <span className="text-zinc-500 font-sans font-semibold">⚙️ Suno Params:</span>
+            {prompt.vocalGender && (
+              <span className="px-2 py-0.5 rounded bg-violet-500/15 border border-violet-500/30 text-violet-300">
+                🎤 {prompt.vocalGender}
+              </span>
+            )}
+            {prompt.duration && (
+              <span className="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                ⏱️ {prompt.duration}
+              </span>
+            )}
+            {prompt.weirdness !== undefined && (
+              <span className="px-2 py-0.5 rounded bg-pink-500/15 border border-pink-500/30 text-pink-300">
+                🌀 Weirdness: {prompt.weirdness}%
+              </span>
+            )}
+            {prompt.styleInfluence !== undefined && (
+              <span className="px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-300">
+                🎚️ Influence: {prompt.styleInfluence}%
+              </span>
+            )}
+            {prompt.excludeStyles && (
+              <span className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-300 truncate max-w-[200px]" title={prompt.excludeStyles}>
+                🚫 Exclude: {prompt.excludeStyles}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Card Actions */}
@@ -219,6 +254,21 @@ export const PromptCard: React.FC<PromptCardProps> = ({
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>AI Polish</span>
         </button>
+
+        {onOpenExtensionModal && (
+          <button
+            type="button"
+            onClick={() => {
+              syncCreationToExtension(prompt);
+              onOpenExtensionModal(prompt);
+            }}
+            className="flex items-center justify-center gap-1 py-2 px-2.5 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 transition-all cursor-pointer shadow-sm"
+            title="1-Click AutoFill on Suno.com via Edge & Chrome Extension"
+          >
+            <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+            <span>Suno AutoFill</span>
+          </button>
+        )}
       </div>
     </div>
   );

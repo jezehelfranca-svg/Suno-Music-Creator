@@ -10,6 +10,7 @@ interface FavoritesViewProps {
   onTestMetronome: (bpm: number, timeSig: string) => void;
   onAiEnhance: (prompt: GeneratedPrompt) => void;
   onBackToCustom: () => void;
+  onOpenExtensionModal?: (prompt: GeneratedPrompt) => void;
 }
 
 export const FavoritesView: React.FC<FavoritesViewProps> = ({
@@ -17,7 +18,8 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({
   onToggleFavorite,
   onTestMetronome,
   onAiEnhance,
-  onBackToCustom
+  onBackToCustom,
+  onOpenExtensionModal
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedAll, setCopiedAll] = useState(false);
@@ -168,6 +170,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({
               onToggleFavorite={onToggleFavorite}
               onTestMetronome={onTestMetronome}
               onAiEnhance={onAiEnhance}
+              onOpenExtensionModal={onOpenExtensionModal}
             />
           ))}
         </div>

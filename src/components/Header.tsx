@@ -1,11 +1,15 @@
 import React from 'react';
-import { Sparkles, Sliders, Volume2, VolumeX, Heart, BookOpen, Shuffle, Compass, Music, Radio } from 'lucide-react';
+import { Sparkles, Sliders, Heart, BookOpen, Shuffle, Compass, Music, Radio, History, Puzzle } from 'lucide-react';
 import { STYLE_LIBRARY } from '../data/styleLibrary';
+import { WaveformPulseVisualizer } from './WaveformPulseVisualizer';
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   favoritesCount: number;
+  historyCount: number;
+  onOpenHistory: () => void;
+  onOpenExtensionModal?: () => void;
   isMetronomePlaying: boolean;
   toggleMetronome: () => void;
   metronomeBpm: number;
@@ -19,6 +23,9 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   favoritesCount,
+  historyCount,
+  onOpenHistory,
+  onOpenExtensionModal,
   isMetronomePlaying,
   toggleMetronome,
   metronomeBpm,
@@ -56,44 +63,45 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Metronome & AI Action */}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            {/* Metronome Beat Preview */}
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 shadow-inner">
-              <button
-                type="button"
-                onClick={toggleMetronome}
-                title={isMetronomePlaying ? "Stop groove metronome" : "Listen to tempo groove pulse"}
-                className={`p-1.5 rounded-md transition-colors ${
-                  isMetronomePlaying
-                    ? "bg-rose-500 text-white animate-pulse"
-                    : "bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700"
-                }`}
-              >
-                {isMetronomePlaying ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </button>
-              <div className="text-xs font-mono">
-                <div className="flex items-center gap-1 text-zinc-300">
-                  <span>{metronomeBpm} BPM</span>
-                  <span className="text-zinc-600">•</span>
-                  <span>{metronomeMeter}</span>
-                </div>
-                {isMetronomePlaying && (
-                  <div className="flex gap-1 mt-0.5">
-                    {Array.from({ length: totalBeats }).map((_, i) => (
-                      <span
-                        key={i}
-                        className={`h-1.5 w-2 rounded-sm transition-all ${
-                          i === currentBeat
-                            ? i === 0
-                              ? "bg-amber-400 scale-110"
-                              : "bg-violet-400"
-                            : "bg-zinc-700"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Real-time Reactive Waveform & Metronome Pulse Visualizer */}
+            <WaveformPulseVisualizer
+              isPlaying={isMetronomePlaying}
+              bpm={metronomeBpm}
+              meter={metronomeMeter}
+              currentBeat={currentBeat}
+              totalBeats={totalBeats}
+              onTogglePlay={toggleMetronome}
+            />
+
+            {/* Prompt History Button */}
+            <button
+              type="button"
+              onClick={onOpenHistory}
+              className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-all cursor-pointer shadow-sm"
+              title="Prompt History (Last 10 session iterations)"
+            >
+              <History className="w-4 h-4 text-violet-400" />
+              <span>History</span>
+              {historyCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-violet-600/30 text-violet-300 border border-violet-500/30">
+                  {historyCount}
+                </span>
+              )}
+            </button>
+
+            {/* Edge & Chrome Extension Button */}
+            <button
+              type="button"
+              onClick={onOpenExtensionModal}
+              className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 text-amber-300 hover:text-amber-200 text-xs sm:text-sm font-medium px-3 py-2 rounded-lg border border-amber-500/30 hover:border-amber-500/50 transition-all cursor-pointer shadow-sm"
+              title="Edge & Chrome Extension: 1-Click AutoFill on Suno.com"
+            >
+              <Puzzle className="w-4 h-4 text-amber-400" />
+              <span>Suno Extension</span>
+              <span className="px-1 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                1-Click
+              </span>
+            </button>
 
             {/* AI Idea to Prompt Button */}
             <button
@@ -206,6 +214,26 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Heart className={`w-4 h-4 ${favoritesCount > 0 ? "fill-rose-400 text-rose-400" : ""}`} />
             <span>Saved ({favoritesCount})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenHistory}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap bg-zinc-900/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-zinc-800/80 cursor-pointer"
+            title="Open session prompt history (Last 10 iterations)"
+          >
+            <History className="w-4 h-4 text-violet-400" />
+            <span>History ({historyCount})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenExtensionModal}
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-amber-200 border border-amber-500/30 cursor-pointer"
+            title="Download or inspect Edge & Chrome Extension for Suno.com AutoFill"
+          >
+            <Puzzle className="w-4 h-4 text-amber-400" />
+            <span>Suno Extension</span>
           </button>
         </div>
       </div>

@@ -1,26 +1,26 @@
-import React, { useState, useRef } from 'react';
-import { Sparkles, Sliders, RefreshCw, Shuffle, Copy, Check, Volume2, ArrowLeftRight, HelpCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Sparkles, Sliders, RefreshCw, Shuffle, Copy, Check, Volume2, ArrowLeftRight, HelpCircle, History, RotateCcw, ArrowRight, Settings2, Ban, User, Clock, ChevronDown, ChevronUp, Zap } from 'lucide-react';
 import { GenreCombobox } from './GenreCombobox';
 import { PromptCard } from './PromptCard';
 import { InstrumentSelector } from './InstrumentSelector';
 import { ALL_GENRES } from '../data/genres';
 import { TIME_SIGNATURES } from '../data/pools';
 import { CATALOGUED_INSTRUMENTS, InstrumentCategory } from '../data/instruments';
-import { VariationOptions, GeneratedPrompt, SunoPromptFormat } from '../types';
+import { VariationOptions, GeneratedPrompt, SunoPromptFormat, CustomTemplateState } from '../types';
 import { generateSunoPrompt, formatPromptForCopy } from '../utils/sunoFormatter';
+import { syncCreationToExtension } from '../utils/extensionSync';
 
 interface CustomFusionProps {
   onTestMetronome: (bpm: number, timeSig: string) => void;
   onAiEnhance: (prompt: GeneratedPrompt) => void;
   favorites: GeneratedPrompt[];
   onToggleFavorite: (prompt: GeneratedPrompt) => void;
-  initialTemplate?: {
-    genre1?: string;
-    genre2?: string;
-    genre3?: string;
-    timeSig?: string;
-    bpm?: number;
-  } | null;
+  initialTemplate?: CustomTemplateState | null;
+  promptHistory: GeneratedPrompt[];
+  onAddToHistory: (prompts: GeneratedPrompt[]) => void;
+  onRevertToPrompt: (prompt: GeneratedPrompt) => void;
+  onOpenHistory: () => void;
+  onOpenExtensionModal?: (prompt: GeneratedPrompt) => void;
 }
 
 const QUICK_CLASHES = [
@@ -39,15 +39,24 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
   onAiEnhance,
   favorites,
   onToggleFavorite,
-  initialTemplate
+  initialTemplate,
+  promptHistory,
+  onAddToHistory,
+  onRevertToPrompt,
+  onOpenHistory,
+  onOpenExtensionModal
 }) => {
   const [genre1, setGenre1] = useState(initialTemplate?.genre1 || 'Dream Pop & Shoegaze');
   const [genre2, setGenre2] = useState(initialTemplate?.genre2 || 'TRAP & DRILL');
   const [genre3, setGenre3] = useState(initialTemplate?.genre3 || '');
   const [timeSig, setTimeSig] = useState(initialTemplate?.timeSig || '4/4');
   const [randomizeTime, setRandomizeTime] = useState(false);
-  const [minBpm, setMinBpm] = useState(initialTemplate?.bpm ? Math.max(40, initialTemplate.bpm - 15) : 85);
-  const [maxBpm, setMaxBpm] = useState(initialTemplate?.bpm ? Math.min(280, initialTemplate.bpm + 15) : 175);
+  const [minBpm, setMinBpm] = useState(
+    initialTemplate?.minBpm ?? (initialTemplate?.bpm ? Math.max(40, initialTemplate.bpm - 15) : 85)
+  );
+  const [maxBpm, setMaxBpm] = useState(
+    initialTemplate?.maxBpm ?? (initialTemplate?.bpm ? Math.min(280, initialTemplate.bpm + 15) : 175)
+  );
   const [bitrate, setBitrate] = useState('320');
   const [generateCount, setGenerateCount] = useState(3);
   const [allCopied, setAllCopied] = useState(false);
@@ -71,7 +80,36 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
     highlight: true
   });
 
-  const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>(
+    initialTemplate?.instruments || []
+  );
+
+  // Suno Advanced Settings ("More Options") state
+  const [excludeStyles, setExcludeStyles] = useState(
+    initialTemplate?.excludeStyles || 'screaming, harsh distortion, muddy bass, generic pop EDM'
+  );
+  const [vocalGender, setVocalGender] = useState<'Male' | 'Female' | 'Duet' | 'None'>(
+    initialTemplate?.vocalGender || 'Female'
+  );
+  const [weirdness, setWeirdness] = useState<number>(
+    initialTemplate?.weirdness ?? 50
+  );
+  const [styleInfluence, setStyleInfluence] = useState<number>(
+    initialTemplate?.styleInfluence ?? 85
+  );
+  const [variety, setVariety] = useState<'Low' | 'Medium' | 'High'>(
+    initialTemplate?.variety || 'High'
+  );
+  const [duration, setDuration] = useState<string>(
+    initialTemplate?.duration || '3:00'
+  );
+  const [maxMode, setMaxMode] = useState<boolean>(
+    initialTemplate?.maxMode ?? false
+  );
+  const [isInstrumental, setIsInstrumental] = useState<boolean>(
+    initialTemplate?.isInstrumental ?? false
+  );
+  const [showSunoSettings, setShowSunoSettings] = useState(true);
 
   const handleToggleInstrument = (name: string) => {
     setSelectedInstruments(prev =>
@@ -102,6 +140,9 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
   };
 
   const [results, setResults] = useState<GeneratedPrompt[]>(() => {
+    if (initialTemplate?.restoredPrompt) {
+      return [initialTemplate.restoredPrompt];
+    }
     // Generate initial prompt on mount
     const initial = generateSunoPrompt(
       ['Dream Pop & Shoegaze', 'TRAP & DRILL'],
@@ -124,8 +165,46 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
         highlight: true
       }
     );
+    if (initial) {
+      initial.excludeStyles = 'screaming, harsh distortion, muddy bass, generic pop EDM';
+      initial.vocalGender = 'Female';
+      initial.weirdness = 50;
+      initial.styleInfluence = 85;
+      initial.variety = 'High';
+      initial.duration = '3:00';
+      initial.maxMode = false;
+      initial.isInstrumental = false;
+    }
     return initial ? [initial] : [];
   });
+
+  // Ensure initial prompt is captured in history on mount if history is empty
+  useEffect(() => {
+    if (results.length > 0 && promptHistory.length === 0 && !initialTemplate?.restoredPrompt) {
+      onAddToHistory(results);
+    }
+  }, []);
+
+  // Quick revert determination
+  const currentActivePrompt = results[0];
+  const currentHistoryIndex = currentActivePrompt
+    ? promptHistory.findIndex(p => p.id === currentActivePrompt.id || p.fullPrompt === currentActivePrompt.fullPrompt)
+    : -1;
+
+  const canQuickRevert = promptHistory.length >= 2 || (currentHistoryIndex === -1 && promptHistory.length >= 1);
+  const previousPrompt = currentHistoryIndex === -1
+    ? promptHistory[0]
+    : currentHistoryIndex < promptHistory.length - 1
+    ? promptHistory[currentHistoryIndex + 1]
+    : null;
+
+  const handleQuickRevert = () => {
+    if (previousPrompt) {
+      onRevertToPrompt(previousPrompt);
+    } else if (promptHistory.length >= 2) {
+      onRevertToPrompt(promptHistory[1]);
+    }
+  };
 
   const handleTapTempo = () => {
     const now = performance.now();
@@ -242,11 +321,23 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
       }
 
       if (promptObj) {
+        promptObj.excludeStyles = excludeStyles;
+        promptObj.vocalGender = isInstrumental ? 'None' : vocalGender;
+        promptObj.weirdness = weirdness;
+        promptObj.styleInfluence = styleInfluence;
+        promptObj.variety = variety;
+        promptObj.duration = duration;
+        promptObj.maxMode = maxMode;
+        promptObj.isInstrumental = isInstrumental;
         generated.push(promptObj);
       }
     }
 
     setResults(generated);
+    if (generated.length > 0) {
+      onAddToHistory(generated);
+      syncCreationToExtension(generated[0]);
+    }
   };
 
   const handleCopyAll = (format: SunoPromptFormat = 'suno-tag') => {
@@ -444,6 +535,206 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
         onRandomizeInstruments={handleRandomizeInstruments}
       />
 
+      {/* Suno AI "More Options" & Advanced Studio Parameters */}
+      <div className="bg-gradient-to-b from-zinc-900/90 to-zinc-950 border border-zinc-800 rounded-xl p-4 sm:p-5 shadow-xl">
+        <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 rounded-lg bg-pink-500/20 text-pink-400 border border-pink-500/30">
+              <Settings2 className="w-4 h-4" />
+            </span>
+            <div>
+              <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <span>Suno "More Options" &amp; Generation Controls</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                  Matches Suno AI v4/v3.5
+                </span>
+              </h3>
+              <p className="text-xs text-zinc-400">
+                These settings auto-configure Suno's "More Options" panel when you click 1-Click AutoFill.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowSunoSettings(!showSunoSettings)}
+            className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors"
+          >
+            <span>{showSunoSettings ? 'Collapse' : 'Expand'}</span>
+            {showSunoSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {showSunoSettings && (
+          <div className="space-y-4">
+            {/* Exclude Styles */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 mb-1.5">
+                <Ban className="w-3.5 h-3.5 text-rose-400" />
+                <span>Exclude Styles (Negative Prompt):</span>
+                <span className="text-[11px] text-zinc-500 font-normal">Styles Suno should actively avoid</span>
+              </label>
+              <input
+                type="text"
+                value={excludeStyles}
+                onChange={(e) => setExcludeStyles(e.target.value)}
+                placeholder="e.g. screaming, harsh distortion, muddy bass, generic pop EDM"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+              />
+            </div>
+
+            {/* Vocal Gender & Instrumental */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Vocal Gender */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 mb-1.5">
+                  <User className="w-3.5 h-3.5 text-violet-400" />
+                  <span>Vocal Gender:</span>
+                </label>
+                <div className="grid grid-cols-4 gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+                  {(['Female', 'Male', 'Duet', 'None'] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => {
+                        setVocalGender(g);
+                        if (g === 'None') setIsInstrumental(true);
+                      }}
+                      className={`py-1.5 text-xs font-semibold rounded transition-all ${
+                        vocalGender === g
+                          ? 'bg-gradient-to-r from-violet-600 to-pink-600 text-white shadow-sm'
+                          : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Target Duration */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 mb-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Target Duration:</span>
+                </label>
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                >
+                  <option value="2:00">2:00 (Short Single)</option>
+                  <option value="2:30">2:30 (Radio Edit)</option>
+                  <option value="3:00">3:00 (Standard Track)</option>
+                  <option value="3:30">3:30 (Extended Track)</option>
+                  <option value="4:00">4:00 (Full Epic)</option>
+                </select>
+              </div>
+
+              {/* Max Mode */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 mb-1.5">
+                  <Zap className="w-3.5 h-3.5 text-pink-400" />
+                  <span>Max Mode:</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setMaxMode(!maxMode)}
+                  className={`w-full py-2 text-xs font-semibold rounded-lg border transition-all ${
+                    maxMode
+                      ? 'bg-pink-600/20 border-pink-500/50 text-pink-300'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  {maxMode ? 'Max Mode: ON (High Quality)' : 'Max Mode: OFF'}
+                </button>
+              </div>
+
+              {/* Instrumental Toggle */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 mb-1.5">
+                  <span>Instrumental Track:</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsInstrumental(!isInstrumental)}
+                  className={`w-full py-2 text-xs font-semibold rounded-lg border transition-all ${
+                    isInstrumental
+                      ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  {isInstrumental ? 'Instrumental: ON (No Vocals)' : 'Instrumental: OFF (With Vocals)'}
+                </button>
+              </div>
+            </div>
+
+            {/* Weirdness & Style Influence Sliders */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2 border-t border-zinc-800/60">
+              {/* Weirdness Slider */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-semibold text-zinc-300">Weirdness (Experimentalism):</label>
+                  <span className="text-xs font-mono text-pink-400">{weirdness}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={weirdness}
+                  onChange={(e) => setWeirdness(parseInt(e.target.value, 10))}
+                  className="w-full accent-pink-500"
+                />
+                <div className="flex justify-between text-[10px] text-zinc-500">
+                  <span>Predictable (0%)</span>
+                  <span>Wild (100%)</span>
+                </div>
+              </div>
+
+              {/* Style Influence Slider */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-semibold text-zinc-300">Style Influence:</label>
+                  <span className="text-xs font-mono text-violet-400">{styleInfluence}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={styleInfluence}
+                  onChange={(e) => setStyleInfluence(parseInt(e.target.value, 10))}
+                  className="w-full accent-violet-500"
+                />
+                <div className="flex justify-between text-[10px] text-zinc-500">
+                  <span>Subtle (0%)</span>
+                  <span>Dominant (100%)</span>
+                </div>
+              </div>
+
+              {/* Variety */}
+              <div>
+                <label className="text-xs font-semibold text-zinc-300 mb-1.5 block">Variety:</label>
+                <div className="grid grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+                  {(['Low', 'Medium', 'High'] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setVariety(v)}
+                      className={`py-1 text-xs font-semibold rounded transition-all ${
+                        variety === v
+                          ? 'bg-zinc-800 text-pink-400 shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Variation Toggles Panel */}
       <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 sm:p-5">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -509,7 +800,7 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
       </div>
 
       {/* Main Action Trigger */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
         <button
           type="button"
           onClick={handleGenerate}
@@ -517,6 +808,39 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
         >
           <Sparkles className="w-4 h-4 text-amber-300" />
           <span>Generate {generateCount} Fusion {generateCount === 1 ? 'Prompt' : 'Prompts'}</span>
+        </button>
+
+        {/* Quick Step Back / Revert to previous iteration */}
+        <button
+          type="button"
+          disabled={!canQuickRevert}
+          onClick={handleQuickRevert}
+          className="flex items-center gap-1.5 py-3 px-4 rounded-xl text-sm font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer shadow-sm"
+          title={
+            previousPrompt
+              ? `Revert to previous iteration: ${previousPrompt.genres.join(' × ')}`
+              : 'Revert to previous iteration'
+          }
+        >
+          <RotateCcw className="w-4 h-4 text-violet-400" />
+          <span className="hidden sm:inline">Revert to Prev</span>
+          <span className="sm:hidden">Prev</span>
+        </button>
+
+        {/* Open Session History Drawer */}
+        <button
+          type="button"
+          onClick={onOpenHistory}
+          className="flex items-center gap-1.5 py-3 px-4 rounded-xl text-sm font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 transition-all cursor-pointer shadow-sm"
+          title="Open session prompt history (Last 10 iterations)"
+        >
+          <History className="w-4 h-4 text-violet-400" />
+          <span>History</span>
+          {promptHistory.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-xs font-mono font-bold bg-violet-600/30 text-violet-300 border border-violet-500/30">
+              {promptHistory.length}
+            </span>
+          )}
         </button>
 
         {results.length > 0 && (
@@ -529,7 +853,78 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
             <span>{allCopied ? 'Copied All!' : 'Copy All Suno Tags'}</span>
           </button>
         )}
+
+        {results.length > 0 && onOpenExtensionModal && (
+          <button
+            type="button"
+            onClick={() => {
+              syncCreationToExtension(results[0]);
+              onOpenExtensionModal(results[0]);
+            }}
+            className="flex items-center gap-2 py-3 px-5 rounded-xl text-sm font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 transition-all cursor-pointer"
+            title="Load this creation into the Extension Studio for 1-Click AutoFill"
+          >
+            <Zap className="w-4 h-4 fill-amber-300 text-amber-300" />
+            <span>⚡ Send to Extension Studio ({results[0].title})</span>
+          </button>
+        )}
       </div>
+
+      {/* Session Prompt History Quick Timeline Bar */}
+      {promptHistory.length > 0 && (
+        <div className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-violet-400" />
+              <span className="text-xs font-bold text-zinc-200">Recent Iterations</span>
+              <span className="text-[11px] font-mono text-zinc-500">
+                ({promptHistory.length}/10 in session)
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenHistory}
+              className="text-[11px] text-violet-400 hover:text-violet-300 transition-colors flex items-center gap-1 font-medium cursor-pointer"
+            >
+              <span>View Full History</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          {/* Quick Revert Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+            {promptHistory.map((item, idx) => {
+              const isCurrent =
+                results[0]?.id === item.id || results[0]?.fullPrompt === item.fullPrompt;
+              const iterNum = promptHistory.length - idx;
+              return (
+                <button
+                  key={item.id || idx}
+                  type="button"
+                  onClick={() => onRevertToPrompt(item)}
+                  className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                    isCurrent
+                      ? 'bg-violet-600/25 border-violet-500/60 text-violet-200 font-semibold ring-1 ring-violet-500/30'
+                      : 'bg-zinc-950/80 border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                  title={`Click to revert to Iteration #${iterNum}: ${item.genres.join(' × ')} (${item.timeSig}, ${item.minBpm} BPM)`}
+                >
+                  <span className="font-mono text-[10px] text-zinc-500">#{iterNum}</span>
+                  <span className="truncate max-w-[140px] sm:max-w-[200px]">
+                    {item.genres.join(' × ')}
+                  </span>
+                  <span className="text-[10px] font-mono text-amber-400/80">{item.minBpm} BPM</span>
+                  {isCurrent && (
+                    <span className="text-[10px] text-emerald-400 font-mono font-semibold ml-0.5">
+                      ● Active
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Generated Results Grid */}
       {results.length > 0 && (
@@ -553,6 +948,7 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
                   onToggleFavorite={onToggleFavorite}
                   onTestMetronome={onTestMetronome}
                   onAiEnhance={onAiEnhance}
+                  onOpenExtensionModal={onOpenExtensionModal}
                 />
               );
             })}
