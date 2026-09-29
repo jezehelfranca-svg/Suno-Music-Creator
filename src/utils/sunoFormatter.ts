@@ -1,5 +1,6 @@
 import { VariationOptions, GeneratedPrompt, SunoPromptFormat } from '../types';
 import { POOLS, KEYS, TITLE_A, TITLE_B, LEADS, OPENERS, SUNO_METATAGS } from '../data/pools';
+import { designGroove } from './grooveDesign.js';
 
 function pick<T>(arr: T[], rng = Math.random): T {
   return arr[Math.floor(rng() * arr.length)];
@@ -90,17 +91,16 @@ export function generateSunoPrompt(
     selectedInstruments = pickMany(POOLS.instruments, 2 + Math.floor(rng() * 2), rng);
   }
 
-  const selectedRhythm = opts.rhythm ? pick(POOLS.rhythm, rng) : '';
-  const selectedProd = opts.production ? pick(POOLS.production, rng) : '';
+  const groove = designGroove({ genres: validGenres, instruments: selectedInstruments, timeSig, bpm: (minBpm + maxBpm) / 2, rng });
   const selectedVocals = opts.vocals ? pick(POOLS.vocals, rng) : '';
   const selectedMood = opts.mood ? pick(POOLS.mood, rng) : '';
 
-  if (opts.rhythm && selectedRhythm) core.push(segment('rhythm', selectedRhythm, rng));
+  if (opts.rhythm) core.push(`Groove: ${groove.description}`);
   if (opts.harmony) core.push(segment('harmony', pick(POOLS.harmony, rng), rng));
   if ((opts.instruments || (customInstruments && customInstruments.length > 0)) && selectedInstruments.length > 0) {
     core.push(segment('instruments', listPhrase(selectedInstruments), rng));
   }
-  if (opts.production && selectedProd) core.push(segment('production', selectedProd, rng));
+  if (opts.production) core.push(`Sound design: ${groove.production}`);
 
   const tail: string[] = [];
   if (opts.structure) tail.push(segment('structure', pick(POOLS.structure, rng), rng));
@@ -108,7 +108,7 @@ export function generateSunoPrompt(
   if (opts.mood && selectedMood) tail.push(segment('mood', selectedMood, rng));
   if (opts.scene) tail.push(segment('scene', pick(POOLS.scene, rng), rng));
   if (opts.usecase) tail.push(segment('usecase', pick(POOLS.usecase, rng), rng));
-  if (opts.highlight) tail.push(segment('highlight', pick(POOLS.highlight, rng), rng));
+  if (opts.highlight) tail.push(`Highlight the interplay between ${groove.anchor} and ${groove.pulse}.`);
 
   const body = [opening, ...shuffle(core, rng), ...tail].join(' ');
   const fusionName = `${validGenres.join(' × ')} Fusion`;
@@ -125,16 +125,20 @@ export function generateSunoPrompt(
 
   const fullPrompt = `${headerParts.join(', ')}: ${body}`;
 
-  // Suno Style Tag (compact, comma-separated tokens optimal for Suno's "Style of Music" box limit)
+  // The copyable Style field carries the actual groove instructions too: the
+  // extension auto-fills this field, whereas fullPrompt stays in the app.
   const tagComponents = [
     ...validGenres,
     bpmLabel,
-    key,
-    selectedMood ? selectedMood.split(' and ')[0] : '',
-    selectedInstruments.slice(0, 2).join(', '),
-    selectedVocals.includes('no vocals') ? 'instrumental' : selectedVocals.replace(' vocals', '').replace('vocals', ''),
-    selectedProd ? selectedProd.split(' and ')[0] : ''
+    ...(opts.key ? [key] : []),
+    ...selectedInstruments,
+    ...(opts.rhythm ? [groove.description] : []),
+    ...(opts.production ? [groove.production] : [])
   ].filter(t => Boolean(t && t.trim()));
+  tagComponents.push(...[
+    selectedVocals.includes('no vocals') ? 'instrumental' : selectedVocals.replace(' vocals', '').replace('vocals', ''),
+    selectedMood ? selectedMood.split(' and ')[0] : ''
+  ].filter(Boolean));
 
   const sunoStyleTag = tagComponents.join(', ');
 

@@ -143,7 +143,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({
               {prompt.sunoStyleTag}
             </div>
             <div className="text-[11px] text-zinc-400 mb-3 flex items-center justify-between">
-              <span className="text-zinc-500">Character count: {prompt.sunoStyleTag.length} (Ideal for Suno &lt;180)</span>
+              <span className="text-zinc-500">Character count: {prompt.sunoStyleTag.length}</span>
             </div>
           </div>
         ) : (
