@@ -2,19 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Suno Fusion Studio Sidekick</title>
+  <title>Suno Fusion Studio - Side Panel</title>
   <link rel="stylesheet" href="content.css">
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      width: 440px;
-      min-height: 580px;
-      max-height: 600px;
+      width: 100% !important;
+      height: 100vh !important;
+      min-height: 100vh !important;
+      max-height: 100vh !important;
       background: #09090b;
       color: #f4f4f5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      overflow-x: hidden;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
     }
     .header-bar {
       display: flex;
@@ -23,10 +27,18 @@
       padding: 10px 14px;
       background: #111114;
       border-bottom: 1px solid #27272a;
+      flex-shrink: 0;
+    }
+    .sf-stats-bar {
+      flex-shrink: 0;
+    }
+    .sf-tab-bar {
+      flex-shrink: 0;
     }
     .sf-panel-body {
-      padding: 10px 12px;
-      max-height: 485px;
+      padding: 12px 14px 30px 14px;
+      flex: 1 1 auto;
+      max-height: none !important;
       overflow-y: auto;
     }
     .sf-creation-box {
@@ -36,6 +48,10 @@
       padding: 8px 10px;
       margin-bottom: 10px;
     }
+    .sf-scrollable-list {
+      max-height: calc(100vh - 310px) !important;
+      min-height: 250px;
+    }
   </style>
 </head>
 <body>
@@ -44,13 +60,9 @@
     <div style="display:flex;align-items:center;gap:6px;">
       <span style="color:#fbbf24;font-size:16px;">⚡</span>
       <span style="font-weight:800;font-size:14px;color:#ffffff;letter-spacing:-0.02em;">Suno Fusion Studio</span>
-      <span class="sf-badge">v2.5</span>
+      <span class="sf-badge" style="background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.3);">● Side Panel</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button id="pop-btn-open-sidebar" class="sf-pick-btn" title="Open in Chrome / Edge Side Panel (stays open while you click Suno!)" style="background:rgba(139,92,246,0.2);border-color:#8b5cf6;color:#c4b5fd;font-weight:700;display:inline-flex;align-items:center;gap:3px;padding:3px 7px;cursor:pointer;">
-        <span>📌</span>
-        <span>Side Panel</span>
-      </button>
       <button id="sf-btn-reload-ext" class="sf-reload-btn" title="Reload Extension & Refresh Suno in Edge / Chrome" style="background:rgba(255,255,255,0.08);border:1px solid #3f3f46;color:#e4e4e7;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all 0.15s ease;"><span>↻</span><span>Reload</span></button> <a href="https://suno.com/create" target="_blank" style="color:#a78bfa;font-size:11px;text-decoration:none;font-weight:700;">↗ Open Suno</a>
     </div>
   </div>
@@ -211,7 +223,7 @@
           <label class="sf-label">Lyrics &amp; Metatags:</label>
           <button id="pop-btn-clear-lyrics" class="sf-pick-btn" style="padding:1px 5px;font-size:10px;">Clear</button>
         </div>
-        <textarea id="pop-lyrics" class="sf-textarea" rows="2">[Intro]&#10;[Verse 1]&#10;Neon shadows flicker in the haze&#10;&#10;[Chorus]&#10;Drifting high</textarea>
+        <textarea id="pop-lyrics" class="sf-textarea" rows="3">[Intro]&#10;[Verse 1]&#10;Neon shadows flicker in the haze&#10;&#10;[Chorus]&#10;Drifting high</textarea>
       </div>
 
       <!-- Title & Instrumental Toggle -->
@@ -361,7 +373,7 @@
   </div>
 
   <!-- Bottom Status Bar -->
-  <div id="pop-status" style="padding:6px 12px;background:#141418;text-align:center;font-size:11px;color:#34d399;border-top:1px solid #27272a;">Ready</div>
+  <div id="pop-status" style="padding:6px 12px;background:#141418;text-align:center;font-size:11px;color:#34d399;border-top:1px solid #27272a;flex-shrink:0;">Ready in Side Panel</div>
 
   <!-- Scripts -->
   <script src="data/genres.js"></script>

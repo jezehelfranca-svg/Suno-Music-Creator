@@ -5,11 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
+    "build:db": "node scripts/build-creations-db.js",
     "build": "node scripts/build-extension.js && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "sync": "node scripts/sync-and-build.js",
+    "sync:fast": "node scripts/sync-and-build.js --skip-web",
+    "sync:pull": "node scripts/sync-and-build.js --pull",
+    "build:ext": "node scripts/build-extension.js",
+    "sync:edge": "node scripts/sync-and-build.js --edge"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

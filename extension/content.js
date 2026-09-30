@@ -1,175 +1,131 @@
-// Suno Fusion v2.0 - Studio & AutoFill Engine for suno.com
+// Suno Fusion v2.4 - Studio & AutoFill Engine for suno.com & topmediai.com
 (function () {
   if (window.__sunoFusionInjected) return;
   window.__sunoFusionInjected = true;
-  const designGroove = function designGroove(seed = {}) {
-  const genres = (seed.genres || []).filter(Boolean);
-  const instruments = (seed.instruments || []).filter(Boolean);
-  const firstGenre = (genres[0] || '').toLowerCase();
-  const allGenres = genres.join(' ').toLowerCase();
-  const has = (pattern, text) => pattern.test(text);
-  const families = [
-    ['afro', /afro|highlife|amapiano|salsa|timba|samba|cumbia|reggaet[oó]n|bossa|latin|rumba/],
-    ['hiphop', /trap|drill|hip.?hop|rap|boom bap|trip hop|glitch hop/],
-    ['jazz', /jazz|swing|bebop|blues/],
-    ['funk', /funk|disco|city pop|r&b|rhythm 'n' blues|soul/],
-    ['rock', /rock|metal|grunge|sludge|punk|shoegaze|djent|hardcore/],
-    ['ambient', /ambient|classical|minimalism|new age|drone|orchestral/],
-    ['folk', /folk|country|bluegrass|celtic|acoustic|americana/],
-    ['club', /house|techno|trance|edm|dance|electro|garage|dubstep|jungle|drum.?n.?bass|breakbeat|synthwave/]
-  ];
-  const family = families.find(([, pattern]) => has(pattern, firstGenre))?.[0]
-    || families.find(([, pattern]) => has(pattern, allGenres))?.[0] || 'open';
-  const slow = Number(seed.bpm) > 0 && Number(seed.bpm) < 95;
 
-  const find = pattern => instruments.find(name => has(pattern, name.toLowerCase()));
-  const low = find(/\b(?:bass|sub|808|contrabass|double bass|upright bass|baritone guitar|low synth|moog)\b/);
-  const drums = find(/drum|kick|snare|tom|percussion|conga|tabla|riq|djembe|hi.?hat|shaker|caj[oó]n|breakbeat/);
-  const guitar = find(/guitar|banjo|mandolin|oud|lute/);
-  const keys = find(/piano|rhodes|keys|keyboard|organ|clav|juno|synth|arpeggiator/);
-  const other = instruments.find(name => name !== low && name !== drums);
-  const anchor = low || guitar || keys || drums || other || 'the low end';
-  const pulse = drums || (instruments.length ? 'the rhythmic accents' : 'the drums');
-  const voice = instruments.find(name => name !== anchor && name !== drums && name !== low);
-  const oddMeter = seed.timeSig && seed.timeSig !== '4/4'
-    ? `Phrase the accents in ${seed.timeSig}; leave a gap at the turn of the meter.` : '';
-  const choose = variants => variants[Math.min(variants.length - 1, Math.floor((seed.rng || Math.random)() * variants.length))];
-
-  const patterns = {
-    afro: [
-      `${anchor} answers ${pulse} in the open spaces between syncopated accents; let the percussion finish each phrase.`,
-      `Give ${anchor} a short repeating figure while ${pulse} shifts the accents around it; leave a rest before the response.`
-    ],
-    hiphop: [
-      `${anchor} lands after the main drum hit, then cuts off early so ${pulse} and the next downbeat stay clear.`,
-      `Alternate held low notes from ${anchor} with short pickups; keep a pocket of silence for ${pulse}.`
-    ],
-    jazz: [
-      `Let ${anchor} outline the changes with varied note lengths while ${pulse} answers in the spaces between phrases.`,
-      `Keep ${anchor} conversational with ${pulse}: one longer grounding note, then a brief pickup before the next chord.`
-    ],
-    funk: [
-      `${anchor} plays clipped offbeat answers to ${pulse}; use short rests and occasional ghosted pickups instead of filling every subdivision.`,
-      `Set a repeating low figure on ${anchor}; move its final accent around ${pulse} and stop cleanly before the next phrase.`
-    ],
-    rock: [
-      `${anchor} holds the weight under ${pulse}; offset the riff accents and cut a brief hole before the backbeat.`,
-      `Lock ${anchor} to the heavy hits from ${pulse}, then break the riff with a short rest before it returns.`
-    ],
-    ambient: [
-      `Let ${anchor} sustain a low motif, with measured silences that give the next phrase room to enter.`,
-      `Use sparse, unequal pulses from ${anchor}; allow their tails to decay before the next accent.`
-    ],
-    folk: [
-      `Keep ${anchor} as a repeating acoustic pulse, varied by a short pickup and a breath at each phrase end.`,
-      `Let ${anchor} mark the downbeats while ${pulse} answers lightly between them; leave space for the melody.`
-    ],
-    club: [
-      `Place short offbeat notes from ${anchor} between the hits of ${pulse}; vary note lengths and leave one 16th-note pocket empty.`,
-      `Use syncopated 16th-note pickups from ${anchor}, alternating with ${pulse} so the downbeat stays uncluttered.`
-    ],
-    open: [
-      `Give ${anchor} a recurring motif that trades accents with ${pulse}; let short rests define the groove.`,
-      `Vary the length of ${anchor}'s repeated notes and leave a deliberate gap before ${pulse} answers.`
-    ]
-  };
-  const pattern = slow && family === 'rock'
-    ? `${anchor} sustains the low riff against ${pulse} at a half-time pace; leave a full beat of air before the next heavy accent.`
-    : slow && family === 'club'
-      ? `${anchor} plays sparse offbeat notes between ${pulse}; let each note decay before the next pickup.`
-      : choose(patterns[family]);
-  const response = voice ? `Give ${voice} a response in the space after the anchor phrase.` : '';
-  const synthLow = low && has(/808|sub|synth|moog|wavetable|sine|saw/, low.toLowerCase());
-  const production = synthLow
-    ? `Keep ${low}'s deepest layer centered and clean; put saturation or stereo width only on its upper harmonics.`
-    : low
-      ? `Keep ${low} focused in the center, with its attack distinct from ${pulse}.`
-      : guitar && family === 'rock'
-        ? `Keep ${guitar}'s low attack distinct from ${pulse}; place ambience behind the hits rather than washing out their edges.`
-      : family === 'club' || family === 'hiphop'
-        ? `Keep the lowest frequencies centered; put grit and width above them without masking ${pulse}.`
-        : `Preserve the attack and decay of the named instruments; leave low-frequency space for ${pulse}.`;
-  const tag = ({
-    afro: 'interlocking syncopation and rests', hiphop: 'low-note pickups with drum gaps',
-    jazz: 'conversational low-end phrasing', funk: 'clipped offbeats and ghost pickups',
-    rock: 'weighty riffs with backbeat gaps', ambient: 'sparse pulses and long decays',
-    folk: 'acoustic pulse with phrase-end rests', club: 'offbeat 16th-note gaps',
-    open: 'interlocking accents and rests'
-  })[family];
-  return { family, anchor, pulse, description: [pattern, response, oddMeter].filter(Boolean).join(' '), production, tag };
-};
-
-  console.log('[Suno Fusion v2.0] Studio & Settings Engine initialized on suno.com');
+  console.log('[Suno Fusion v2.4] Studio & Settings Engine initialized on ' + window.location.hostname);
 
   // Custom user-picked selectors
   let userCustomSelectors = {
     styleSelector: null,
     lyricsSelector: null,
     titleSelector: null,
-    excludeSelector: null
+    excludeSelector: null,
+    createSelector: null
   };
 
-  chrome.storage?.local?.get(['sf_style_sel', 'sf_lyrics_sel', 'sf_title_sel', 'sf_exclude_sel'], (res) => {
+  chrome.storage?.local?.get(['sf_style_sel', 'sf_lyrics_sel', 'sf_title_sel', 'sf_exclude_sel', 'sf_create_sel'], (res) => {
     if (res) {
       userCustomSelectors.styleSelector = res.sf_style_sel || null;
       userCustomSelectors.lyricsSelector = res.sf_lyrics_sel || null;
       userCustomSelectors.titleSelector = res.sf_title_sel || null;
       userCustomSelectors.excludeSelector = res.sf_exclude_sel || null;
+      userCustomSelectors.createSelector = res.sf_create_sel || null;
     }
   });
 
-  // React 17/18/19 Input Value Setter
-  function setReactInputValue(el, value) {
-    if (!el) return false;
+  // Robust Multi-Platform Input Value Setter (React 17/18/19 & TopMediai ContentEditable)
+  function setInputValueReliably(element, text) {
+    if (!element) return false;
     try {
-      el.focus();
-      const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
-      const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+      element.focus();
 
-      if (nativeSetter) {
-        nativeSetter.call(el, value);
+      // Handle contenteditable nodes / custom textboxes (common in TopMediai)
+      if (element.isContentEditable || element.getAttribute('role') === 'textbox' || element.tagName === 'DIV' || element.tagName === 'SPAN') {
+        try {
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          if (!document.execCommand('insertText', false, text)) {
+            element.innerText = text;
+          }
+        } catch (e) {
+          element.innerText = text;
+        }
+
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+        try {
+          element.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: text }));
+        } catch (e) {}
+        element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
+        element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+
+        applyGlowFeedback(element);
+        return true;
+      }
+
+      // Handle standard React Textarea / Input
+      const prototype = element instanceof HTMLTextAreaElement
+        ? HTMLTextAreaElement.prototype
+        : (element instanceof HTMLInputElement ? HTMLInputElement.prototype : Object.getPrototypeOf(element));
+
+      const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set ||
+                     Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set ||
+                     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+
+      if (setter) {
+        setter.call(element, text);
       } else {
-        el.value = value;
+        element.value = text;
       }
 
-      const tracker = el._valueTracker;
-      if (tracker) {
-        tracker.setValue('');
+      // Reset internal tracker if present (React _valueTracker)
+      if (element._valueTracker) {
+        element._valueTracker.setValue('');
       }
 
+      // Dispatch InputEvent and change event
       try {
-        el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: value }));
+        element.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: text }));
       } catch (e) {
-        el.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('input', { bubbles: true }));
       }
-      el.dispatchEvent(new Event('change', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
 
-      // Visual Glow Flash on Suno
-      const origOutline = el.style.outline;
-      const origBorder = el.style.borderColor;
-      const origBoxShadow = el.style.boxShadow;
-      el.style.outline = '3px solid #8b5cf6';
-      el.style.borderColor = '#8b5cf6';
-      el.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.6)';
-
-      setTimeout(() => {
-        el.style.outline = origOutline;
-        el.style.borderColor = origBorder;
-        el.style.boxShadow = origBoxShadow;
-      }, 2200);
-
+      applyGlowFeedback(element);
       return true;
     } catch (err) {
-      console.error('[Suno Fusion] Error setting React input:', err);
-      el.value = value;
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-      return true;
+      console.error('[Suno Fusion] Error setting input value:', err);
+      try {
+        element.value = text;
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      } catch (e) {}
+      return false;
     }
   }
 
-  // Ensure /create view is loaded
+  // Visual feedback glow
+  function applyGlowFeedback(element) {
+    if (!element || !element.style) return;
+    const origOutline = element.style.outline;
+    const origBorder = element.style.borderColor;
+    const origBoxShadow = element.style.boxShadow;
+    const origTransition = element.style.transition;
+
+    element.style.transition = 'box-shadow 0.3s, border-color 0.3s, outline 0.3s';
+    element.style.outline = '3px solid #8b5cf6';
+    element.style.borderColor = '#8b5cf6';
+    element.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.7)';
+
+    setTimeout(() => {
+      element.style.outline = origOutline;
+      element.style.borderColor = origBorder;
+      element.style.boxShadow = origBoxShadow;
+      element.style.transition = origTransition;
+    }, 2000);
+  }
+
+  const setReactInputValue = setInputValueReliably;
+
+  // Ensure /create view is loaded (Suno-specific)
   function ensureOnCreatePage() {
+    if (window.location.hostname.includes('topmediai')) {
+      return true;
+    }
     if (window.location.pathname.includes('/create')) return true;
     const createBtn = document.querySelector('a[href*="/create"], button[aria-label*="Create" i], nav a[href="/create"]') ||
       Array.from(document.querySelectorAll('a, button')).find(el => {
@@ -185,8 +141,12 @@
     return false;
   }
 
-  // Ensure Suno Custom Mode is Active
-  function ensureCustomMode(targetState = true) {
+  // Ensure Suno Custom Mode is Active (Suno-Specific Safeguard)
+  function ensureSunoCustomMode(targetState = true) {
+    if (window.location.hostname.includes('topmediai')) {
+      return true; // Not required on TopMediai
+    }
+
     const allSwitches = Array.from(document.querySelectorAll('button[role="switch"], [data-state], input[type="checkbox"], [aria-checked]'));
     for (const sw of allSwitches) {
       const container = sw.closest('div, label, section') || sw.parentElement;
@@ -198,7 +158,7 @@
 
         if (isChecked !== targetState) {
           sw.click();
-          console.log('[Suno Fusion] Toggled Custom mode');
+          console.log('[Suno Fusion] Toggled Custom mode switch');
           return true;
         }
         return true;
@@ -219,6 +179,8 @@
     }
     return false;
   }
+
+  const ensureCustomMode = ensureSunoCustomMode;
 
   // Expand Suno "More Options" Accordion
   function expandMoreOptions() {
@@ -366,9 +328,11 @@
     return false;
   }
 
-  // Locate all Suno Inputs
+  /**
+   * PROVEN 4-TIER WATERFALL SUNO INPUT TARGETING (Retained from v2.0/v2.1)
+   */
   function findSunoInputs() {
-    // Check custom user-picked selectors first
+    // 1. Check custom user-picked selectors first
     if (userCustomSelectors.styleSelector) {
       const customStyle = document.querySelector(userCustomSelectors.styleSelector);
       if (customStyle) {
@@ -376,17 +340,20 @@
           styleTextarea: customStyle,
           lyricsTextarea: userCustomSelectors.lyricsSelector ? document.querySelector(userCustomSelectors.lyricsSelector) : null,
           titleInput: userCustomSelectors.titleSelector ? document.querySelector(userCustomSelectors.titleSelector) : null,
-          excludeInput: userCustomSelectors.excludeSelector ? document.querySelector(userCustomSelectors.excludeSelector) : null
+          excludeInput: userCustomSelectors.excludeSelector ? document.querySelector(userCustomSelectors.excludeSelector) : null,
+          styleInput: customStyle,
+          lyricsInput: userCustomSelectors.lyricsSelector ? document.querySelector(userCustomSelectors.lyricsSelector) : null
         };
       }
     }
 
+    // 2. Explicit data-testid, aria-label & placeholder selectors
     let styleTextarea = document.querySelector('textarea[data-testid="style-input"], textarea[data-testid*="style" i], textarea[aria-label*="Style of Music" i], textarea[aria-label*="Style" i]');
     let lyricsTextarea = document.querySelector('textarea[data-testid="lyrics-input"], textarea[data-testid*="lyrics" i], textarea[aria-label*="Lyrics" i]');
     let titleInput = document.querySelector('input[data-testid="title-input"], input[data-testid*="title" i], input[aria-label*="Title" i]');
     let excludeInput = document.querySelector('input[placeholder*="Exclude" i], textarea[placeholder*="Exclude" i], [aria-label*="Exclude" i]');
 
-    // Label traversal
+    // 3. Exact Leaf Label Traversal (only text nodes with children.length === 0)
     if (!styleTextarea || !lyricsTextarea || !excludeInput) {
       const labels = Array.from(document.querySelectorAll('label, div, span, p')).filter(el => el.children.length === 0 && (el.textContent || '').trim().length > 0);
 
@@ -411,7 +378,7 @@
       }
     }
 
-    // Semantic placeholder fallback
+    // 4. Semantic placeholder and aria-label fallback on visible textareas
     const allTextareas = Array.from(document.querySelectorAll('textarea')).filter(t => t.offsetParent !== null || t.getBoundingClientRect().height > 0);
     if (!styleTextarea) {
       styleTextarea = allTextareas.find(t => {
@@ -440,7 +407,7 @@
       });
     }
 
-    // Positional fallback
+    // 5. Positional fallback: In Suno Custom Mode, index 0 is Lyrics, index 1 is Style of Music
     if (!styleTextarea || !lyricsTextarea) {
       if (allTextareas.length >= 2) {
         if (!lyricsTextarea) lyricsTextarea = allTextareas[0];
@@ -450,7 +417,255 @@
       }
     }
 
-    return { styleTextarea, lyricsTextarea, titleInput, excludeInput };
+    // Collision safeguard: ensure style and lyrics never target the exact same element
+    if (styleTextarea && lyricsTextarea && styleTextarea === lyricsTextarea) {
+      if (allTextareas.length >= 2) {
+        lyricsTextarea = allTextareas[0];
+        styleTextarea = allTextareas[1];
+      }
+    }
+
+    return {
+      styleTextarea,
+      lyricsTextarea,
+      titleInput,
+      excludeInput,
+      styleInput: styleTextarea,
+      lyricsInput: lyricsTextarea
+    };
+  }
+
+  /**
+   * TopMediai Specific Input Locator (Isolated from Suno to prevent false positives)
+   */
+  function findTopMediaInputs() {
+    if (userCustomSelectors.styleSelector) {
+      const customStyle = document.querySelector(userCustomSelectors.styleSelector);
+      if (customStyle) {
+        return {
+          styleTextarea: customStyle,
+          lyricsTextarea: userCustomSelectors.lyricsSelector ? document.querySelector(userCustomSelectors.lyricsSelector) : null,
+          titleInput: userCustomSelectors.titleSelector ? document.querySelector(userCustomSelectors.titleSelector) : null,
+          excludeInput: userCustomSelectors.excludeSelector ? document.querySelector(userCustomSelectors.excludeSelector) : null,
+          styleInput: customStyle,
+          lyricsInput: userCustomSelectors.lyricsSelector ? document.querySelector(userCustomSelectors.lyricsSelector) : null
+        };
+      }
+    }
+
+    const textareas = Array.from(document.querySelectorAll('textarea'));
+    const inputs = Array.from(document.querySelectorAll('input[type="text"], input:not([type])'));
+    const editables = Array.from(document.querySelectorAll('[contenteditable="true"], [role="textbox"]'));
+    const allCandidates = [...textareas, ...inputs, ...editables].filter(el => {
+      const rect = el.getBoundingClientRect();
+      const style = window.getComputedStyle(el);
+      return rect.width > 20 && rect.height > 15 && style.visibility !== 'hidden' && style.display !== 'none';
+    });
+
+    function matchTopMediaScore(el, keywords) {
+      const text = [
+        el.getAttribute('placeholder') || '',
+        el.getAttribute('aria-label') || '',
+        el.getAttribute('name') || '',
+        el.id || '',
+        el.className || '',
+        el.parentElement?.textContent || ''
+      ].join(' ').toLowerCase();
+      return keywords.some(k => text.includes(k.toLowerCase()));
+    }
+
+    let styleInput = allCandidates.find(el => matchTopMediaScore(el, ['prompt', 'style', 'description', 'enter music', 'tags', 'music description']));
+    let lyricsInput = allCandidates.find(el => matchTopMediaScore(el, ['lyrics', 'lyric', 'words', 'paste lyrics', 'write lyrics']));
+    let titleInput = allCandidates.find(el => matchTopMediaScore(el, ['title', 'song name', 'track name', 'song title']));
+    let excludeInput = null;
+
+    if (!styleInput || !lyricsInput) {
+      const visibleEditables = [...textareas, ...editables].filter(t => t.offsetHeight > 35 && t.offsetWidth > 100);
+      if (visibleEditables.length >= 2) {
+        if (!lyricsInput) lyricsInput = visibleEditables[0];
+        if (!styleInput) styleInput = visibleEditables[1];
+      } else if (visibleEditables.length === 1 && !styleInput) {
+        styleInput = visibleEditables[0];
+      }
+    }
+
+    return {
+      styleTextarea: styleInput,
+      lyricsTextarea: lyricsInput,
+      titleInput: titleInput,
+      excludeInput: excludeInput,
+      styleInput: styleInput,
+      lyricsInput: lyricsInput
+    };
+  }
+
+  // Master Target Inputs Selector
+  function findTargetInputs() {
+    if (window.location.hostname.includes('topmediai')) {
+      return findTopMediaInputs();
+    }
+    return findSunoInputs();
+  }
+
+  // Locate Suno or TopMediai Create/Generate Button
+  function findCreateButton() {
+    // 0. Check custom user-picked selector first
+    if (userCustomSelectors.createSelector) {
+      const customBtn = document.querySelector(userCustomSelectors.createSelector);
+      if (customBtn && customBtn.offsetParent !== null) {
+        return customBtn;
+      }
+    }
+
+    const isTopMedia = window.location.hostname.includes('topmediai');
+
+    if (isTopMedia) {
+      const explicit = document.querySelector(
+        'button[data-testid*="generate" i], button[data-testid*="create" i], button[aria-label*="Generate" i], button[aria-label*="Create" i], .generate-btn, button.btn-generate'
+      );
+      if (explicit && explicit.offsetParent !== null) return explicit;
+
+      const candidates = Array.from(document.querySelectorAll('button, div[role="button"]')).filter(b => {
+        if (!b.offsetParent) return false;
+        const rect = b.getBoundingClientRect();
+        if (rect.width < 40 || rect.height < 24) return false;
+        const t = (b.textContent || '').trim().toLowerCase();
+        return (t.includes('generate') || t.includes('create music')) && !b.closest('nav');
+      });
+      return candidates[0] || null;
+    }
+
+    // --- SUNO AI CREATE BUTTON ---
+    // 1. Direct Suno Aura Create Button Match (Matches exact Suno DOM node)
+    const exactSunoSelectors = [
+      'button[aria-label="Create song"]',
+      'button[aria-label*="Create song" i]',
+      'button.hxc-btn-variant-aura',
+      'button[class*="hxc-btn-variant-aura"]',
+      'button[class*="hxc-btn"][aria-label*="Create" i]',
+      'button[id^="base-ui-"][aria-label*="Create" i]',
+      'button.equcksu0',
+      'button[data-testid="create-button"]',
+      'button[data-testid*="create" i]:not(nav button)'
+    ];
+
+    for (const sel of exactSunoSelectors) {
+      const el = document.querySelector(sel);
+      if (el && el.offsetParent !== null && !el.closest('nav')) {
+        return el;
+      }
+    }
+
+    // 2. Buttons containing .hxc-btn-content with "Create"
+    const hxcContentBtns = Array.from(document.querySelectorAll('button')).filter(b => {
+      if (!b.offsetParent) return false;
+      if (b.closest('nav')) return false;
+      const contentSpan = b.querySelector('.hxc-btn-content') || b;
+      const text = (contentSpan.textContent || '').trim().toLowerCase();
+      return text === 'create' || text.startsWith('create');
+    });
+    if (hxcContentBtns.length > 0) {
+      return hxcContentBtns[0];
+    }
+
+    // 3. Fallback: Any visible button whose text content is or starts with "Create" (excluding navigation nav)
+    const allButtons = Array.from(document.querySelectorAll('button')).filter(btn => {
+      if (!btn.offsetParent) return false;
+      const rect = btn.getBoundingClientRect();
+      if (rect.width < 45 || rect.height < 24) return false;
+
+      // Only exclude actual navigation bar
+      if (btn.closest('nav, [role="navigation"]')) return false;
+
+      const t = (btn.textContent || '').trim().toLowerCase();
+      const aria = (btn.getAttribute('aria-label') || '').toLowerCase();
+
+      return aria.includes('create song') ||
+             t === 'create' ||
+             t.startsWith('create ') ||
+             t.startsWith('create\n') ||
+             t.includes('create music') ||
+             (t.includes('create') && (t.includes('credit') || t.includes('v4') || t.includes('v3.5') || t.includes('v4.5')));
+    });
+
+    if (allButtons.length > 0) {
+      const auraMatch = allButtons.find(b => b.className && typeof b.className === 'string' && b.className.includes('aura'));
+      if (auraMatch) return auraMatch;
+
+      const submitMatch = allButtons.find(b => b.type === 'submit');
+      if (submitMatch) return submitMatch;
+
+      allButtons.sort((a, b) => {
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        return (rb.width * rb.height) - (ra.width * ra.height);
+      });
+      return allButtons[0];
+    }
+
+    return null;
+  }
+
+  let isCreateInProgress = false;
+
+  // Trigger Suno/TopMediai Create Button with intelligent retry polling & duplicate prevention
+  function triggerCreateButton(delayMs = 450) {
+    if (isCreateInProgress) {
+      console.log('[Suno Fusion] Create action already in progress, ignoring duplicate trigger.');
+      return Promise.resolve(false);
+    }
+    isCreateInProgress = true;
+    setTimeout(() => { isCreateInProgress = false; }, 3500); // 3.5s mutex cooldown
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        let attempts = 0;
+        const maxAttempts = 14; // Poll every 200ms for up to ~3 seconds
+
+        const tryClick = () => {
+          attempts++;
+          const btn = findCreateButton();
+
+          if (btn) {
+            // Check disabled state (only if HTML disabled or aria-disabled="true")
+            const isDisabled = btn.disabled || btn.getAttribute('aria-disabled') === 'true';
+
+            if (isDisabled) {
+              if (attempts < maxAttempts) {
+                setTimeout(tryClick, 200);
+                return;
+              }
+            }
+
+            try {
+              btn.focus();
+
+              // Single clean click on the button element (avoids duplicate event bubbling)
+              btn.click();
+
+              applyGlowFeedback(btn);
+              console.log('[Suno Fusion] Successfully triggered Create button once!', btn);
+              const platformName = window.location.hostname.includes('topmediai') ? 'TopMediai' : 'Suno';
+              showToast(`🚀 ${platformName} Create button triggered! Track generating...`, 'success', 4500);
+              resolve(true);
+              return;
+            } catch (err) {
+              console.error('[Suno Fusion] Error clicking Create button:', err);
+            }
+          }
+
+          if (attempts < maxAttempts) {
+            setTimeout(tryClick, 200);
+          } else {
+            console.warn('[Suno Fusion] Create button could not be clicked automatically.');
+            showToast("⚠️ Auto-Filled! Please click Suno's Create button to start generation.", 'warn', 5000);
+            resolve(false);
+          }
+        };
+
+        tryClick();
+      }, delayMs);
+    });
   }
 
   // Toast Notification
@@ -480,66 +695,85 @@
   function executeAutoFill(promptData) {
     if (!promptData) return { success: false, error: 'No prompt data' };
 
-    ensureOnCreatePage();
-    ensureCustomMode(true);
-    expandMoreOptions();
+    const isTopMedia = window.location.hostname.includes('topmediai');
 
-    if (promptData.isInstrumental) {
-      toggleInstrumental(true);
+    if (!isTopMedia) {
+      ensureOnCreatePage();
+      ensureSunoCustomMode(true);
+      expandMoreOptions();
+
+      if (promptData.isInstrumental) {
+        toggleInstrumental(true);
+      }
     }
 
+    let hasTriggeredAutoCreate = false;
+
     const runFill = () => {
-      const { styleTextarea, lyricsTextarea, titleInput, excludeInput } = findSunoInputs();
+      const { styleTextarea, lyricsTextarea, titleInput, excludeInput, styleInput, lyricsInput } = findTargetInputs();
+      const targetStyle = styleInput || styleTextarea;
+      const targetLyrics = lyricsInput || lyricsTextarea;
       let filledCount = 0;
 
-      if (styleTextarea && promptData.styleTag) {
-        setReactInputValue(styleTextarea, promptData.styleTag);
+      const styleVal = promptData.styleTag || promptData.sunoStyleTag;
+      if (targetStyle && styleVal) {
+        setInputValueReliably(targetStyle, styleVal);
         filledCount++;
       }
 
-      if (lyricsTextarea && promptData.lyricSnippet) {
-        setReactInputValue(lyricsTextarea, promptData.lyricSnippet);
+      const lyricVal = promptData.lyricSnippet || promptData.lyrics;
+      if (targetLyrics && lyricVal) {
+        setInputValueReliably(targetLyrics, lyricVal);
         filledCount++;
       }
 
       if (titleInput && promptData.title) {
-        setReactInputValue(titleInput, promptData.title);
+        setInputValueReliably(titleInput, promptData.title);
         filledCount++;
       }
 
       if (excludeInput && promptData.excludeStyles) {
-        setReactInputValue(excludeInput, promptData.excludeStyles);
+        setInputValueReliably(excludeInput, promptData.excludeStyles);
         filledCount++;
       }
 
-      // Settings: Vocal Gender
-      if (promptData.vocalGender) {
-        setSunoVocalGender(promptData.vocalGender);
+      if (!isTopMedia) {
+        // Settings: Vocal Gender
+        if (promptData.vocalGender) {
+          setSunoVocalGender(promptData.vocalGender);
+        }
+
+        // Settings: Weirdness
+        if (promptData.weirdness !== undefined) {
+          setSunoSlider('Weirdness', promptData.weirdness);
+        }
+
+        // Settings: Style Influence
+        if (promptData.styleInfluence !== undefined) {
+          setSunoSlider('Style Influence', promptData.styleInfluence);
+        }
+
+        // Settings: Variety
+        if (promptData.variety) {
+          setSunoVariety(promptData.variety);
+        }
+
+        // Settings: Max Mode
+        if (promptData.maxMode !== undefined) {
+          setSunoMaxMode(promptData.maxMode);
+        }
       }
 
-      // Settings: Weirdness
-      if (promptData.weirdness !== undefined) {
-        setSunoSlider('Weirdness', promptData.weirdness);
-      }
-
-      // Settings: Style Influence
-      if (promptData.styleInfluence !== undefined) {
-        setSunoSlider('Style Influence', promptData.styleInfluence);
-      }
-
-      // Settings: Variety
-      if (promptData.variety) {
-        setSunoVariety(promptData.variety);
-      }
-
-      // Settings: Max Mode
-      if (promptData.maxMode !== undefined) {
-        setSunoMaxMode(promptData.maxMode);
-      }
-
+      const platformName = isTopMedia ? 'TopMediai' : 'Suno';
       if (filledCount > 0) {
-        showToast(`✓ Suno Auto-Filled! ${filledCount} boxes & settings updated.`, 'success');
-        return { success: true, filledCount };
+        if (promptData.autoCreate && !hasTriggeredAutoCreate) {
+          hasTriggeredAutoCreate = true;
+          showToast(`⚡ ${platformName} Auto-Filled! Triggering Create button...`, 'success', 2500);
+          triggerCreateButton(400);
+        } else if (!promptData.autoCreate) {
+          showToast(`✓ ${platformName} Auto-Filled! ${filledCount} field${filledCount > 1 ? 's' : ''} updated.`, 'success');
+        }
+        return { success: true, filledCount, autoCreate: !!promptData.autoCreate };
       } else {
         return { success: false };
       }
@@ -548,14 +782,17 @@
     const firstAttempt = runFill();
     if (!firstAttempt.success) {
       setTimeout(() => {
-        ensureCustomMode(true);
-        expandMoreOptions();
+        if (!isTopMedia) {
+          ensureSunoCustomMode(true);
+          expandMoreOptions();
+        }
         const secondAttempt = runFill();
         if (!secondAttempt.success) {
           setTimeout(() => {
             const thirdAttempt = runFill();
             if (!thirdAttempt.success) {
-              showToast('Could not find all Suno inputs automatically. Click "🎯 Diagnostics" in the Suno Fusion HUD to pick your boxes!', 'warn', 5000);
+              const platformName = isTopMedia ? 'TopMediai' : 'Suno';
+              showToast(`Could not find all ${platformName} inputs automatically. Click "🎯 Diagnostics" in the Suno Fusion HUD to pick your boxes!`, 'warn', 5000);
             }
           }, 500);
         }
@@ -567,7 +804,9 @@
 
   // Interactive Box Picker
   function startElementPicker(targetBoxType) {
-    showToast(`🎯 Click directly on Suno's ${targetBoxType.toUpperCase()} box to select it!`, 'warn', 6000);
+    const isTopMedia = window.location.hostname.includes('topmediai');
+    const platformName = isTopMedia ? 'TopMediai' : 'Suno';
+    showToast(`🎯 Click directly on ${platformName}'s ${targetBoxType.toUpperCase()} box to select it!`, 'warn', 6000);
 
     const overlay = document.createElement('div');
     overlay.style.position = 'fixed';
@@ -588,7 +827,7 @@
         if (hoveredEl && hoveredEl !== el) {
           hoveredEl.style.outline = '';
         }
-        hoveredEl = el.closest('textarea, input, button') || el;
+        hoveredEl = el.closest('textarea, input, [contenteditable="true"], [role="textbox"], button') || el;
         hoveredEl.style.outline = '3px dashed #fbbf24';
       }
     }
@@ -598,17 +837,30 @@
       e.stopPropagation();
 
       overlay.style.pointerEvents = 'none';
-      const target = (document.elementFromPoint(e.clientX, e.clientY) || {}).closest?.('textarea, input, button');
+      const target = (document.elementFromPoint(e.clientX, e.clientY) || {}).closest?.('textarea, input, [contenteditable="true"], [role="textbox"], button') || hoveredEl;
       overlay.remove();
 
       if (target) {
         target.style.outline = '4px solid #10b981';
         setTimeout(() => target.style.outline = '', 2000);
 
-        const selector = target.id ? '#' + target.id :
-          target.getAttribute('name') ? target.tagName.toLowerCase() + '[name="' + target.getAttribute('name') + '"]' :
-          target.getAttribute('placeholder') ? target.tagName.toLowerCase() + '[placeholder="' + target.getAttribute('placeholder') + '"]' :
-          target.tagName.toLowerCase();
+        let selector = '';
+        if (target.id) {
+          selector = '#' + target.id;
+        } else if (target.getAttribute('name')) {
+          selector = target.tagName.toLowerCase() + '[name="' + target.getAttribute('name') + '"]';
+        } else if (target.getAttribute('placeholder')) {
+          selector = target.tagName.toLowerCase() + '[placeholder="' + target.getAttribute('placeholder') + '"]';
+        } else if (target.getAttribute('aria-label')) {
+          selector = target.tagName.toLowerCase() + '[aria-label="' + target.getAttribute('aria-label') + '"]';
+        } else if (target.getAttribute('role')) {
+          selector = target.tagName.toLowerCase() + '[role="' + target.getAttribute('role') + '"]';
+        } else if (target.className && typeof target.className === 'string') {
+          const firstClass = target.className.trim().split(/\s+/)[0];
+          selector = firstClass ? '.' + firstClass : target.tagName.toLowerCase();
+        } else {
+          selector = target.tagName.toLowerCase();
+        }
 
         if (targetBoxType === 'style') {
           userCustomSelectors.styleSelector = selector;
@@ -626,6 +878,10 @@
           userCustomSelectors.excludeSelector = selector;
           chrome.storage?.local?.set({ sf_exclude_sel: selector });
           showToast('✓ Saved Exclude Styles target!', 'success');
+        } else if (targetBoxType === 'create') {
+          userCustomSelectors.createSelector = selector;
+          chrome.storage?.local?.set({ sf_create_sel: selector });
+          showToast('✓ Saved Create Button target!', 'success');
         }
 
         updateHudStatus();
@@ -638,19 +894,28 @@
 
   // Insert Metatag into lyrics box
   function insertMetatagIntoLyrics(tag) {
-    const { lyricsTextarea } = findSunoInputs();
-    if (!lyricsTextarea) {
-      showToast('Please open Custom mode to access the lyrics box!', 'warn');
+    const { lyricsTextarea, lyricsInput } = findTargetInputs();
+    const targetLyrics = lyricsInput || lyricsTextarea;
+    if (!targetLyrics) {
+      showToast('Please open Custom mode / lyrics box or click Diagnostics to select it!', 'warn');
       return;
     }
 
-    const current = lyricsTextarea.value || '';
-    const start = lyricsTextarea.selectionStart || current.length;
-    const end = lyricsTextarea.selectionEnd || current.length;
+    if (targetLyrics.isContentEditable || targetLyrics.getAttribute('role') === 'textbox') {
+      const current = targetLyrics.innerText || '';
+      const insertion = (current.length > 0 && !current.endsWith('\n') ? '\n\n' : '') + tag + '\n';
+      setInputValueReliably(targetLyrics, current + insertion);
+      showToast(`Inserted ${tag}`, 'success');
+      return;
+    }
+
+    const current = targetLyrics.value || '';
+    const start = targetLyrics.selectionStart || current.length;
+    const end = targetLyrics.selectionEnd || current.length;
     const insertion = (start > 0 && current[start - 1] !== '\n' ? '\n\n' : '') + tag + '\n';
     const nextValue = current.slice(0, start) + insertion + current.slice(end);
 
-    setReactInputValue(lyricsTextarea, nextValue);
+    setInputValueReliably(targetLyrics, nextValue);
     showToast(`Inserted ${tag}`, 'success');
   }
 
@@ -659,12 +924,14 @@
     const statusContainer = document.getElementById('sf-hud-status');
     if (!statusContainer) return;
 
-    const { styleTextarea, lyricsTextarea, titleInput, excludeInput } = findSunoInputs();
+    const { styleTextarea, lyricsTextarea, titleInput, excludeInput, styleInput, lyricsInput } = findTargetInputs();
+    const hasStyle = !!(styleInput || styleTextarea);
+    const hasLyrics = !!(lyricsInput || lyricsTextarea);
     statusContainer.innerHTML = `
       <div style="display:flex;gap:6px;font-size:10px;font-family:monospace;flex-wrap:wrap;">
-        <span style="color:${styleTextarea ? '#34d399' : '#f87171'}">${styleTextarea ? '● Style OK' : '○ Style Missing'}</span>
+        <span style="color:${hasStyle ? '#34d399' : '#f87171'}">${hasStyle ? '● Style OK' : '○ Style Missing'}</span>
         <span style="color:#52525b">•</span>
-        <span style="color:${lyricsTextarea ? '#34d399' : '#f87171'}">${lyricsTextarea ? '● Lyrics OK' : '○ Lyrics Missing'}</span>
+        <span style="color:${hasLyrics ? '#34d399' : '#f87171'}">${hasLyrics ? '● Lyrics OK' : '○ Lyrics Missing'}</span>
         <span style="color:#52525b">•</span>
         <span style="color:${titleInput ? '#34d399' : '#a1a1aa'}">${titleInput ? '● Title OK' : '○ Title (Opt)'}</span>
         <span style="color:#52525b">•</span>
@@ -673,508 +940,80 @@
     `;
   }
 
-  // Built-in list of genres & instruments for prompt generation directly on Suno
-  const APP_GENRES = ["Alternative Dance Rock","Alternative Grunge","Astral Jazz","Chillstep Ambient Dub","ChillwaveFi","City Pop Fusion","City Pop Noir","ClassicalWave","Cosmic Disco","Cyber Funk","Cyber Soul","Disco Funk Trance Rhodes","Dream Pop Trap","Electro Swing Fusion","Electro Swing Metal","Emo Metal Baroque","Experimental K-Pop","Funk Celtic","Funk Trance","Future Bass Techno","Future City Pop","Future Garage K-Pop EDM","Future Garage Techno","Future Garage Vaporwave","Future Jazz Fusion","Future R&B","Futuristic Blues","Galactic Reggae","Ghibli Jazz","Glitch Hop IDM","Goth Emo Metal","Groovy Bass Metal","Heavy Metal Synth Pop Death Metal","Heavy Metal Synth Pop New Wave","Hitech Psytrance","Indie Electronica","Instrumental Guitar Virtuoso","J-Metal Idol Fusion","Jazz Fusion Laidback","Kawaii EDM Math Rock Metal","Kawaii Metal","Kawaii Metal Math Rock","Kawaii Rock EDM Metal","Latin Trap Crossover","Lofi Hip Hop Acoustic","Lofi Hip Hop Classical","Mall Vaporwave Retrowave","Math Rock Ambient","Math Rock Blues Fusion","Math Rock Double Bass Melody","Math Rock Funk Fusion","Math Rock Goth Rock","Math Rock Piano Virtuoso","Math Rock Reggae Fusion","Math Rock Rhodes Virtuoso","Math Rock Vaporwave","Mellow Blues Funk","Mellow Funk","Mellow Laidback Jazz","Mellow Slow Vaporwave Metal","Melodic EDM Trance Metal","Metalcore Rap Industrial Metal","Neo-City Pop","Neo-Soultronica","Neo-Tokyo","Neo-Tokyo Lo-Fi","Neon Noir","New Wave Synth Pop","Nu Disco House","Post-Punk Wave","Progressive Rock Funk Trance","Psychedelic 70s Trance","Psychedelic Rock Gypsy Jazz","Psychedelic Trip Hop","Punk Waltz","R&B Metal Fusion","Rap Funk Metal Trance","Rap Funk Trance","Retro Rockets","Retrowave Synth Pop","Rural Pop","Slow Sensual Blues Guitar","Slow Sensual Math Rock Blues","Solar Swing","Space Jazz","Surf Rock Jazz Folk Rock","Synth Groove Metal","Time Traveler's Swing","Trance Flamenco","Vaporsoul","Vaporwave City Pop","Vaporwave EDM","Vaporwave K-Pop","Vaporwave Metal","Vaporwave Ska Pop","Vaporwave Synth Funk","Vaporwave Synth Punk","Voyager Vibes","Ambient","Ambient House / Chill-Out","New Age","Cool & West Coast Jazz","Smooth Jazz","Nordic Jazz","Country / Folk Blues","Boogie Woogie / Piano Blues","Vaudeville / Classic Blues","Neo / Nu Soul","Memphis / Deep / Southern Soul","Philly Soul","American & British Folk Revival","Singer/Songwriter","Indie Folk & Freakfolk","Dream Pop & Shoegaze","Indie Pop","Jangle Pop / Indie Rock","Soft Rock / Adult Contemporary","Heartland Rock & A.O.R.","Post-Britpop","Trip Hop","Broken Beats","Ambient Breaks & Illbient","Traditional Gospel","(Negro) Spirituals & Worksongs","Modern Gospel","Progressive, Art- & Symphonic Rock","Minimalism","Third Stream & Modal Jazz","Bolero","Bossa Nova","Trova & Feeling","Dark Ambient / Dark Industrial","Darkwave & Coldwave","Gothic Rock & Deathrock","Progressive & Outlaw","Americana / Alternative","Classic Country / Hillbilly","ROCKABILLY & ROCK 'N' ROLL","SKIFFLE (REVIVAL)","SURF ROCK","GARAGE ROCK","(MERSEY)BEAT / BRITISH INVASION","FOLK ROCK","PSY / ACID ROCK & PSYCHEDELIA","HARD ROCK","SOUTHERN ROCK","PUB ROCK & PROTO PUNK","PUNK ROCK","NO WAVE","POST-PUNK","NEW WAVE","SYNTHPOP & NEW ROMANTICS","GLAM / GLITTER / SHOCK ROCK","HORROR PUNK & PSYCHOBILLY","ANARCHO-PUNK, CRUST, & D-BEAT","ORIGINAL HARDCORE (PUNK)","CROSSOVER THRASH","GRINDCORE","MATH ROCK & MATHCORE","POST-HARDCORE, EMO & SCREAMO","GRUNGE","NOISE ROCK","RAP ROCK / FUNK METAL","POST-ROCK","POST-GRUNGE","SKATE PUNK & POP PUNK","ALTERNATIVE ROCK / INDIE II","SYNTHCORE & CRUNKCORE","METALCORE / NWOAHM","EMO ROCK","GARAGE & POST-PUNK REVIVAL / NU RAWK","INDIETRONICA & CHILLWAVE","NEW / NU / POST-PROG","DANCE-PUNK & NU RAVE","BRILL BUILDING POP & CROONERS","(EARLY) POP ROCK & POWER POP","BUBBLEGUM & TEENYBOP","BRITPOP","DANCE POP","HI-NRG / EURODISCO","ELECTROCLASH","DISCO POP / POST-DISCO","ASIAN POP","SCHLAGER","ELECTROPOP","NWOBHM","CLASSIC METAL","THRASH METAL","GLAM / HAIR / POP METAL","DOOM METAL","PROGRESSIVE METAL","EXTREME METAL","DEATH METAL","BLACK METAL","POWER METAL","SYMPHONIC & GOTHIC METAL","NU METAL & RAP METAL","STONER & SLUDGE METAL","(AVANT-GARDE) INDUSTRIAL","KRAUTROCK","NOISE MUSIC","INDUSTRIAL ROCK / METAL","MINIMAL WAVE / SYNTH & INDUSTRIAL (REVIVAL)","ELECTRONIC BODY MUSIC (EBM)","FUTUREPOP","ELECTRO-INDUSTRIAL / AGGREPPO","WESTERN SWING","BLUEGRASS","HONKY TONK / HARDCORE","BAKERSFIELD","NASHVILLE / COUNTRYPOLITAN","URBAN COUNTRY","CONTEMPORARY / NEOTRADITIONIONAL","COUNTRY POP & ROCK","RHYTHM 'N' BLUES","DOO WOP","EARLY FUNK & P-FUNK","CHICAGO & DETROIT SOUL (MOTOWN)","GO-GO","DISCO","BOOGIE / ELECTROFUNK","NEW JACK SWING / SWINGBEAT","DEEP FUNK & NU FUNK","URBAN SOUL / POP (NU R&B I)","NU DISCO & FUNKTRONNICA","RAGTIME & STRIDE","CHICAGO / CITY / URBAN BLUES","JUMP BLUES","(ELECTRIC) TEXAS BLUES","WEST COAST BLUES","LOUISIANA / SWAMP BLUES","HILL COUNTRY & TRANCE BLUES","BRITISH BLUES & BLUES ROCK","SOUL BLUES (SOUTHERN SOUL II)","TEXAS BLUES ROCK & MODERN ELECTRIC","RELIPOP & -ROCK / CCM","NEW ORLEANS & DIXIELAND JAZZ","CHICAGO JAZZ","SWING / BIG BAND","BEBOP","HARD BOP","SOUL JAZZ / JAZZ-FUNK","FREE JAZZ / AVANT-GARDE","FUSION / JAZZ ROCK","ACID JAZZ / JAZZDANCE","ELECTRO SWING","NU JAZZ / ELECTRO JAZZ","NEW ORLEANS & DIXIELAND REVIVALS","OLD SKOOL RAP PIONEERS","GOLDEN AGE RAP (& HARDCORE RAP)","(WEST COAST) GANGSTA RAP","MIAMI BASS & BOUNCE","JAZZ RAP / NATIVE TONGUE","EAST COAST GANGSTA RAP","TRAP & DRILL","(DIRTY) SOUTH RAP, CRUNK & SNAP","PROGRESSIVE / NU SKOOL RAP","GLITCH HOP & WONKY","URBAN BREAKS (NU R & B II)","MENTO","SKA","(ROOTS) REGGAE","ROCKSTEADY","DUB","RAGGA","SKA PUNK & SKACORE","LOVERS ROCK & UK REGGAE","DANCEHALL","REGGAE FUSION & BHANGRAMUFFIN","REGGAETÓN & LATIN RAP","CLASSIC & ACID TRANCE","GOA TRANCE & PSYTRANCE","PROGRESSIVE TRANCE","EUROTRANCE & VOCAL","IBIZA & DREAM TRANCE / HOUSE","UPLIFTING / EPIC TRANCE","HARDTRANCE","NEO-TRANCE","TECH TRANCE","CHICAGO HOUSE & GARAGE HOUSE","ACID HOUSE","HIP HOUSE & EURODANCE","DEEP HOUSE","PROGRESSIVE HOUSE","FRENCH & FUNKY HOUSE","MICROHOUSE / MINIMAL HOUSE","GHETTO HOUSE, GHETTPOTECH & JUKE","ELECTRO HOUSE & DUTCH HOUSE","FIDGET HOUSE & COMPLEXTRO","NRG, HARD NRG & (UK) HARD HOUSE","MOOMBAHTON","DETROIT TECHNO","MINIMAL TECHNO","(FREE-)TEK(K)NO","INDUSTRIAL TECHNO & SCHRANZ","TECH HOUSE","AMBIENT TECHNO & IDM","HARDTECHNO","HARDCORE TECHNO / RAVE","NEW BEAT","NU STYLE / MAINSTREAM BREAKBEAT HARDCORE","GABBER","HARDSTYLE","HAPPY HARDCORE & BOUNCY TECHNO","DIGITAL HARDCORE & BREAKCORE","TRANCECORE & ACIDCORE","SPEED- & TERRORCORE","OLD SKOOL JUNGLE & DRUM 'N' BASS","INTELLIGENT & JAZZSTEP","JUMP UP","DARKCORE & DARKSTEP","HARDSTEP & TECHSTEP","NEUROFUNK","POST-DUBSTEP","DUBSTEP","LIQUID FUNK","FUTURE BASS & FUTURE GARAGE","BREAKBEAT HARDCORE (RAVE II)","FREESTYLE & BREAKDANCE","FLORIDA BREAKS","NU SKOOL BREAKS","CHEMICAL BREAKS & BIG BEAT","UK GARAGE (2-STEP & SPEED)","ELECTRO","BREAKBEAT GARAGE & GRIME","BASSLINE & UK FUNKY","EDM TRAP / TRAPSTEP","SYNTH / ELECTRONICA","MUSIQUE CONCRÈTE","BIT MUSIC (CHIPTUNE)","MUZAK / ELEVATOR MUSIC","LOUNGE / SPACE AGE POP","DIGITAL MINIMALISM / LOWERCASE","SYNTHWAVE & VAPORWAVE","GLITCH / CLICKS 'N' CUTS","CONTRADANZA","PUNTO & GUAJIRA","HABANERA","SON","DANZÓN","RUMBA","MAMBO & CHACHACHA","CUBOP","CANCION","NUEVA TROVA","SALSA","TIMBA","BAILE-FUNK","BOMBA, PLENA & MERENGUE","BOOGALOO","CALYPSO","CHACÓN","CUMBIA","HUAYNO & CHICA","MILONGA","SAMBA","SOCA & PUNTA","TANGO","TROPICALIA","ZOUK","TEXMEX & CONJUNTO","NORTEC","TECNOBREGA & -RUMBA","CHICANO ROCK","CHALGA","BALKAN BEAT / POP","BHANGRA","INDIAN RAGA","HIGHLIFE","AFROBEAT","WORLDBEAT","ARABIAN POP","POP RAÏ","CAJUN","Alternative Dance Rock","Alternative Grunge","Astral Jazz","Chillstep Ambient Dub","ChillwaveFi","City Pop Fusion","City Pop Noir","ClassicalWave","Cosmic Disco","Cyber Funk","Cyber Soul","Disco Funk Trance Rhodes","Dream Pop Trap","Electro Swing Fusion","Electro Swing Metal","Emo Metal Baroque","Experimental K-Pop","Funk Celtic","Funk Trance","Future Bass Techno","Future City Pop","Future Garage K-Pop EDM","Future Garage Techno","Future Garage Vaporwave","Future Jazz Fusion","Future R&B","Futuristic Blues","Galactic Reggae","Ghibli Jazz","Glitch Hop IDM","Goth Emo Metal","Groovy Bass Metal","Heavy Metal Synth Pop Death Metal","Heavy Metal Synth Pop New Wave","Hitech Psytrance","Indie Electronica","Instrumental Guitar Virtuoso","J-Metal Idol Fusion","Jazz Fusion Laidback","Kawaii EDM Math Rock Metal","Kawaii Metal","Kawaii Metal Math Rock","Kawaii Rock EDM Metal","Latin Trap Crossover","Lofi Hip Hop Acoustic","Lofi Hip Hop Classical","Mall Vaporwave Retrowave","Math Rock Ambient","Math Rock Blues Fusion","Math Rock Double Bass Melody","Math Rock Funk Fusion","Math Rock Goth Rock","Math Rock Piano Virtuoso","Math Rock Reggae Fusion","Math Rock Rhodes Virtuoso","Math Rock Vaporwave","Mellow Blues Funk","Mellow Funk","Mellow Laidback Jazz","Mellow Slow Vaporwave Metal","Melodic EDM Trance Metal","Metalcore Rap Industrial Metal","Neo-City Pop","Neo-Soultronica","Neo-Tokyo","Neo-Tokyo Lo-Fi","Neon Noir","New Wave Synth Pop","Nu Disco House","Post-Punk Wave","Progressive Rock Funk Trance","Psychedelic 70s Trance","Psychedelic Rock Gypsy Jazz","Psychedelic Trip Hop","Punk Waltz","R&B Metal Fusion","Rap Funk Metal Trance","Rap Funk Trance","Retro Rockets","Retrowave Synth Pop","Rural Pop","Slow Sensual Blues Guitar","Slow Sensual Math Rock Blues","Solar Swing","Space Jazz","Surf Rock Jazz Folk Rock","Synth Groove Metal","Time Traveler's Swing","Trance Flamenco","Vaporsoul","Vaporwave City Pop","Vaporwave EDM","Vaporwave K-Pop","Vaporwave Metal","Vaporwave Ska Pop","Vaporwave Synth Funk","Vaporwave Synth Punk","Voyager Vibes"];
+  // Built-in list of genres & taxonomy data
+  const TAXONOMY_DATA = (typeof window !== 'undefined' && window.SUNO_TAXONOMY) ? window.SUNO_TAXONOMY : {};
+  const APP_GENRES = (TAXONOMY_DATA.baseGenres && TAXONOMY_DATA.baseGenres.length)
+    ? TAXONOMY_DATA.baseGenres
+    : [
+      "Ambient", "Ambient House / Chill-Out", "New Age", "Cool & West Coast Jazz", "Smooth Jazz",
+      "Nordic Jazz", "Country / Folk Blues", "Boogie Woogie / Piano Blues", "Vaudeville / Classic Blues",
+      "Neo / Nu Soul", "Memphis / Deep / Southern Soul", "Philly Soul", "American & British Folk Revival",
+      "Dream Pop & Shoegaze", "Indie Pop", "TRAP & DRILL", "Cyber Funk", "Celtic Folk", "Darkwave",
+      "Alternative Dance Rock", "Alternative Grunge", "Astral Jazz", "Chillstep Ambient Dub", "ChillwaveFi",
+      "City Pop Fusion", "Cosmic Disco", "Dream Pop Trap", "Electro Swing Fusion", "Kawaii Metal", "Vaporwave Metal"
+    ];
+  const COINED_GENRES = (TAXONOMY_DATA.coinedGenres && TAXONOMY_DATA.coinedGenres.length)
+    ? TAXONOMY_DATA.coinedGenres
+    : [
+      "Alternative Dance Rock", "Alternative Grunge", "Astral Jazz", "Chillstep Ambient Dub", "ChillwaveFi",
+      "City Pop Fusion", "City Pop Noir", "ClassicalWave", "Cosmic Disco", "Cyber Funk", "Cyber Soul",
+      "Dream Pop Trap", "Electro Swing Fusion", "Electro Swing Metal", "Kawaii Metal", "Vaporwave Metal"
+    ];
+  const coinedSet = new Set(COINED_GENRES);
+  const CURATED_LIBRARY = (typeof window !== 'undefined' && window.SUNO_CURATED_LIBRARY) ? window.SUNO_CURATED_LIBRARY : [];
+  const CREATIONS_DB = (typeof window !== 'undefined' && window.SUNO_CREATIONS_DATABASE) ? window.SUNO_CREATIONS_DATABASE : [];
+  const creationsMap = new Map();
+  CREATIONS_DB.forEach(item => { if (item.id) creationsMap.set(item.id, item); });
 
-  const APP_INSTRUMENTS = [
-    "Roland Juno-106", "Moog Minimoog", "808 Sub Bass", "Fender Stratocaster", "Acoustic Guitar",
-    "Bagpipes", "Erhu", "Shamisen", "Sitar", "Cello", "80s LinnDrum", "Grand Piano", "Saxophone", "TR-909 Drums", "Modular Synth"
-  ];
+  const INSTRUMENTS_DATA = (typeof window !== 'undefined' && window.SUNO_INSTRUMENTS) ? window.SUNO_INSTRUMENTS : {
+    categories: ["All", "Guitars & Amps", "Bass & Low-End", "Keys & Pianos", "Drums & Percussion", "Orchestral & Acoustic", "Synthesizers & Patches", "Synth Leads", "Synth Pads", "Synth Plucks", "Arps & Sequences", "Atmos, FX & Cinematic"],
+    catalog: [],
+    presets: [],
+    list: ["Roland Juno-106", "Moog Minimoog", "808 Sub Bass", "Fender Stratocaster", "Acoustic Guitar", "Cello", "Grand Piano", "Saxophone", "TR-909 Drums", "Modular Synth"],
+    categoryCounts: {}
+  };
+  const ALL_APP_INSTRUMENTS = (INSTRUMENTS_DATA.catalog && INSTRUMENTS_DATA.catalog.length > 0)
+    ? INSTRUMENTS_DATA.catalog
+    : INSTRUMENTS_DATA.list.map(name => ({ name, category: 'All' }));
+  const APP_INSTRUMENT_CATEGORIES = INSTRUMENTS_DATA.categories || ["All"];
+  const APP_INSTRUMENT_PRESETS = INSTRUMENTS_DATA.presets || [];
 
   // Full Floating Studio HUD
+  // Lightweight Floating Launcher (Triggers Chrome Native Side Panel)
   function injectFloatingHUD() {
     if (document.getElementById('suno-fusion-fab')) return;
+
+    // Ensure any previously saved docked preference is cleared
+    chrome.storage?.local?.set({ sf_hud_docked: false });
 
     const hud = document.createElement('div');
     hud.id = 'suno-fusion-fab';
     hud.className = 'suno-fusion-fab-container';
+    hud.style.position = 'fixed';
+    hud.style.bottom = '22px';
+    hud.style.right = '22px';
+    hud.style.zIndex = '999999';
+
     hud.innerHTML = `
-      <!-- Minimized Floating Button -->
-      <button id="sf-toggle-btn" class="sf-fab-btn" title="Open Suno Fusion Studio & AutoFill">
-        <span style="font-size:16px;">⚡</span>
-        <span style="font-weight:700;">Suno Fusion Studio</span>
+      <button id="sf-toggle-btn" class="sf-fab-btn" title="Open Suno Fusion Studio Side Panel" style="display:flex;align-items:center;gap:7px;background:linear-gradient(135deg, #8b5cf6, #ec4899);color:#ffffff;border:1px solid rgba(255,255,255,0.25);padding:9px 16px;border-radius:9999px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(139,92,246,0.45);transition:transform 0.15s ease;">
+        <span style="font-size:14px;">⚡</span>
+        <span>Suno Studio Sidekick</span>
+        <span class="sf-badge" style="background:rgba(255,255,255,0.2);color:#fff;font-size:9px;padding:2px 6px;border-radius:6px;font-weight:700;">Side Panel</span>
       </button>
-
-      <!-- Full Expanded Studio Panel -->
-      <div id="sf-hud-panel" class="sf-panel sf-hidden">
-        <!-- Header -->
-        <div class="sf-panel-header">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="color:#fbbf24;font-size:16px;">⚡</span>
-            <span style="font-weight:800;font-size:14px;color:#ffffff;">Suno Fusion Studio</span>
-            <span class="sf-badge">v2.0</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <button id="sf-btn-refresh-status" class="sf-icon-btn" title="Rescan Suno Input Boxes">🔄</button>
-            <button id="sf-btn-close-hud" class="sf-icon-btn" title="Close Panel">&times;</button>
-          </div>
-        </div>
-
-        <!-- Detection Status -->
-        <div id="sf-hud-status" style="padding:6px 12px;background:#18181b;border-bottom:1px solid #27272a;"></div>
-
-        <!-- Tab Bar -->
-        <div class="sf-tab-bar">
-          <button class="sf-tab-btn active" data-tab="create">🔀 Prompt Studio</button>
-          <button class="sf-tab-btn" data-tab="settings">⚙️ Suno Settings</button>
-          <button class="sf-tab-btn" data-tab="metatags">🏷️ Metatags</button>
-          <button class="sf-tab-btn" data-tab="diag">🎯 Pick Boxes</button>
-        </div>
-
-        <!-- Panel Body -->
-        <div class="sf-panel-body">
-          <!-- TAB 1: PROMPT STUDIO -->
-          <div id="sf-tab-content-create" class="sf-tab-content">
-            <!-- Genre Clash Selector -->
-            <div style="margin-bottom:10px;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                <label class="sf-label">Genre 1 &amp; Genre 2 Collision:</label>
-                <button id="sf-btn-roll-random" class="sf-pick-btn" title="Roll random collision">🎲 Roll Clash</button>
-              </div>
-              <div style="display:flex;gap:6px;margin-bottom:6px;">
-                <select id="sf-genre-1" class="sf-select" style="flex:1;"></select>
-                <select id="sf-genre-2" class="sf-select" style="flex:1;"></select>
-              </div>
-              <select id="sf-genre-3" class="sf-select" style="width:100%;"><option value="">-- Optional Genre 3 --</option></select>
-              <input id="sf-custom-genre" class="sf-input" type="text" style="margin-top:6px;" placeholder="Custom primary genre (replaces Genre 1)" aria-label="Custom primary genre" />
-            </div>
-
-            <!-- Tempo & Instruments -->
-            <div style="display:flex;gap:8px;margin-bottom:10px;">
-              <div style="flex:1;">
-                <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-                  <label class="sf-label">Tempo: <span id="sf-bpm-val" style="color:#fbbf24;">140 BPM</span></label>
-                  <button id="sf-btn-metronome" class="sf-pick-btn" title="Metronome audio click">🔊 Click</button>
-                </div>
-                <input id="sf-bpm-slider" type="range" min="50" max="210" value="140" class="sf-range" />
-              </div>
-              <div style="width:100px;">
-                <label class="sf-label">Time Sig:</label>
-                <select id="sf-timesig" class="sf-select">
-                  <option value="4/4">4/4</option>
-                  <option value="3/4">3/4</option>
-                  <option value="6/8">6/8</option>
-                  <option value="7/8">7/8</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Instrument Rig Chips -->
-            <div style="margin-bottom:10px;">
-              <label class="sf-label" style="margin-bottom:4px;display:block;">Instrument Rig (Click to Add):</label>
-              <div id="sf-inst-chips" class="sf-tags-cloud"></div>
-              <input id="sf-custom-instruments" class="sf-input" type="text" style="margin-top:6px;" placeholder="Other exact instruments, comma-separated" aria-label="Other instruments" />
-            </div>
-
-            <!-- Style Tag Textarea -->
-            <div style="margin-bottom:10px;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                <label class="sf-label">Style of Music (Suno Tag):</label>
-                <button id="sf-btn-rebuild-prompt" class="sf-pick-btn">✨ Re-Roll Style</button>
-              </div>
-              <textarea id="sf-style-text" class="sf-textarea" rows="2"></textarea>
-            </div>
-
-            <!-- Lyrics & Title -->
-            <div style="margin-bottom:10px;">
-              <label class="sf-label" style="margin-bottom:4px;display:block;">Lyrics &amp; Metatag Scaffold:</label>
-              <textarea id="sf-lyrics-text" class="sf-textarea" rows="2"></textarea>
-            </div>
-
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-              <div style="flex:1;">
-                <label class="sf-label">Track Title:</label>
-                <input id="sf-title-text" type="text" class="sf-input" value="Nebula Drift" />
-              </div>
-              <div style="width:110px;">
-                <label class="sf-label">Instrumental:</label>
-                <button id="sf-toggle-inst-btn" class="sf-option-btn">Instrumental: OFF</button>
-              </div>
-            </div>
-
-            <!-- Main AutoFill Button -->
-            <button id="sf-btn-autofill" class="sf-primary-fill-btn">
-              ⚡ 1-Click AutoFill Suno Form
-            </button>
-          </div>
-
-          <!-- TAB 2: SUNO ADVANCED SETTINGS (MORE OPTIONS) -->
-          <div id="sf-tab-content-settings" class="sf-tab-content sf-hidden">
-            <div style="background:#18181b;border:1px solid #27272a;border-radius:10px;padding:12px;margin-bottom:12px;">
-              <span class="sf-section-title" style="margin-bottom:8px;color:#c4b5fd;">Suno "More Options" Configuration:</span>
-
-              <!-- Exclude Styles -->
-              <div style="margin-bottom:12px;">
-                <label class="sf-label" style="display:flex;align-items:center;gap:4px;">
-                  <span>🚫 Exclude Styles (Negative Prompt):</span>
-                </label>
-                <input id="sf-exclude-text" type="text" class="sf-input" placeholder="e.g. screaming, harsh distortion, autotune, mumble" value="screaming, harsh distortion, muddy bass, generic pop EDM" />
-              </div>
-
-              <!-- Vocal Gender -->
-              <div style="margin-bottom:12px;">
-                <label class="sf-label" style="margin-bottom:6px;display:block;">Vocal Gender:</label>
-                <div style="display:flex;gap:6px;">
-                  <button class="sf-gender-btn active" data-gender="Female">Female</button>
-                  <button class="sf-gender-btn" data-gender="Male">Male</button>
-                  <button class="sf-gender-btn" data-gender="Duet">Duet</button>
-                  <button class="sf-gender-btn" data-gender="None">None</button>
-                </div>
-              </div>
-
-              <!-- Weirdness Slider -->
-              <div style="margin-bottom:12px;">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                  <label class="sf-label">Weirdness:</label>
-                  <span id="sf-weirdness-val" style="font-size:11px;font-family:monospace;color:#fbbf24;">50%</span>
-                </div>
-                <input id="sf-weirdness-slider" type="range" min="0" max="100" value="50" class="sf-range" />
-              </div>
-
-              <!-- Style Influence Slider -->
-              <div style="margin-bottom:12px;">
-                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                  <label class="sf-label">Style Influence:</label>
-                  <span id="sf-influence-val" style="font-size:11px;font-family:monospace;color:#ec4899;">85%</span>
-                </div>
-                <input id="sf-influence-slider" type="range" min="0" max="100" value="85" class="sf-range" />
-              </div>
-
-              <!-- Variety -->
-              <div style="margin-bottom:12px;">
-                <label class="sf-label" style="margin-bottom:6px;display:block;">Variety:</label>
-                <div style="display:flex;gap:6px;">
-                  <button class="sf-variety-btn" data-variety="Low">Low</button>
-                  <button class="sf-variety-btn" data-variety="Medium">Medium</button>
-                  <button class="sf-variety-btn active" data-variety="High">High</button>
-                </div>
-              </div>
-
-              <!-- Duration & Max Mode -->
-              <div style="display:flex;gap:8px;">
-                <div style="flex:1;">
-                  <label class="sf-label">Duration:</label>
-                  <select id="sf-duration-select" class="sf-select">
-                    <option value="2:00">2:00</option>
-                    <option value="2:30">2:30</option>
-                    <option value="3:00" selected>3:00</option>
-                    <option value="3:30">3:30</option>
-                    <option value="4:00">4:00</option>
-                  </select>
-                </div>
-                <div style="flex:1;">
-                  <label class="sf-label">Max Mode:</label>
-                  <button id="sf-btn-maxmode" class="sf-option-btn">Max Mode: OFF</button>
-                </div>
-              </div>
-            </div>
-
-            <button id="sf-btn-apply-settings" class="sf-primary-fill-btn">
-              ⚡ Apply Settings &amp; AutoFill Suno
-            </button>
-          </div>
-
-          <!-- TAB 3: METATAGS -->
-          <div id="sf-tab-content-metatags" class="sf-tab-content sf-hidden">
-            <span class="sf-section-title" style="margin-bottom:8px;">Click to inject metatag into Suno's lyrics:</span>
-            <div class="sf-tags-cloud" style="gap:6px;">
-              <button class="sf-metatag-btn" data-tag="[Intro]">[Intro]</button>
-              <button class="sf-metatag-btn" data-tag="[Verse 1]">[Verse 1]</button>
-              <button class="sf-metatag-btn" data-tag="[Verse 2]">[Verse 2]</button>
-              <button class="sf-metatag-btn" data-tag="[Pre-Chorus]">[Pre-Chorus]</button>
-              <button class="sf-metatag-btn" data-tag="[Chorus]">[Chorus]</button>
-              <button class="sf-metatag-btn" data-tag="[Drop]">[Drop]</button>
-              <button class="sf-metatag-btn" data-tag="[Guitar Solo]">[Guitar Solo]</button>
-              <button class="sf-metatag-btn" data-tag="[Synth Solo]">[Synth Solo]</button>
-              <button class="sf-metatag-btn" data-tag="[Bass Drop]">[Bass Drop]</button>
-              <button class="sf-metatag-btn" data-tag="[Bridge]">[Bridge]</button>
-              <button class="sf-metatag-btn" data-tag="[Outro]">[Outro]</button>
-              <button class="sf-metatag-btn" data-tag="[Fade Out]">[Fade Out]</button>
-              <button class="sf-metatag-btn" data-tag="[Instrumental Break]">[Instrumental Break]</button>
-            </div>
-          </div>
-
-          <!-- TAB 4: DIAGNOSTICS & ELEMENT PICKER -->
-          <div id="sf-tab-content-diag" class="sf-tab-content sf-hidden">
-            <span class="sf-section-title" style="margin-bottom:8px;">Target Element Finder &amp; Selectors:</span>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <button id="sf-pick-style-btn" class="sf-secondary-btn" style="text-align:left;padding:9px;">
-                🎯 Click to Target Style Box
-              </button>
-              <button id="sf-pick-lyrics-btn" class="sf-secondary-btn" style="text-align:left;padding:9px;">
-                🎯 Click to Target Lyrics Box
-              </button>
-              <button id="sf-pick-title-btn" class="sf-secondary-btn" style="text-align:left;padding:9px;">
-                🎯 Click to Target Title Box
-              </button>
-              <button id="sf-pick-exclude-btn" class="sf-secondary-btn" style="text-align:left;padding:9px;">
-                🎯 Click to Target Exclude Styles Box
-              </button>
-              <button id="sf-btn-force-expand-more" class="sf-secondary-btn" style="text-align:left;padding:9px;">
-                📂 Force Expand "More Options" on Suno
-              </button>
-              <button id="sf-btn-force-custom" class="sf-secondary-btn" style="text-align:left;padding:9px;">
-                🎛️ Force Custom Mode Toggle on Suno
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     `;
 
     document.body.appendChild(hud);
 
-    // Event Wire-up
     const toggleBtn = document.getElementById('sf-toggle-btn');
-    const hudPanel = document.getElementById('sf-hud-panel');
-    const closeBtn = document.getElementById('sf-btn-close-hud');
-    const refreshBtn = document.getElementById('sf-btn-refresh-status');
-    const genre1Sel = document.getElementById('sf-genre-1');
-    const genre2Sel = document.getElementById('sf-genre-2');
-    const genre3Sel = document.getElementById('sf-genre-3');
-    const customGenreInput = document.getElementById('sf-custom-genre');
-    const rollRandomBtn = document.getElementById('sf-btn-roll-random');
-    const bpmSlider = document.getElementById('sf-bpm-slider');
-    const bpmVal = document.getElementById('sf-bpm-val');
-    const metronomeBtn = document.getElementById('sf-btn-metronome');
-    const timeSigSel = document.getElementById('sf-timesig');
-    const instChipsContainer = document.getElementById('sf-inst-chips');
-    const customInstrumentsInput = document.getElementById('sf-custom-instruments');
-    const styleText = document.getElementById('sf-style-text');
-    const lyricsText = document.getElementById('sf-lyrics-text');
-    const titleText = document.getElementById('sf-title-text');
-    const excludeText = document.getElementById('sf-exclude-text');
-    const toggleInstBtn = document.getElementById('sf-toggle-inst-btn');
-    const autofillBtn = document.getElementById('sf-btn-autofill');
-    const applySettingsBtn = document.getElementById('sf-btn-apply-settings');
-    const rebuildPromptBtn = document.getElementById('sf-btn-rebuild-prompt');
-
-    // Advanced settings inputs
-    const weirdnessSlider = document.getElementById('sf-weirdness-slider');
-    const weirdnessVal = document.getElementById('sf-weirdness-val');
-    const influenceSlider = document.getElementById('sf-influence-slider');
-    const influenceVal = document.getElementById('sf-influence-val');
-    const durationSelect = document.getElementById('sf-duration-select');
-    const maxModeBtn = document.getElementById('sf-btn-maxmode');
-
-    let selectedGender = 'Female';
-    let selectedVariety = 'High';
-    let isMaxMode = false;
-    let isInstrumental = false;
-    let selectedInstruments = [];
-
-    // Populate Genres
-    APP_GENRES.forEach((g, i) => {
-      const opt1 = new Option(g, g, false, i === 0);
-      const opt2 = new Option(g, g, false, i === 1);
-      const opt3 = new Option(g, g);
-      genre1Sel.add(opt1);
-      genre2Sel.add(opt2);
-      genre3Sel.add(opt3);
-    });
-    [genre1Sel, genre2Sel, genre3Sel, timeSigSel].forEach(el => {
-      el.onchange = () => updatePrompt();
-    });
-    customGenreInput.oninput = () => updatePrompt();
-
-    // Populate Instruments
-    function renderInstruments() {
-      instChipsContainer.innerHTML = '';
-      APP_INSTRUMENTS.forEach(inst => {
-        const isSelected = selectedInstruments.includes(inst);
-        const chip = document.createElement('button');
-        chip.className = 'sf-inst-chip' + (isSelected ? ' active' : '');
-        chip.textContent = inst;
-        chip.onclick = () => {
-          if (selectedInstruments.includes(inst)) {
-            selectedInstruments = selectedInstruments.filter(x => x !== inst);
-          } else {
-            selectedInstruments.push(inst);
+    if (toggleBtn) {
+      toggleBtn.onclick = () => {
+        chrome.runtime?.sendMessage?.({ action: 'OPEN_SIDE_PANEL' }, (res) => {
+          if (chrome.runtime.lastError || !res?.success) {
+            showToast('✨ Click the ⚡ Suno Fusion icon in your Chrome toolbar to open the Side Panel!', 'info', 4000);
           }
-          renderInstruments();
-          updatePrompt();
-        };
-        instChipsContainer.appendChild(chip);
-      });
+        });
+      };
     }
-    renderInstruments();
-    customInstrumentsInput.oninput = () => updatePrompt();
-
-    // Prompt generator
-    function updatePrompt() {
-      const g1 = genre1Sel.value;
-      const g2 = genre2Sel.value;
-      const g3 = genre3Sel.value;
-      const bpm = bpmSlider.value;
-      const sig = timeSigSel.value;
-      const genres = [customGenreInput.value.trim() || g1, g2, g3].filter(Boolean);
-      const instruments = [...new Set([
-        ...selectedInstruments,
-        ...customInstrumentsInput.value.split(',').map(name => name.trim()).filter(Boolean)
-      ])];
-      const groove = designGroove({ genres, instruments, timeSig: sig, bpm: Number(bpm) });
-      styleText.value = [
-        genres.join(' × '), bpm + ' BPM (' + sig + ')',
-        ...instruments,
-        groove.description, groove.production,
-        isInstrumental || selectedGender === 'None' ? 'instrumental' : selectedGender.toLowerCase() + ' vocals'
-      ].filter(Boolean).join(', ');
-
-      if (!lyricsText.value.trim()) {
-        lyricsText.value = `[Intro]\n[Verse 1]\nNeon shadows drift across the floor\nVoices echo from an open door\n\n[Pre-Chorus]\nCounting down the seconds in the light\n\n[Chorus]\nElectric dreams ignite the endless night\n\n[Drop]\n\n[Outro]\n[Fade Out]`;
-      }
-    }
-    updatePrompt();
-
-    // Roll random clash
-    rollRandomBtn.onclick = () => {
-      const pick = () => APP_GENRES[Math.floor(Math.random() * APP_GENRES.length)];
-      genre1Sel.value = pick();
-      genre2Sel.value = pick();
-      genre3Sel.value = Math.random() > 0.5 ? pick() : '';
-      bpmSlider.value = Math.floor(Math.random() * (175 - 85) + 85);
-      bpmVal.textContent = bpmSlider.value + ' BPM';
-      updatePrompt();
-      showToast('🎲 Rolled new genre collision!', 'success');
-    };
-
-    rebuildPromptBtn.onclick = updatePrompt;
-
-    // Sliders
-    bpmSlider.oninput = () => {
-      bpmVal.textContent = bpmSlider.value + ' BPM';
-      updatePrompt();
-    };
-
-    weirdnessSlider.oninput = () => {
-      weirdnessVal.textContent = weirdnessSlider.value + '%';
-    };
-
-    influenceSlider.oninput = () => {
-      influenceVal.textContent = influenceSlider.value + '%';
-    };
-
-    // Metronome click (Web Audio API)
-    let audioCtx = null;
-    let metronomeTimer = null;
-    metronomeBtn.onclick = () => {
-      if (metronomeTimer) {
-        clearInterval(metronomeTimer);
-        metronomeTimer = null;
-        metronomeBtn.textContent = '🔊 Click';
-        return;
-      }
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const intervalMs = (60 / parseInt(bpmSlider.value, 10)) * 1000;
-      metronomeBtn.textContent = '⏹ Stop';
-      metronomeTimer = setInterval(() => {
-        try {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.05);
-        } catch (e) {}
-      }, intervalMs);
-    };
-
-    // Gender buttons
-    hud.querySelectorAll('.sf-gender-btn').forEach(btn => {
-      btn.onclick = () => {
-        hud.querySelectorAll('.sf-gender-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedGender = btn.getAttribute('data-gender');
-        updatePrompt();
-      };
-    });
-
-    // Variety buttons
-    hud.querySelectorAll('.sf-variety-btn').forEach(btn => {
-      btn.onclick = () => {
-        hud.querySelectorAll('.sf-variety-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedVariety = btn.getAttribute('data-variety');
-      };
-    });
-
-    // Max mode toggle
-    maxModeBtn.onclick = () => {
-      isMaxMode = !isMaxMode;
-      maxModeBtn.textContent = 'Max Mode: ' + (isMaxMode ? 'ON' : 'OFF');
-      maxModeBtn.style.color = isMaxMode ? '#34d399' : '#a1a1aa';
-    };
-
-    // Instrumental toggle
-    toggleInstBtn.onclick = () => {
-      isInstrumental = !isInstrumental;
-      toggleInstBtn.textContent = 'Instrumental: ' + (isInstrumental ? 'ON' : 'OFF');
-      toggleInstBtn.style.color = isInstrumental ? '#34d399' : '#a1a1aa';
-      toggleInstrumental(isInstrumental);
-      updatePrompt();
-    };
-
-    // Tab Navigation
-    hud.querySelectorAll('.sf-tab-btn').forEach(btn => {
-      btn.onclick = () => {
-        hud.querySelectorAll('.sf-tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const targetTab = btn.getAttribute('data-tab');
-        hud.querySelectorAll('.sf-tab-content').forEach(c => c.classList.add('sf-hidden'));
-        document.getElementById('sf-tab-content-' + targetTab)?.classList.remove('sf-hidden');
-      };
-    });
-
-    // Main AutoFill Action
-    const doFill = () => {
-      executeAutoFill({
-        styleTag: styleText.value.trim(),
-        lyricSnippet: lyricsText.value.trim(),
-        title: titleText.value.trim(),
-        excludeStyles: excludeText.value.trim(),
-        vocalGender: selectedGender,
-        weirdness: parseInt(weirdnessSlider.value, 10),
-        styleInfluence: parseInt(influenceSlider.value, 10),
-        variety: selectedVariety,
-        duration: durationSelect.value,
-        maxMode: isMaxMode,
-        isInstrumental
-      });
-    };
-
-    autofillBtn.onclick = doFill;
-    applySettingsBtn.onclick = doFill;
-
-    // Diagnostics / Element Pickers
-    document.getElementById('sf-pick-style-btn').onclick = () => startElementPicker('style');
-    document.getElementById('sf-pick-lyrics-btn').onclick = () => startElementPicker('lyrics');
-    document.getElementById('sf-pick-title-btn').onclick = () => startElementPicker('title');
-    document.getElementById('sf-pick-exclude-btn').onclick = () => startElementPicker('exclude');
-    document.getElementById('sf-btn-force-expand-more').onclick = () => {
-      expandMoreOptions();
-      showToast('Expanded More Options on Suno', 'success');
-    };
-    document.getElementById('sf-btn-force-custom').onclick = () => {
-      ensureCustomMode(true);
-      showToast('Custom Mode Toggled on Suno', 'success');
-    };
-
-    // Metatags insertion
-    hud.querySelectorAll('.sf-metatag-btn').forEach(btn => {
-      btn.onclick = () => insertMetatagIntoLyrics(btn.getAttribute('data-tag'));
-    });
-
-    toggleBtn.onclick = () => {
-      hudPanel.classList.toggle('sf-hidden');
-      updateHudStatus();
-    };
-
-    closeBtn.onclick = () => hudPanel.classList.add('sf-hidden');
-    refreshBtn.onclick = updateHudStatus;
   }
 
   // Runtime Message Listener
@@ -1182,9 +1021,14 @@
     if (request.action === 'AUTOFILL') {
       const res = executeAutoFill(request.prompt);
       sendResponse(res);
+    } else if (request.action === 'TRIGGER_CREATE') {
+      triggerCreateButton(50).then(success => {
+        sendResponse({ success });
+      });
+      return true;
     } else if (request.action === 'PING') {
-      const inputs = findSunoInputs();
-      sendResponse({ active: true, inputsFound: !!(inputs.styleTextarea || inputs.lyricsTextarea) });
+      const inputs = findTargetInputs();
+      sendResponse({ active: true, inputsFound: !!(inputs.styleInput || inputs.lyricsInput || inputs.styleTextarea || inputs.lyricsTextarea) });
     } else if (request.action === 'PICK_ELEMENT') {
       startElementPicker(request.target);
       sendResponse({ started: true });

@@ -125,8 +125,7 @@ export function generateSunoPrompt(
 
   const fullPrompt = `${headerParts.join(', ')}: ${body}`;
 
-  // The copyable Style field carries the actual groove instructions too: the
-  // extension auto-fills this field, whereas fullPrompt stays in the app.
+  // Suno Style Tag: carries genre + groove instructions for the extension auto-fill
   const tagComponents = [
     ...validGenres,
     bpmLabel,
