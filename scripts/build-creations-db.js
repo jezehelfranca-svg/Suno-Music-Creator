@@ -192,7 +192,7 @@ export function buildCreationsDatabase() {
   const gflDir = 'D:/Applications/Genre-Fusion-Lab/output';
   const database = new Map();
 
-  console.log('? Ingesting created Suno prompts into database...');
+  console.log('?? Ingesting created Suno prompts into database...');
 
   // 1. Process Fictional-Bands
   if (fs.existsSync(fbDir)) {

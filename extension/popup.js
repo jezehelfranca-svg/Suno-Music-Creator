@@ -1,5 +1,5 @@
 // Suno Fusion v2.5 - Popup Studio & Extension Engine
-// ?? Groove Design (seed-aware, inlined from src/utils/grooveDesign.js) ??
+// ── Groove Design (seed-aware, inlined from src/utils/grooveDesign.js) ──
 function designGroove(seed = {}) {
   const genres = (seed.genres || []).filter(Boolean);
   const instruments = (seed.instruments || []).filter(Boolean);
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedInstruments = [...p.instruments];
         renderSelectedInstruments();
         updateStylePrompt();
-        statusEl.textContent = `??🎛️ Loaded rig preset: ${p.name}`;
+        statusEl.textContent = `🎛️ Loaded rig preset: ${p.name}`;
       }
       instPresetSel.value = '';
     };
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedInstruments.push(val);
         renderSelectedInstruments();
         updateStylePrompt();
-        statusEl.textContent = `?🎸 Added instrument: ${val}`;
+        statusEl.textContent = `🎸 Added instrument: ${val}`;
       }
       instSelect.value = '';
     };
@@ -394,6 +394,24 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // 4. STYLE TAG SYNTHESIZER
   // ==========================================
+
+  // Helper to maintain character count and highlight Suno v3.5/v4 capacity
+  function updateStyleLength() {
+    if (!styleInput || !styleLenEl) return;
+    const len = styleInput.value.length;
+    styleLenEl.textContent = `${len}/1000`;
+    if (len > 1000) {
+      styleLenEl.style.color = '#ef4444';
+      styleLenEl.title = 'Warning: Exceeds Suno 1,000 character limit';
+    } else if (len > 120) {
+      styleLenEl.style.color = '#38bdf8';
+      styleLenEl.title = 'Valid Suno v3.5/v4 prompt (up to 1,000 characters)';
+    } else {
+      styleLenEl.style.color = '#a1a1aa';
+      styleLenEl.title = 'Fits within legacy 120 / modern 1,000 characters';
+    }
+  }
+
   function updateStylePrompt() {
     const g1 = genre1Sel ? genre1Sel.value : 'Dream Pop';
     const g2 = genre2Sel ? genre2Sel.value : 'TRAP & DRILL';
@@ -420,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generated = tagParts.join(', ');
     if (styleInput) {
       styleInput.value = generated;
-      if (styleLenEl) styleLenEl.textContent = `${generated.length}/120`;
+      updateStyleLength();
     }
   }
 
@@ -441,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Style input length tracking
   if (styleInput && styleLenEl) {
     styleInput.addEventListener('input', () => {
-      styleLenEl.textContent = `${styleInput.value.length}/120`;
+      updateStyleLength();
     });
   }
 
@@ -634,8 +652,8 @@ document.addEventListener('DOMContentLoaded', () => {
     defaultOpt.value = '';
     const totalCount = creationsDB.length + (userList ? userList.length : 0);
     defaultOpt.textContent = q
-      ? `?? Matching Results for "${searchQuery}"...`
-      : `?? Select from ${totalCount.toLocaleString()} Created Band Prompts...`;
+      ? `🔍 Matching Results for "${searchQuery}"...`
+      : `🎵 Select from ${totalCount.toLocaleString()} Created Band Prompts...`;
     creationsDropdown.appendChild(defaultOpt);
 
     // 1. User's Synced Studio Creations
@@ -647,11 +665,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (matchingUser.length > 0) {
       const userGroup = document.createElement('optgroup');
-      userGroup.label = `?? Live Studio Creations (${matchingUser.length})`;
+      userGroup.label = `🎧 Live Studio Creations (${matchingUser.length})`;
       matchingUser.forEach((item, idx) => {
         const opt = document.createElement('option');
         opt.value = `user_${idx}`;
-        opt.textContent = `?? ${item.title || 'Studio Track'} ? ${item.sunoStyleTag ? item.sunoStyleTag.slice(0, 42) + '...' : ''}`;
+        opt.textContent = `🎵 ${item.title || 'Studio Track'} — ${item.sunoStyleTag ? item.sunoStyleTag.slice(0, 42) + '...' : ''}`;
         if (activeIdOrTitle && (opt.value === activeIdOrTitle || item.title === activeIdOrTitle)) {
           opt.selected = true;
         }
@@ -671,12 +689,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const newCreations = matchingCreations.filter(item => item.isNew);
     if (newCreations.length > 0) {
       const newGroup = document.createElement('optgroup');
-      newGroup.label = `? NEWLY ADDED ENTRIES (${newCreations.length} Recent)`;
+      newGroup.label = `✨ NEWLY ADDED ENTRIES (${newCreations.length} Recent)`;
       newCreations.slice(0, 80).forEach(item => {
         const opt = document.createElement('option');
         opt.value = item.id;
         const timeLabel = item.shortDate || item.formattedDate || 'New';
-        opt.textContent = `?? [${timeLabel}] [${item.genreName}] ${item.bandName} ? "${item.title}"`;
+        opt.textContent = `🆕 [${timeLabel}] [${item.genreName}] ${item.bandName} — "${item.title}"`;
         if (activeIdOrTitle && (item.id === activeIdOrTitle || item.title === activeIdOrTitle)) {
           opt.selected = true;
         }
@@ -702,9 +720,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const opt = document.createElement('option');
         opt.value = item.id;
         const dateTag = item.isNew
-          ? ` [?? ${item.shortDate || item.formattedDate}]`
+          ? ` [🆕 ${item.shortDate || item.formattedDate}]`
           : (item.formattedDate ? ` (${item.formattedDate})` : '');
-        opt.textContent = `[${item.genreName}] ${item.bandName} ? "${item.title}"${dateTag}`;
+        opt.textContent = `[${item.genreName}] ${item.bandName} — "${item.title}"${dateTag}`;
         if (activeIdOrTitle && (item.id === activeIdOrTitle || item.title === activeIdOrTitle)) {
           opt.selected = true;
         }
@@ -797,6 +815,40 @@ document.addEventListener('DOMContentLoaded', () => {
       influenceVal.textContent = data.styleInfluence + '%';
     }
 
+    // Match genres/ingredients to genre selectors
+    const genreCandidates = [];
+    if (data.genreName) genreCandidates.push(data.genreName);
+    if (Array.isArray(data.genres)) genreCandidates.push(...data.genres);
+    if (Array.isArray(data.ingredients)) genreCandidates.push(...data.ingredients);
+
+    const matchedGenres = [];
+    genreCandidates.forEach(cand => {
+      if (!cand || typeof cand !== 'string') return;
+      const cleanCand = cand.trim().toLowerCase();
+      const exact = ALL_GENRES.find(g => g.toLowerCase() === cleanCand);
+      if (exact && !matchedGenres.includes(exact)) {
+        matchedGenres.push(exact);
+        return;
+      }
+      const sub = ALL_GENRES.find(g => {
+        const gl = g.toLowerCase();
+        return gl.includes(cleanCand) || cleanCand.includes(gl);
+      });
+      if (sub && !matchedGenres.includes(sub)) {
+        matchedGenres.push(sub);
+      }
+    });
+
+    if (matchedGenres.length > 0 && genre1Sel) {
+      genre1Sel.value = matchedGenres[0];
+    }
+    if (matchedGenres.length > 1 && genre2Sel) {
+      genre2Sel.value = matchedGenres[1];
+    }
+    if (matchedGenres.length > 2 && genre3Sel) {
+      genre3Sel.value = matchedGenres[2];
+    }
+
     // Match instruments if provided
     if (data.instruments && Array.isArray(data.instruments)) {
       const matchInsts = [];
@@ -814,8 +866,8 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSelectedInstruments();
     }
 
-    loadedStatusEl.textContent = `? ${reason}: ${data.bandName || data.title || 'Custom Track'} [${data.genreName || 'Fusion'}]`;
-    if (styleLenEl) styleLenEl.textContent = `${styleInput.value.length}/120`;
+    loadedStatusEl.textContent = `✨ ${reason}: ${data.bandName || data.title || 'Custom Track'} [${data.genreName || 'Fusion'}]`;
+    updateStyleLength();
 
     // Persist as latest creation for active sync with Suno tab
     chrome.storage?.local?.set({ sf_latest_creation: data });
@@ -972,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const headerDiv = document.createElement('div');
       headerDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#a1a1aa;margin-bottom:3px;';
       const dateBadge = item.formattedDate
-        ? `<span class="sf-badge" style="background:${item.isNew ? 'rgba(34,197,94,0.18)' : 'rgba(255,255,255,0.06)'};color:${item.isNew ? '#4ade80' : '#a1a1aa'};border-color:${item.isNew ? 'rgba(34,197,94,0.35)' : '#3f3f46'};font-size:9px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">${item.isNew ? '?? ' : '?? '}${item.formattedDate}</span>`
+        ? `<span class="sf-badge" style="background:${item.isNew ? 'rgba(34,197,94,0.18)' : 'rgba(255,255,255,0.06)'};color:${item.isNew ? '#4ade80' : '#a1a1aa'};border-color:${item.isNew ? 'rgba(34,197,94,0.35)' : '#3f3f46'};font-size:9px;font-weight:700;display:inline-flex;align-items:center;gap:3px;">${item.isNew ? '🆕 ' : '📅 '}${item.formattedDate}</span>`
         : '';
 
       headerDiv.innerHTML = `
@@ -1006,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
       studioBtn.onclick = () => {
         styleInput.value = item.prompt;
         titleInput.value = item.setName + ' Jam';
-        if (styleLenEl) styleLenEl.textContent = `${item.prompt.length}/120`;
+        updateStyleLength();
         // switch tab to studio
         document.querySelector('[data-tab="create"]')?.click();
         statusEl.textContent = `✓ Loaded "${item.setName}" prompt into Studio!`;
