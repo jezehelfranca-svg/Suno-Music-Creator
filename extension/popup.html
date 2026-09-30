@@ -83,12 +83,17 @@
           <input type="text" id="pop-g1" class="sf-input" value="Dream Pop &amp; Shoegaze" style="flex:1;" placeholder="Genre 1" />
           <input type="text" id="pop-g2" class="sf-input" value="TRAP &amp; DRILL" style="flex:1;" placeholder="Genre 2" />
         </div>
+        <div style="display:flex;gap:4px;margin-top:5px;">
+          <input type="number" id="pop-bpm" class="sf-input" min="40" max="300" value="140" style="width:74px;" aria-label="BPM" />
+          <input type="text" id="pop-timesig" class="sf-input" value="4/4" style="width:64px;" aria-label="Time signature" />
+          <input type="text" id="pop-instruments" class="sf-input" value="" style="flex:1;" placeholder="Exact instruments, comma-separated" aria-label="Instruments" />
+        </div>
       </div>
 
       <!-- Style of Music Textarea -->
       <div style="margin-bottom:8px;">
         <label class="sf-label">Style of Music (Prompt Tag):</label>
-        <textarea id="pop-style" class="sf-textarea" rows="2">Dream Pop, TRAP &amp; DRILL, 140 BPM, female vocals, Roland Juno-106, 808 sub bass</textarea>
+        <textarea id="pop-style" class="sf-textarea" rows="3"></textarea>
       </div>
 
       <!-- Lyrics & Metatags -->

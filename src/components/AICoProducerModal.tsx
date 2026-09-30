@@ -66,7 +66,8 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
           genres: promptToEnhance.genres,
           timeSig: promptToEnhance.timeSig,
           bpm: promptToEnhance.minBpm,
-          key: promptToEnhance.key
+          key: promptToEnhance.key,
+          instruments: promptToEnhance.selectedInstruments || []
         })
       });
       if (!res.ok) {

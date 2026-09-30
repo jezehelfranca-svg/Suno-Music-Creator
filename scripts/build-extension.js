@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import JSZip from 'jszip';
+import { designGroove } from '../src/utils/grooveDesign.js';
 
 async function build() {
   const zip = new JSZip();
+  const grooveSource = designGroove.toString();
 
   // Read genres from genres.json
   let genresData = { allGenres: [], coinedGenres: [], baseGenres: [] };
@@ -17,7 +19,7 @@ async function build() {
   const manifest = {
     manifest_version: 3,
     name: "Suno Fusion - Studio & AutoFill Sidekick",
-    version: "2.1.0",
+    version: "2.2.0",
     description: "Complete music prompt creator & 1-click AutoFill for Suno AI (suno.com). Fills Style of Music, Lyrics, Titles, Exclude Styles, Vocal Gender, Weirdness, Style Influence, and more.",
     icons: {
       "16": "icons/icon16.png",
@@ -28,15 +30,11 @@ async function build() {
       default_popup: "popup.html",
       default_title: "Suno Fusion Studio Sidekick"
     },
-    side_panel: {
-      default_path: "sidepanel.html"
-    },
     permissions: [
       "activeTab",
       "scripting",
       "storage",
-      "tabs",
-      "sidePanel"
+      "tabs"
     ],
     host_permissions: [
       "https://suno.com/*",
@@ -70,6 +68,7 @@ async function build() {
 (function () {
   if (window.__sunoFusionInjected) return;
   window.__sunoFusionInjected = true;
+  const designGroove = ${grooveSource};
 
   console.log('[Suno Fusion v2.0] Studio & Settings Engine initialized on suno.com');
 
@@ -714,6 +713,7 @@ async function build() {
                 <select id="sf-genre-2" class="sf-select" style="flex:1;"></select>
               </div>
               <select id="sf-genre-3" class="sf-select" style="width:100%;"><option value="">-- Optional Genre 3 --</option></select>
+              <input id="sf-custom-genre" class="sf-input" type="text" style="margin-top:6px;" placeholder="Custom primary genre (replaces Genre 1)" aria-label="Custom primary genre" />
             </div>
 
             <!-- Tempo & Instruments -->
@@ -740,6 +740,7 @@ async function build() {
             <div style="margin-bottom:10px;">
               <label class="sf-label" style="margin-bottom:4px;display:block;">Instrument Rig (Click to Add):</label>
               <div id="sf-inst-chips" class="sf-tags-cloud"></div>
+              <input id="sf-custom-instruments" class="sf-input" type="text" style="margin-top:6px;" placeholder="Other exact instruments, comma-separated" aria-label="Other instruments" />
             </div>
 
             <!-- Style Tag Textarea -->
@@ -908,12 +909,14 @@ async function build() {
     const genre1Sel = document.getElementById('sf-genre-1');
     const genre2Sel = document.getElementById('sf-genre-2');
     const genre3Sel = document.getElementById('sf-genre-3');
+    const customGenreInput = document.getElementById('sf-custom-genre');
     const rollRandomBtn = document.getElementById('sf-btn-roll-random');
     const bpmSlider = document.getElementById('sf-bpm-slider');
     const bpmVal = document.getElementById('sf-bpm-val');
     const metronomeBtn = document.getElementById('sf-btn-metronome');
     const timeSigSel = document.getElementById('sf-timesig');
     const instChipsContainer = document.getElementById('sf-inst-chips');
+    const customInstrumentsInput = document.getElementById('sf-custom-instruments');
     const styleText = document.getElementById('sf-style-text');
     const lyricsText = document.getElementById('sf-lyrics-text');
     const titleText = document.getElementById('sf-title-text');
@@ -935,7 +938,7 @@ async function build() {
     let selectedVariety = 'High';
     let isMaxMode = false;
     let isInstrumental = false;
-    let selectedInstruments = ['Roland Juno-106', '808 Sub Bass'];
+    let selectedInstruments = [];
 
     // Populate Genres
     APP_GENRES.forEach((g, i) => {
@@ -946,6 +949,10 @@ async function build() {
       genre2Sel.add(opt2);
       genre3Sel.add(opt3);
     });
+    [genre1Sel, genre2Sel, genre3Sel, timeSigSel].forEach(el => {
+      el.onchange = () => updatePrompt();
+    });
+    customGenreInput.oninput = () => updatePrompt();
 
     // Populate Instruments
     function renderInstruments() {
@@ -968,6 +975,7 @@ async function build() {
       });
     }
     renderInstruments();
+    customInstrumentsInput.oninput = () => updatePrompt();
 
     // Prompt generator
     function updatePrompt() {
@@ -976,11 +984,18 @@ async function build() {
       const g3 = genre3Sel.value;
       const bpm = bpmSlider.value;
       const sig = timeSigSel.value;
-      const instStr = selectedInstruments.length ? selectedInstruments.join(', ') : 'atmospheric synths';
-
-      const genresPart = [g1, g2, g3].filter(Boolean).join(' × ');
-      const style = \`\${genresPart}, \${bpm} BPM (\${sig}), \${selectedGender.toLowerCase()} vocals, \${instStr}\`;
-      styleText.value = style;
+      const genres = [customGenreInput.value.trim() || g1, g2, g3].filter(Boolean);
+      const instruments = [...new Set([
+        ...selectedInstruments,
+        ...customInstrumentsInput.value.split(',').map(name => name.trim()).filter(Boolean)
+      ])];
+      const groove = designGroove({ genres, instruments, timeSig: sig, bpm: Number(bpm) });
+      styleText.value = [
+        genres.join(' × '), bpm + ' BPM (' + sig + ')',
+        ...instruments,
+        groove.description, groove.production,
+        isInstrumental || selectedGender === 'None' ? 'instrumental' : selectedGender.toLowerCase() + ' vocals'
+      ].filter(Boolean).join(', ');
 
       if (!lyricsText.value.trim()) {
         lyricsText.value = \`[Intro]\\n[Verse 1]\\nNeon shadows drift across the floor\\nVoices echo from an open door\\n\\n[Pre-Chorus]\\nCounting down the seconds in the light\\n\\n[Chorus]\\nElectric dreams ignite the endless night\\n\\n[Drop]\\n\\n[Outro]\\n[Fade Out]\`;
@@ -1077,6 +1092,7 @@ async function build() {
       toggleInstBtn.textContent = 'Instrumental: ' + (isInstrumental ? 'ON' : 'OFF');
       toggleInstBtn.style.color = isInstrumental ? '#34d399' : '#a1a1aa';
       toggleInstrumental(isInstrumental);
+      updatePrompt();
     };
 
     // Tab Navigation
@@ -1539,12 +1555,17 @@ async function build() {
           <input type="text" id="pop-g1" class="sf-input" value="Dream Pop &amp; Shoegaze" style="flex:1;" placeholder="Genre 1" />
           <input type="text" id="pop-g2" class="sf-input" value="TRAP &amp; DRILL" style="flex:1;" placeholder="Genre 2" />
         </div>
+        <div style="display:flex;gap:4px;margin-top:5px;">
+          <input type="number" id="pop-bpm" class="sf-input" min="40" max="300" value="140" style="width:74px;" aria-label="BPM" />
+          <input type="text" id="pop-timesig" class="sf-input" value="4/4" style="width:64px;" aria-label="Time signature" />
+          <input type="text" id="pop-instruments" class="sf-input" value="" style="flex:1;" placeholder="Exact instruments, comma-separated" aria-label="Instruments" />
+        </div>
       </div>
 
       <!-- Style of Music Textarea -->
       <div style="margin-bottom:8px;">
         <label class="sf-label">Style of Music (Prompt Tag):</label>
-        <textarea id="pop-style" class="sf-textarea" rows="2">Dream Pop, TRAP &amp; DRILL, 140 BPM, female vocals, Roland Juno-106, 808 sub bass</textarea>
+        <textarea id="pop-style" class="sf-textarea" rows="3"></textarea>
       </div>
 
       <!-- Lyrics & Metatags -->
@@ -1636,7 +1657,10 @@ async function build() {
           title: prompt.title || 'Studio Fusion',
           sunoStyleTag: prompt.sunoStyleTag || prompt.styleTag || '',
           lyricSnippet: prompt.lyricSnippet || prompt.lyrics || '',
-          genres: prompt.genres || (prompt.sunoStyleTag ? prompt.sunoStyleTag.split(',').slice(0, 2).map(s => s.trim()) : ['Dream Pop', 'Trap']),
+          genres: prompt.genres || (prompt.sunoStyleTag ? prompt.sunoStyleTag.split(',').slice(0, 2).map(s => s.trim()) : []),
+          selectedInstruments: prompt.selectedInstruments || [],
+          timeSig: prompt.timeSig || '4/4',
+          minBpm: prompt.minBpm,
           excludeStyles: prompt.excludeStyles || '',
           vocalGender: prompt.vocalGender || 'Female',
           weirdness: prompt.weirdness !== undefined ? prompt.weirdness : 50,
@@ -1693,7 +1717,8 @@ async function build() {
 `;
 
   // Popup JS
-  const popupJs = `document.addEventListener('DOMContentLoaded', () => {
+  const popupJs = `const designGroove = ${grooveSource};
+document.addEventListener('DOMContentLoaded', () => {
   let isInstrumental = false;
   let selectedGender = 'Female';
 
@@ -1721,6 +1746,24 @@ async function build() {
 
   let allCreationsList = [];
 
+  function popupSeed() {
+    return {
+      genres: [document.getElementById('pop-g1').value.trim(), document.getElementById('pop-g2').value.trim()].filter(Boolean),
+      instruments: document.getElementById('pop-instruments').value.split(',').map(x => x.trim()).filter(Boolean),
+      bpm: document.getElementById('pop-bpm').value || '140',
+      timeSig: document.getElementById('pop-timesig').value.trim() || '4/4'
+    };
+  }
+
+  function buildPopupStyle(seed) {
+    const groove = designGroove(seed);
+    return [
+      seed.genres.join(' × '), seed.bpm + ' BPM (' + seed.timeSig + ')', ...seed.instruments,
+      groove.description, groove.production,
+      isInstrumental || selectedGender === 'None' ? 'instrumental' : selectedGender.toLowerCase() + ' vocals'
+    ].filter(Boolean).join(', ');
+  }
+
   function loadPromptIntoForm(p, sourceLabel) {
     if (!p) return;
     const g1 = (p.genres && p.genres[0]) || (p.sunoStyleTag ? p.sunoStyleTag.split(',')[0]?.trim() : 'Dream Pop & Shoegaze');
@@ -1730,6 +1773,9 @@ async function build() {
     const elG2 = document.getElementById('pop-g2');
     if (elG1) elG1.value = g1 || '';
     if (elG2) elG2.value = g2 || '';
+    document.getElementById('pop-bpm').value = p.minBpm || 140;
+    document.getElementById('pop-timesig').value = p.timeSig || '4/4';
+    document.getElementById('pop-instruments').value = (p.selectedInstruments || []).join(', ');
 
     styleInput.value = p.sunoStyleTag || p.styleTag || '';
     lyricsInput.value = p.lyricSnippet || p.lyrics || '';
@@ -1788,6 +1834,7 @@ async function build() {
       loadPromptIntoForm(res.sf_latest_creation, 'Studio');
       updateCreationsDropdown(allCreationsList, res.sf_latest_creation.title);
     } else {
+      styleInput.value = buildPopupStyle(popupSeed());
       syncFromAppTabs();
     }
   });
@@ -1866,6 +1913,10 @@ async function build() {
       let g2 = pick();
       while (g2 === g1) g2 = pick();
       const bpm = Math.floor(Math.random() * (175 - 85) + 85);
+      document.getElementById('pop-g1').value = g1;
+      document.getElementById('pop-g2').value = g2;
+      document.getElementById('pop-bpm').value = bpm;
+      const seed = popupSeed();
       const titlePrefixes = ['Neon', 'Solaris', 'Midnight', 'Velvet', 'Quantum', 'Obsidian', 'Cyber', 'Aether'];
       const titleSuffixes = ['Pulse', 'Drift', 'Overdrive', 'Horizon', 'Echo', 'Velocity', 'Mirage'];
       const title = titlePrefixes[Math.floor(Math.random() * titlePrefixes.length)] + ' ' +
@@ -1874,7 +1925,10 @@ async function build() {
       const newCreation = {
         title,
         genres: [g1, g2],
-        sunoStyleTag: g1 + ', ' + g2 + ', ' + bpm + ' BPM, ' + selectedGender.toLowerCase() + ' vocals, Roland Juno-106, 808 sub bass',
+        selectedInstruments: seed.instruments,
+        timeSig: seed.timeSig,
+        minBpm: bpm,
+        sunoStyleTag: buildPopupStyle(seed),
         lyricSnippet: '[Intro]\\n[Verse 1]\\nNeon reflections cutting through the night\\nFading echoes dancing in the light\\n\\n[Chorus]\\nCatch the surge, let the rhythm rise\\n\\n[Outro]',
         excludeStyles: excludeInput.value || 'screaming, harsh distortion, muddy bass, generic pop EDM',
         vocalGender: selectedGender,
@@ -1895,10 +1949,7 @@ async function build() {
   const rebuildStyleBtn = document.getElementById('pop-btn-rebuild-style');
   if (rebuildStyleBtn) {
     rebuildStyleBtn.onclick = () => {
-      const g1 = document.getElementById('pop-g1').value.trim();
-      const g2 = document.getElementById('pop-g2').value.trim();
-      const vocalStr = isInstrumental ? 'instrumental' : (selectedGender.toLowerCase() + ' vocals');
-      styleInput.value = [g1, g2].filter(Boolean).join(', ') + ', 140 BPM, ' + vocalStr + ', 808 sub bass, Roland Juno-106';
+      styleInput.value = buildPopupStyle(popupSeed());
       statusEl.textContent = '✨ Style tag updated from genres!';
     };
   }
@@ -2020,10 +2071,11 @@ async function build() {
 });
 `;
 
-  const readmeMd = `# Suno Fusion Studio & AutoFill Extension (v2.0)
+  const readmeMd = `# Suno Fusion Studio & AutoFill Extension (v2.2)
 
 ## Features Included:
 - **🔀 Prompt Studio:** 374-genre collision generator, BPM slider with real audio metronome, instruments rig chips.
+- **Groove-aware Style descriptions:** Phrase length, syncopation, rests, and sound design follow the chosen genres, named instruments, tempo, and meter. The floating panel accepts a custom genre and exact instrument names; the popup accepts freeform genres and instruments.
 - **⚙️ Suno "More Options" Settings:** Exclude styles negative prompt, Vocal Gender (Male/Female/Duet), Weirdness & Style Influence sliders, Variety, Duration, Max Mode.
 - **🏷️ Structure Metatags:** Quick-insert buttons for [Intro], [Verse], [Chorus], [Drop], [Guitar Solo], [Outro].
 - **🎯 Input Diagnostics:** Resilient 6-layer input detection + click-to-pick manual box selectors.
@@ -2075,7 +2127,7 @@ async function build() {
   // 3. Update root manifest.json
   fs.writeFileSync(path.resolve('manifest.json'), JSON.stringify(manifest, null, 2));
 
-  console.log('Successfully updated Suno Fusion v2.1 Extension in public/suno-fusion-extension.zip and /extension');
+  console.log('Successfully updated Suno Fusion v2.2 Extension in public/suno-fusion-extension.zip and /extension');
 }
 
 build().catch(err => {

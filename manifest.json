@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Suno Fusion - Studio & AutoFill Sidekick",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Complete music prompt creator & 1-click AutoFill for Suno AI (suno.com). Fills Style of Music, Lyrics, Titles, Exclude Styles, Vocal Gender, Weirdness, Style Influence, and more.",
   "icons": {
     "16": "icons/icon16.png",
