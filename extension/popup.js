@@ -1251,7 +1251,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const reloadExtBtn = document.getElementById('sf-btn-reload-ext');
   if (reloadExtBtn) {
     reloadExtBtn.addEventListener('click', () => {
-      statusEl.textContent = '\u21bb Reloading Suno Fusion & refreshing Suno tab...';
+      statusEl.textContent = '↻ Reloading Suno Fusion & refreshing Suno tab...';
       try {
         chrome.tabs.query({ url: '*://*.suno.com/*' }, (tabs) => {
           if (tabs && tabs.length > 0) {
@@ -1260,11 +1260,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
           }
           setTimeout(() => {
-            chrome.runtime.reload();
-          }, 350);
+            try {
+              chrome.runtime.reload();
+            } catch (e) {}
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
+          }, 250);
         });
       } catch (e) {
-        chrome.runtime.reload();
+        window.location.reload();
       }
     });
   }
@@ -1357,6 +1362,29 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.sendMessage(tab.id, payload, (response) => {
       restoreButtons();
       if (chrome.runtime.lastError) {
+        // Auto-reconnect: if content script disconnected, reinject it dynamically
+        if (chrome.scripting && tab.id) {
+          statusEl.textContent = 'Reconnecting with ' + platformName + '...';
+          chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content.js']
+          }).then(() => {
+            setTimeout(() => {
+              chrome.tabs.sendMessage(tab.id, payload, (resp2) => {
+                if (resp2 && resp2.success) {
+                  statusEl.textContent = shouldCreate
+                    ? ('🚀 AutoFilled & Create Triggered on ' + platformName + '!')
+                    : ('✓ 1-Click AutoFilled ' + platformName + '!');
+                } else {
+                  statusEl.textContent = '✓ AutoFill sent to ' + platformName + '!';
+                }
+              });
+            }, 250);
+          }).catch(() => {
+            statusEl.textContent = 'Please refresh the ' + platformName + ' tab and retry.';
+          });
+          return;
+        }
         statusEl.textContent = 'Please refresh the ' + platformName + ' tab and retry.';
       } else if (response && response.success) {
         statusEl.textContent = shouldCreate
