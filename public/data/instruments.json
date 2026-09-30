@@ -1,0 +1,7904 @@
+{
+  "categories": [
+    "All",
+    "Guitars & Amps",
+    "Bass & Low-End",
+    "Keys & Pianos",
+    "Drums & Percussion",
+    "Orchestral & Acoustic",
+    "Synthesizers & Patches",
+    "Synth Leads",
+    "Synth Pads",
+    "Synth Plucks",
+    "Arps & Sequences",
+    "Atmos, FX & Cinematic"
+  ],
+  "catalog": [
+    {
+      "name": "8Bit Runner",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "A Little Bit of Horror",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Alien 10",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analogue Machine Perc",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Analogue Machine Perc Thin",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Aphex Antenna",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arcade and Dances",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Around Planets",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Around Planets 2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arpman Analogue",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Arpman Trance",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Bass Box",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Between Voices",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Blasternoise",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Blasternoise 2",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Brass Synth Vibrato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Bullead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "Calm Planet Scene",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cinematic Clocks",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cinematic Synth Steps",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Crazy Distortion",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Daft Arp Machine",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Dark Film Element",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dark Moves",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Deep Cinepad",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Deep Cinepad 2",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Deep Space",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dirty Crush",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aboveness",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alienized",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Amnyze",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aqualets",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arpatoms",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Atonalogue",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Avix",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Azyev",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Barking Duck",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Beat yngz",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Beautylogue",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Big Grains",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Biugos",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bixyr",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bowalog",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Breathikyz",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brighterlings",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brightlets",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brut",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cervyzu",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Combo Electrons",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Crinity",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Crown",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Crystalbelli",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Darpishort",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Datowuz",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Denom",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Descent",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Djohz",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dophia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Effemlings",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Electronight",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Acid Party",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alive Mau5",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Angry Man",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Asperas Helix",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Black Ashes",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brass Carnival",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Brazilian Flow",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Broken Bits",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Catch Me",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chasing Car",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Coin Sweeper",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Deep Sense",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dizzy Vox",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Do not Disturb",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dub Break",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Easy Life",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Evo Devotion",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Extra Sauce",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fast Food",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fast Pace",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Full On",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Future Slap",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gas Station",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grasshopper",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Greasy Hands",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Growling Machine",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "2-OpFM Designer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "4-OpFM Designer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "A U R O R A",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "A-HA!",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Abience",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aesthetic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Affirmator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aggressive One X",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aggressive Poly",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aggressive Punk",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aggressive One",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ahead",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analog Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analog Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Apaixona",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ascending",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Asterisma",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Astonishing",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Atavista",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Atmos ‘Cyber Horror’",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Atmos ‘Fearsome’",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Atmos ‘Tension’",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Awbass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Batlery",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bending Circuitry",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bionic Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bitonica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Black Flash",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brasiana",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bully Fat",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Buzzlyzer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Laserhyze mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Laserhyze mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "LoStrings mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "LoStrings mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "LoStrings mk III",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "LoStrings mk IV",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "LoStrings mk V",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "LoStrings mk VI",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Lounge",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lounger Spiral",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lucid St",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lunardial",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lyxavlat",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Madphase",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mandarina",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Manymoog",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Maple",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Marchmeister",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Marimba mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Marimba mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Marimba mk III",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Massmash",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Masterkeys",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Matrix Strings mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Matrix Strings mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Matrix Strings mk III",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Matrix Syncstrings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Matrix Vibrastrings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Maximal",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Median",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Megachromica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Jellybean",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JGiant",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ju Tylinoid",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Jupicraft",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Jupiterian",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX Basic Pluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "JX Bentdream",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX Creamologue",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX Default",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX DualSaw",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX Duoscillator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX Oscillotomic",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "JX Piano mk I",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "JX Piano mk II",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "JX Piano mk III",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "JX Piano mk IV",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "JX Piano mk V",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "JX Pluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "JX Polypluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "JX Polysynth mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX Polysynth mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX SawSimple",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JX Stellar",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Kicker FM mk I",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Kicker FM mk II",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Kinkbells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Klaningram",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Kliptron",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Krystabellica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Krystalis",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "L u c e n t u m",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Laser Engraver",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J60 Replica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J60 Resonator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J62 Florgan",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "J62 Laser Synth",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J62 Laserator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J62 Wavetracker",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Control Panel",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Generic PWM mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Generic PWM mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Lite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 S&H",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Snap",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Template mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Template mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J64 Wobbilator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J106 Baritone mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J106 Baritone mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J106 Baritone mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J106 Brass Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "J106 Brass XL",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "J106 ePiano Env PWM",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "J106 ePiano LFO PWM",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "J106 Horn mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "J106 Horn mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "J106 Organ",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "J106 Varishape",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J108 Mellow Brass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "J108 Versatile Brass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "JBells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JCompact",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "JComposite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Guitarine Legato",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Guitarine",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Gyrocker",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Heroichestra mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Heroichestra mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Heroichestra mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "HiStrings mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "HiStrings mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "HiStrings mk III",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "HiStrings mk IV",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Holoscenia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "HousePopper",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Hufena mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Hufena mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Hufena Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Hydrotoid",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ignator 2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ironcloud",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Isogong XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Isogong",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J6 Flanging Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "J6 Harp",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "J6 Lite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J7 Orch",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J7 Unisodynamix",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J11 Flexiverse",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J11 Plusitron mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J11 Plusitron mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J11 Plusitron",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "J60 Monolead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "Glimmertone",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Glomar mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Glomar mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gloomrays mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gloomrays mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gloomrays mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Glossbox",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Goldbrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Goodwill",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grace PWM mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grace PWM mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grace PWM mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grace PWM Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grace PWM XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grandbell",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grandbrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Grasswalk mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grasswalk mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grasswalk mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gravitas accomp mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gravitas accomp mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gravitas arp mk I",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Gravitas arp mk II",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Gravitas bassline",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Gravitate",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Groovelagato mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Groovelagato mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Groovetron Legato",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Groovetron",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Grounder",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Growling FM",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fatline mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fatline mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fatline mk IV",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Festivine mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Festivine mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fibroballad",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Flowery",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fluffy Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Flusterator mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Flusterator mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Flusterator mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Flytan",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FM Puncher Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FM Puncher XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FM Puncher",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FModex",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FMulation mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FMulation mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FMulation mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Foldbass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Force Control",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Forcenter",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Forestarimba",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Forestune",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Frapture",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fuzzy Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Galaesthetica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Galvanized Keys mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Galvanized Keys mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gilbertum",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Glassica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DXEP mk I",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "DXEP mk II",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "DXEP mk III",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "DXEP mk IV",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "DXEP mk V",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "DXEP mk VI",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "DXEP XL",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Dyabrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Dynakey",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dynama",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dystopad",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Eatalo Bassine",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Eatalo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Eenie Meenie",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Elation",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Elec FM Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Electripluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "Electrofunk",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Emanator mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Emanator mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Epitomizer",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "EX8000 Brass mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "EX8000 Brass mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "EX8000 Brass mk III",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Extacy mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Extacy mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fancy Toypiano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Farmonica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fast Strings mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Fast Strings mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Fatline mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Canarp Bouncer",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Canarp",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Canolog Pump",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Canolog Stew",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Carpenteroid Compoly",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Carpenteroid Compunsion",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Carpenteroid Mono",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Carpenteroid Poly",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Carpenteroid Polyunison",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Catalyne",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Celestiala",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Celestophone",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Centrome",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chillstack Maj",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chillstack Min",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chillwave mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chillwave mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Choirah",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "ChromeDX",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chuarina mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chuarina mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chuarinakeys",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Claribell mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Claribell mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Clarion",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Clash Clang",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Claviorga",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "ClouDX",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Condorium",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Coremover",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Corrosion",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brass or America",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BrightBrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Brilliance",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BrimmingUnison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bristler mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bristler mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bristler mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brunette mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brunette mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brunette mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C l a s s y n c XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C l a s s y n c",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C15 mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C15 mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C15 mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C15 mk IV",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C15 mk V",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "C15 mk VI",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Calmaline mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Calmaline mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Calmaline mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Calmaline mk IV",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Astralica",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Astralog",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Astrozap XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Astrozap",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aurasion",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Autosyncron",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Axelogue Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Axelogue Lead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "Axialic XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Axialic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Badsector",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic dualPW Env",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic dualsaw",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic dualsquare",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic dualsquaresync",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic PWM",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Saw & Sub",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bellesteem",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BentBell",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Big Sweep mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Big Sweep mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bioscillator Bassline",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Black Hawk Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Black Hawk",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Blackbelly",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Blaster",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BlissBells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bloom",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bluepiano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Bostone",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brass of America XL",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "PLK Anim Wood Box",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Attackless",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Bensaid Island",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Big Butterfly",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Cloudy Head",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Custom Zither",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "PLK Fretless Pluck",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "PLK Fugace Stuff",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Guzheng Secret",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "PLK Hidden Carpet",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Island To Play",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Plucked",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Syn Shamisen",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "PLK World Pluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "ARP Acoustic Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "ARP Dreamy Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "ARP Nostalgic",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "ARP Random Filter Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "ARP Retromute",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "ARP Single Ballad",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "ARP Synthmute",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "ARP Woodbox",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "BSS Electric Muted",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BSS Evolving Reso",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BSS Fat Detune",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BSS Hybrid Contra",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BSS Mega Man",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BSS Muted Bass Arp",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BSS Short Octave",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BSS Wha Double",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "GTR Acoustic Muted",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Bad Ass Harm",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Big Strat",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Dreamable",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Feedback Sat",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Lo End Wah",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Magic Qanun",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Mutamonic Acoustic",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Mutamonic Arp",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Mutamonic Electric",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Mutamonic Stick",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Mutamonic Synth",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Mutamonic World",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Pure Muted Basic",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Pure Muted Octave",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Pure Muted Speaker",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Smooth Intermod",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Strange Clavi",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Wha Muted",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "GTR Wobbling Reso",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Brush Circle Square",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Big Stax",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Blind",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Cellular",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Crazy",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Cymbal Shift",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Fellaw",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Ghost Not",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Machine Gut",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Roller Track",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Tennessee",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Trap Attack",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Attackless Stadium",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Comp Punishment",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET DnB Mood",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Fat Metal",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Filter Transient",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Gabber Thriller",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Garage Ricochets",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Old Sampler",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Phase Along",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Resonant Trap",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Transient Processed",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Water Kit",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "BAS JP Analogie",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS JP Decay",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS JP Japan Taurus",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS JP Vibra Lows",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM 3 Oct Sub Click",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM 3 Oct Sustain",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM Oboe Boo",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS OB Grain Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS OB Gray Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS OB Power Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS OB Xtreme Sync",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS P1 Daft Me",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS P1 Elephant Square",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS P1 Prophet 5 Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS P1 Stereo Sub",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BEL JP Digital Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BEL MM Analog Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BEL MM Bell and Dawn",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BEL OB Songery",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BEL P1 FMish",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BRS JP OB Style",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BRS JP Royal O Bar",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BRS MM Brabrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BRS MM Brass 12 dB",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BRS OB Staccato Brass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BRS OB Vangerine",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BRS P1 Prophet Brass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BRS P1 SythSect",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "EFX JP Fire Higher",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "EFX MM Steam CS",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "EFX OB R2D2",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "EFX P1 Space Boulez",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "KEY JP CP JP 70",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY JP Synth Tines",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY MM Cat Keys",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY MM Synth Harpsichord",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY OB Ice Toys",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY OB Magic Keys",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY P1 CP70 Like",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY P1 Granular Keys",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "LED JP Funk Trish",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED JP Mono Me",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED JP Montreal Dry",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED JP Stereo Mono",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED MM Big Short Lead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED MM Cool Perfection",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED MM Nasty Tremolead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED MM Turbo Charged",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED OB Clicky Lead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED OB Dirty Fresh",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED OB Expressive",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED OB Metal Bottom Lead",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "LED P1 High Frequency",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED P1 Mosquitox",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED P1 Stereo Dist",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "LED P1 Sync Lead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "ORG JP Klikoss",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "ORG MM Organ Chapel",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "ORG OB Modern Organ",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "ORG P1 Expressive Organ",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "PAD JP Aristopad",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD JP Lunar Dune",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD JP Moonlight",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD JP Voice Up",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD MM Dark Sleep",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD MM Silver Ramper",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD MM Wheel Done",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD OB Infusion",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD OB Jolie Choir",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD OB Tender",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD P1 Ambience",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD P1 Anthemic Mod",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "SYN JP DXRover",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN JP Galaxy Mod",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN MM Bentorem",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN MM Electro Hum",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN MM Hover",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN OB Infinite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN OB Tropic Touch",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN OB Vibrawaves",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN P1 Bellatrix",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN P1 Oro Sync",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prominy V-METAL",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Prominy SC Electric Guitar 2",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Prominy LPC Electric Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Shreddage 3 Stratus",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Shreddage 3 Stratus FREE",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Shreddage 3 Hydra",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Shreddage 3 Abyss",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Shreddage 3 Serpent",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Orange Tree Evolution Infinity",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Orange Tree Evolution Strawberry",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Three-Body Tech Heavier7Strings",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ilya Efimov LP Electric Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ilya Efimov TC Electric Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "MusicLab RealGuitar 6",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "MusicLab RealStrat",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ample Metal Eclipse",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ample Metal Hellrazer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ample Guitar LP",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ample Guitar TC",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ample Guitar VC",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ample Sound Complete Bundle",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Native Instruments Session Guitarist Electric Sunburst",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Native Instruments Session Guitarist Electric Sunburst Deluxe",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Native Instruments Session Guitarist Electric Storm Deluxe",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "UJAM Virtual Guitarist IRON 2",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "UJAM Virtual Guitarist CARBON",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Spitfire Audio LABS Electric Guitars",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Spitfire Audio Ambient Guitars",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Spitfire Audio Afterglow Electric Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "8dio Songwriting Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pettinhouse Funky Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Prominy SR5 Rock Bass 2",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Ample Metal Ray5",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Ample Bass P",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Ample Bass J",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Ample Bass JF",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Orange Tree Evolution Roundwound Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Eurobass 3 (Submission Audio)",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Modo Bass 2 (IK Multimedia)",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Trilian (Spectrasonics)",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Shreddage 3 Stratus (Impact Soundworks)",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Orange Tree Samples Evolution Infinity",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Orange Tree Samples Evolution Strawberry",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "TSE Audio BOD",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "GetGood Drums Modern & Massive",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "GetGood Drums P IV Matt Halpern",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "GetGood Drums One Kit Wonder Metal",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Toontrack Superior Drummer 3",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Toontrack EZdrummer 3",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Toontrack Death & Darkness SDX",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Toontrack The Rock Foundry SDX",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Toontrack Metal Foundry SDX",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Steven Slate Drums SSD 5.5",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "MixWave Drums",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Solemn Tones Drums",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Ugritone Drums",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Chaostones Deviant Drums",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "XLN Audio Addictive Drums 2",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Krimh Drums Free (Bogren Digital)",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "AVA Music PRISM Drums Lite",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Neural DSP Archetype: Gojira X",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Neural DSP Archetype: Nolly X",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Neural DSP Archetype: Petrucci",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Neural DSP Granophyre",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Neural DSP (unspecified module)",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Positive Grid BIAS Amp 2",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Positive Grid BIAS FX 2",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Positive Grid BIAS AMP Studio Bundle",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Waves GTR 3",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Line6 Pod Farm 2.5",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Line6 Helix Native",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Audified AmpLion Pro",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Audified STA Preamp 2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Studio Devil Virtual Guitar Amp II",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Studio Devil Virtual Amp Pro",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Avid Eleven MK II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "UAD Fender 55 Tweed Deluxe",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "UAD Marshall Plexi Super Lead 1959",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "UAD Fuchs Overdrive Supreme 50 Amp",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Kuassa Amplifikation Vermilion",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Audiority Tube Modulator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Blackstar St James Plugin",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Engl Amp Room",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Friedman Buxom Betty",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Friedman Be100 (Neural DSP)",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Tone King Picklehead",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Orange Micro Crusher Plugin",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Vox AC30 Digital Plugin",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Peavey 5150 Plugin",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Mesa Boogie Triple Rectifier Plugin",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Marshall JCM800 Plugin",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "TSE Audio TSE X50 V2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "TSE Audio TSE X30 V2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "TSE Audio TSE 808",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "TSE Audio R47",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "TSE Audio Shredder",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Audio Assault RVXX",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Audio Assault Cascade",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Audio Assault Core Collection",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OTO Audio Bim",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mercuriall Unchained",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mercuriall G2 Plugin",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Free LSD4 Distortion",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Samplephonics The Synth Vol 1–5",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Waves Element 3D",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Waves Sansamp Plug-in",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ample Guitar M Lite II (Free)",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ample Guitar P Lite (Free)",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ample Guitar T Lite (Free)",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "ARIA Sounds Nylon Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "ARIA Sounds Grand Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "MonsterDAW Monster Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Solaris GTR Lite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Zak Sound Sapphire Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Echo Sound Works Vinyl Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Audiolatry PlastikGuitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Steinberg Guitar Harmonics Essential",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Steinberg GRAND Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Kontakt Band Collection (Guitar)",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Modartt Classical Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Mike Georgades MG Soft Nylon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Spectrasonics Nylon Sky",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ample Guitar Luthier",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Music Labs Real Guitar Classic",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Native Instruments Picked Nylon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Native Instruments Strummed Acoustic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Spitfire Audio Electric Mint",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Spitfire Audio Electric Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Spitfire Audio Georgian Voices",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Cinematic LITE",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Cinematic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Close LITE",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Close",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Hall LITE",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Hall",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Hard",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Mono",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Basic Soft",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Blues Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Bowed Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Cinematic Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Deeply Flanged Keys",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dream EP",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dub Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Endless Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Filter Epidemy",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Funky Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Gomme Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Highly Unstable Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Indian Dream",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Jazzistic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Levvo Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Long Pad",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Low Pad",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "M1 Madness",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Midnight Perfect World",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Porka Slap",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Radio Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Retired Amp Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Romantic Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Scratchy",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Soft Boy Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Soloist",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Space Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Staccatic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Strings Motion",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Submarine EP",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Suspense Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Tape Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Soft Wurli",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Stadium Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Tsymbaly Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Vintage Dream Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Xtra Full Mics",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brush Circle Square: Precision experimental percussion design",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Big Stax: Precision high-energy stick impact design",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Blind: Precision muted percussive design",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Cellular: Precision glitch-infused stick percussion",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Crazy: Precision chaotic stick dynamics",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Cymbal Shift: Precision metallic-shifted percussive tone",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Fellaw: Precision warm percussive body",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Ghost Not: Precision ghost-note articulation",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Machine Gut: Precision mechanical percussive tone",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Roller Track: Precision driven stick rolls",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Tennessee: Precision roots-inspired stick tone",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Stick Trap Attack: Precision modern trap percussive punch",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Attackless Stadium: Precision reverb-massive percussion",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Comp Punishment: Precision hard-compressed percussive tone",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET DnB Mood: Precision high-velocity percussive design",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Fat Metal: Precision heavy processed percussive weight",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Filter Transient: Precision filter-shaped percussion",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Gabber Thriller: Precision extreme-speed percussive aggression",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Garage Ricochets: Precision UKG-inspired percussive bounce",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Old Sampler: Precision vintage-sampler coloration",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Phase Along: Precision phaser-processed percussion",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Resonant Trap: Precision resonant-filter percussion",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Transient Processed: Precision hyper-shaped percussive transients",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "WET Water Kit: Precision liquid-processed percussion",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "BAS JP Analogie: Precision analog-style bass tone",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS JP Decay: Precision decay-shaped bass tone",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS JP Japan Taurus: Precision Taurus-inspired low-end",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS JP Vibra Lows: Precision vibrato-modulated bass tone",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM 3 Oct Sub Click: Precision sub‑octave bass tone",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM 3 Oct Sustain: Precision sustained sub design",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM Oboe Boo: Precision hybrid oboe-bass tone",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM This Is D Mode: Precision D‑mode shaped bass tone",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS MM This Is D Mode",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "LED MM Nasty Tremelead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "PAD OB Noisyminous",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD OB Touchable",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD P1 Prophet Pad",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD P1 Spectral Split",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD P1 Sunrise",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PLK JP Analog Pluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK JP Attack Flute",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "PLK MM Relax",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK MM Sequensation",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK OB Harp X",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "PLK OB PluXa",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK P1 Folkoto",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK P1 Prophet Soft",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLY JP King Bed",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY JP Poly Sync",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY MM Four Midable",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY MM Rendez Vous",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY OB Phaser Day",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY OB Raspail Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY OB SynXa",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY P1 Hook To Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "PLY P1 Shining",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "PLY P1 Yanni Hook",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "STR JP Large Orchestra",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "STR JP Orchestrash",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "STR MM Mellow Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "STR MM Pure Old Analog",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "STR OB Square Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "STR P1 Pizzicati",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "STR P1 Soft Orchestra Hit",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Shadowing Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "ATM Abyss Swells",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Badabook",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Count",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Dissonant Bassmaphere",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "ATM Diviners Mint",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Drama",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Dystopian Horizon",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Lamenting",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Mist",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Oram",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Quake",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Space Ambient Drone Stab",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Spectres",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "ATM Voodoo Organ",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "EPC Black Hole 1‑Shot",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "EPC Black Hole SEQ",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "EPC Gladiators Arena",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "EPC Moby Glitch",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "EPC Rescue Team",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "FX Box of Bees",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "FX Factory Machine",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "FX Intoxicated Clown",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "FX Lunar Gravity",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "FX OuterSpace",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "FX Slaughter Swells",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "HIT Blended Hell",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Brass Low",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Cluster Punch Strings",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Loki",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Mammoth",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Mars",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Menacing",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Mordor",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Oxford Whydah",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Power Stomp",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Punctuate",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Sledgehammer",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Statues",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "HIT Tower Knight",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "MTN Alarm",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "MTN Granular Tuba",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "MTN Gritty Box",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "MTN Openings",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "MTN Screech",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "NAT Arrivals",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "NAT Century",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "NAT Crescendo",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "NAT Decrescendo",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "NAT InBetween",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "NAT Staccato",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "NAT Sustain Velocity",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Clav C Basic Dry 1",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C Basic Dry 2",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C Basic Reverb 2",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C Chorused 2",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C Phase Dark 2",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C Rotary 1",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C Space Bells 1",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C TremoPan 2",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav C Wah 2",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 Basic Dry",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 Basic Reverb",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 Chorused",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 Phase Dark",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 Rotary",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 Space Bells",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 TremoPan",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav L1 Wah",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Basic FT",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Basic Lead",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Basic Reverb FT",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Basic Rhythm",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Chorused FT",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Chorused R",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Phase Dark Lead",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Rotary FT",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Space Bells FT",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba TremoPan FT",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Clav Viba Wah FT",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Basic Dry",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Basic High",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Basic Reverb",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Broken Toy",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Chorused",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Endless",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Little Dirt",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Phase Dark",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Phaser",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Random Chorus",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Retired Amp",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Rotary",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Small Horns",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Space Bells",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano TremoPan",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "E Piano Unstable Filtered",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 200Studio Basic Dry",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 200Studio Basic Reverb",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 200Studio Chorused",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 200Studio Phase Dark",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 200Studio Rotary",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 200Studio Space Bells",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 200Studio TremoPan",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 270 B2 Basic Dry",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 270 B2 Basic Reverb",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 270 B2 Chorused",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 270 B2 Phase Dark",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 270 B2 Rotary",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 270 B2 Space Bells",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "W 270 B2 TremoPan",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Aisling",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alienizer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analex",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analog Circuitry",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arpy Bit",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Atari2600",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Atmo Drone",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Atomic",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "AutoPilot",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BeeThree",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bronze",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "CS82",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Camila",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cedric",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chase",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chronosix",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Citator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Conjuring",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cyberemotion",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cyberorch",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cyclon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Darkened",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Deep drone",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Digilog",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Disco Shuttle",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Divine Lyre",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dronx",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dynasynth",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "EMC2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Eclipcity",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Edges",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Empyrean",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Epoch",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Equibrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Equinox",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Equiseq 1",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Equiseq 2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "FM Grand",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fafeasta",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fantasizer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Flexibit",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Flowly",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fluidity",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Foley Six",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Forcer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fretless Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Ghouls",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Giant One",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Global",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Hard Time",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Harmonicfull",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Haunted",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Heap",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Hexanus Piccolo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Hexanus Tutti",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "High Brass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Horgan",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Imagination",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Infrared",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Jarring Beat",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Julian",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Junior",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Junoheim",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Kinetique",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Laser Harp",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Love Moments",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lunar Fluter",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Macchine Stringhe",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Magnetic Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Magnetic Lead",
+      "category": "Synth Leads"
+    },
+    {
+      "name": "Magnetic Pad",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "MamaGama",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mandarine",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Marvelous 1",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Marvelous 2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mighty Pops",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mindset",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mini MG",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Model D Solo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mopper",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Morphase",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Muffin",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Naughty Boy",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Nerver",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Neutrons",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Night Vision",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ninjitsu",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Nucleon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "O2 Sequence 1",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "O2 Sequence 2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Oddful",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Operator X",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Oscar",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OxyBass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Oxystrings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Phasement",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Physical Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Pink Flood",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Polieten",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Polylogue",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Polysynth",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pumpin",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Quasibell",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "R.E.M.",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "RainBladder",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ranges",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Rendezvous",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Rertro Rumba",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Retro Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "RetroFlex",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Returning",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Revival",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Revolution",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Rusty Panel",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SH‑100",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Saba",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Sabre",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SciBrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Seadiver",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Sephia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Smeared Stone",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Soleil Noir",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Achillia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Adroitex",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alpha Juno Prime",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alpha Juno Refilter",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alloymix",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Almondo Mono",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Almondo Poly",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Almondo Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Almondo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alpha Beam",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Alpha Vibrocity",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analog Funky mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analog Funky mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analog Funky mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Angustia XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Angustia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aquatica mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aquatica mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arcade",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arctica mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arctica mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arctica mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Arrayer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Artemisal",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Asbury Polysynth",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aseita mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Aseita mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Astounding Kicks",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Astounding Snares",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Celina Grunger",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Celina His Shattered Soul",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Celina Messophobia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Celina Metatronic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Celina Shattering Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "George Ergem Beatbox Kit",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "George Ergem Pluck Mono",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "George Ergem Pluck Poly",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "George Ergem Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "George Ergem Vocals & Ad-Libs",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "George Ergem Vox Doo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Interruptor ePiano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Interruptor Funky Groove",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Interruptor GlassePiano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Interruptor HammerSaw",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Interruptor PowerAddon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Interruptor Pumper",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Interruptor RawSlap-Lubro Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lubro Junowave",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lubro Polykeys",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pashang Pluckeys",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "RAN Fat Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "RAN Phaser Rhythm",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "RAN Power Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "RAN Rhythm Screamer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Younsou Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Younsou Getaway",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Younsou Solo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "ZXPS Manylogue",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "ZXSP Carbon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "ZXSP Drone",
+      "category": "Atmos, FX & Cinematic"
+    },
+    {
+      "name": "Clav C TremoPan",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Classync XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Classync",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Carpenteroid Compunison",
+      "category": "Arps & Sequences"
+    },
+    {
+      "name": "Corrosivestrings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Cortney mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cortney mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cosmic Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cosmicana",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "CRush",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cryptoplasma",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Crystaline",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cyberchase",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cybertronik mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cybertronik mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cybertronik mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cyclomoog",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cyquential",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Darkmatter",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Darkrage mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Darkrage mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Daybreak",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DCO Board",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DCO Plugged",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DCO Saw",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Decoy XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Decoy",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Delightone mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Delightone mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Depryderus",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DigiTrumpet",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "DigiWave ePiano mk I",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "DigiWave ePiano mk II",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Discotech",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dream EP mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dream EP mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dreamy Tubular mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dreamy Tubular mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Drivingrinder",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dropamine XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Drumcore",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Dualator Basic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dualator PWM",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dualator Sync",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Duffelect mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Duffelect mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Duffelect PWM",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Duffelsync",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DX Boutique Legato",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DX Boutique Mono",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DX Boutique Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DX Boutique",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DX Cybercore mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DX Cybercore mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "DX Harp",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Lucentum",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mellow ePiano mk I",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Mellow ePiano mk II",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Mercurious",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Michigan mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Michigan mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Michigan mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Microwave",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mighty mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mighty mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mighty mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "MKS Legend EP",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "MKS Pairedual",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mocha",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Modesty",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Modunison mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Modunison mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Modunison mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Monopolitan mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Monopolitan mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Monopoly Phat",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Monopoly Xtraphat",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Moonshade",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "NeonBells XL",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "NeonBells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Neonflow Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Neonflow",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "NeonGlow",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "NeonPluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "Neonpulser",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Neostring XL",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Neostring",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Neptuntron",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ninineteen",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Noisawlo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB Bigbrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "OB Brass mk I",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "OB Brass mk II",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "OB PolyPWM Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB PolyPWM",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB Polysynth",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB PolyUnison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB Resweep mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB Resweep mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB Resweep mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB Resweep Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OB Resweep variporta",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Obelizer mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Obelizer mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Oblate Poly",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Oblate Unison",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Orbistring Cloudy Unison",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Orbistring Cloudy",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Obristring Dark Unison",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Obristring Dark",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Octanic mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Octanic mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ogustia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Opetron",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "OPL Woodbass mk I",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "OPL Woodbass mk II",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Orangewave",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Outburst",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ovalean",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Overclocker",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Percorgan",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Percussions & SFX rom 1",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Percussions & SFX rom 2",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Phantasian",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Phatline mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Phatline mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Piano Galore",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Piano Padded mk I",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Piano Padded mk II",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Pianophilia",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Pinnacle",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pithon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pizzacocoa mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pizzacocoa mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Planetary",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Plasticid",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Platedox",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Plunk Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Popkeys",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Power Kicks",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Power Snares",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Power Toms",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Pristina",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pro Resweep mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pro Resweep mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pro Syncsweep",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Probrass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Prodigy Funk",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prodigy Hardcore",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Profix Polysynth mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Profix Polysynth mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Profix Polysynth mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Profix Polysynth mk IV",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Profix Quickbow",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Profix Slowbow",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Profix Syncbow",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophepica mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophepica mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophepica mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophesync mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophesync mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophesync mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophesync mk IV",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophettwank",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophiscape",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Prophluctuater",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Protrumpet",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Proxy mk I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Proxy mk II",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Proxy mk III",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Proxy Morph Env",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Amiga Advanced",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Analogue",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Androids Dance",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Artificial Balance",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Auditio",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Avalon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Backpacker",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Backviews",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ballooner",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bashing",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bass Drop",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Beach Pluck",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "Bella",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bitter Bell",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Blib Blob",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bora",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brainwasher",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Brass",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Burping Elk",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Can Shaker",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Cat Blanche",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Cello",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Classic Trancer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Clubber",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Coconut",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Concept",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Culmination",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Current Voltage",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Demonostrator",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Done Deal",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Downer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dream Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Dreamweaver",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Drum Loop 1",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Drum Loop 2",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Drum Loop 3",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Drums Menu",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Electrify",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Epic Chords",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Evolution",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Famou5",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ferry Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Flat Screen",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fluffy Bells",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Frozen Valleys",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Fundamental",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Gently Bassline",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Guitano",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Happy Days",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Healing",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Horizons",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Huge Spaceship",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Infinity",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Intelligentsia",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Interconnected",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Jungle Hunt",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Jungle Mallets",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lo-Fi Synsemble",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Lube Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Lushness",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Magnetic Fields",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Malfunction",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Manner",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Middler",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Mini Chords",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Miracoulus",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Monstrous",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Motion Pictures",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Multilogue",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "My Purpose",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Nippon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Open Your Mind",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Paraglider",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Phasing Modulator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Post Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Prelude",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Primordial",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Procession",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Processor",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pulse Blower",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Radiator",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Raining Needles",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Raw",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Reflection",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Reliance",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Resicopter",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Reward",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Riser Menu",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Rising Robots",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Rocking Saws",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Salada",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Signpost",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Silky Stars",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Sky Catcher",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Smoker",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Sodium",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Soft Focus",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Soft Squares",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Sonic Boom",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Squeak",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Stairways",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Stratosphere",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Stunning",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Sub Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Super Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Synced",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Synthetic Strings",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Talamanca",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "The Chief",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "The Forgotten",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "The Last Chapter",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "The Source",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Thermosphere",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Tokyo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Touching Sermon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Traveller",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Trip To Juno",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Tube Bass",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Ultimate Kick",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Ultimate Snare",
+      "category": "Drums & Percussion"
+    },
+    {
+      "name": "Under Tension",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Unicorn",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Unknown Past",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Valentine",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Vintage Phazor",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ace Nylon Lite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ace Nylon MK I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ace of Space",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bright Humbucker AC15",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Brighter Humbucker AC15",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Brighter Humbucker Xtra",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "BritBlub",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "BritBlub X",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Chill Guitar",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Daisy Rock Acoustic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Daisy Rock Xtra",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dark Star Accoustic",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dark Star Hybrid",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dark Star Metal",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dark Star Metal Feedback",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Dark Star Overdriven",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "DiddyWah",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ebow",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Finger Neck Humb",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Metal Chords 1",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Metal Chords 2",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Muted Strat 1",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Muted Strat 2",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Muted Strat 3",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Nylon Shimmer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Ovation E.Lite",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ovation Elite Plus",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ovation Elite Xtra",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Ovation Hybrid",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Piezo Dub",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Piezoish",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Piezoish Xtra",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Pignose FullGain",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pignose FullGain Xtra",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pignose HalfGain 1",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pignose HalfGain 2",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pignose HalfGain 3",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pignose Lite Slide",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pignose QuarterGain 1",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Pignose QuarterGain 2",
+      "category": "Guitars & Amps"
+    },
+    {
+      "name": "Power Chorder",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Power Chorder Split",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Steel MK I",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "TalkBox Wah",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Tocco di Terra X",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bosendorfer",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Bosendorfer Lite",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Close Grand",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Close Grand Lite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Electric Eighties",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Electric Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Electric Piano Bright",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Grand Piano",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Grand Piano Lite",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Pianomix",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Pianopad",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Rhodes Basic",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Rhodes MK1",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Rhodes MK1 Lite",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Stage Grand",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Stage Grand Lite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Steinway D",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Steinway D Lite",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Westworld",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Yamaha C7",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Yamaha C7 Lite",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "Zero Eighties",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Bassoon Staccato",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Bassoon Sustain",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Bassoon Sustain Lite",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "Clarinets Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Clarinets Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Clarinets Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Flutes Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Flutes Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Flutes Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Full Brass Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Full Brass Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Full Brass Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Full Winds Staccato",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Full Winds Sustain",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Full Winds Sustain Lite",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "Horns Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Horns Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Horns Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Oboes Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Oboes Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Oboes Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Trombones Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Trombones Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Trombones Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Trumpets Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Trumpets Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Trumpets Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Tubas Staccato",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Tubas Sustain",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "Tubas Sustain Lite",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "BAS D’andria",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS Deriv",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS Ginzu",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS Hamptoni",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS Husa",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS Kesi",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS Pongo",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BAS Wizard",
+      "category": "Bass & Low-End"
+    },
+    {
+      "name": "BRS 364 Days",
+      "category": "Orchestral & Acoustic"
+    },
+    {
+      "name": "CHD Woodsun",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "KEY Bones",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Clues",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Drama",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Dramu",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Jamiso",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Jankson",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY JavlinSyn pt2",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY JavlinSYn",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Loy",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Mantre",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Modje",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Opwer",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Pia Pia",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Road Ahead",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Se Youn",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Spaced",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Speci",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "KEY Trompy",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "ORG Tegrity",
+      "category": "Keys & Pianos"
+    },
+    {
+      "name": "PAD Blaq Flock",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Ding",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Grumbo",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Inso",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Joe Gullin",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Nova",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Pneu",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Polarize",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD She",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Shwartsky",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD StayDeeUmm",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD SwordSLinger",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PAD Yula",
+      "category": "Synth Pads"
+    },
+    {
+      "name": "PLK Haversin",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK Insea",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK SideBar",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "PLK What the Bell",
+      "category": "Synth Plucks"
+    },
+    {
+      "name": "SYN 2004 Hills",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Farry",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Flock Of Kilos",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Flok Flam",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Flok",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Fremo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Giz Moe",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Harmon",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Hauer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Humbo State",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Jembo",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Jersox",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN June",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Kilometer",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Lime Frog",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Mongoe",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Pandre",
+      "category": "Synthesizers & Patches"
+    },
+    {
+      "name": "SYN Poh",
+      "category": "Synthesizers & Patches"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modern Djent & High-Gain Metal",
+      "instruments": [
+        "Prominy V-METAL",
+        "Neural DSP Archetype: Gojira X",
+        "GetGood Drums Modern & Massive",
+        "Eurobass 3 (Submission Audio)"
+      ]
+    },
+    {
+      "name": "Vintage Analog Keys & Funk Groove",
+      "instruments": [
+        "Fender Rhodes MK1",
+        "Hohner Clavinet D6 (Clav C Wah 2)",
+        "Model D Solo",
+        "WET Comp Punishment"
+      ]
+    },
+    {
+      "name": "Dark Cinematic & Film Score",
+      "instruments": [
+        "Bosendorfer",
+        "ATM Abyss Swells",
+        "Full Brass Staccato",
+        "HIT Sledgehammer",
+        "Deep Cinepad 2"
+      ]
+    },
+    {
+      "name": "Acid Techno & Modular Madness",
+      "instruments": [
+        "Acid Party",
+        "BAS OB Xtreme Sync",
+        "WET Resonant Trap",
+        "TB-303 Acid Resonance Squelch"
+      ]
+    },
+    {
+      "name": "Neo-Soul / Lo-Fi Warmth",
+      "instruments": [
+        "Rhodes MK1",
+        "BAS JP Japan Taurus",
+        "Stick Ghost Not",
+        "W 200Studio Basic Reverb"
+      ]
+    },
+    {
+      "name": "Cyberpunk & Industrial Wave",
+      "instruments": [
+        "Daft Arp Machine",
+        "BAS P1 Prophet 5 Bass",
+        "Analogue Machine Perc",
+        "Atmos ‘Cyber Horror’"
+      ]
+    },
+    {
+      "name": "Traditional Eastern Acoustic & Percussion",
+      "instruments": [
+        "PLK Guzheng Secret",
+        "PLK Syn Shamisen",
+        "Marimba mk I",
+        "GTR Magic Qanun"
+      ]
+    }
+  ],
+  "list": [
+    "8Bit Runner",
+    "A Little Bit of Horror",
+    "Alien 10",
+    "Analogue Machine Perc",
+    "Analogue Machine Perc Thin",
+    "Aphex Antenna",
+    "Arcade and Dances",
+    "Around Planets",
+    "Around Planets 2",
+    "Arpman Analogue",
+    "Arpman Trance",
+    "Bass Box",
+    "Between Voices",
+    "Blasternoise",
+    "Blasternoise 2",
+    "Brass Synth Vibrato",
+    "Bullead",
+    "Calm Planet Scene",
+    "Cinematic Clocks",
+    "Cinematic Synth Steps",
+    "Crazy Distortion",
+    "Daft Arp Machine",
+    "Dark Film Element",
+    "Dark Moves",
+    "Deep Cinepad",
+    "Deep Cinepad 2",
+    "Deep Space",
+    "Dirty Crush",
+    "Aboveness",
+    "Alienized",
+    "Amnyze",
+    "Aqualets",
+    "Arpatoms",
+    "Atonalogue",
+    "Avix",
+    "Azyev",
+    "Barking Duck",
+    "Beat yngz",
+    "Beautylogue",
+    "Big Grains",
+    "Biugos",
+    "Bixyr",
+    "Bowalog",
+    "Breathikyz",
+    "Brighterlings",
+    "Brightlets",
+    "Brut",
+    "Cervyzu",
+    "Combo Electrons",
+    "Crinity",
+    "Crown",
+    "Crystalbelli",
+    "Darpishort",
+    "Datowuz",
+    "Denom",
+    "Descent",
+    "Djohz",
+    "Dophia",
+    "Effemlings",
+    "Electronight",
+    "Acid Party",
+    "Alive Mau5",
+    "Angry Man",
+    "Asperas Helix",
+    "Black Ashes",
+    "Brass Carnival",
+    "Brazilian Flow",
+    "Broken Bits",
+    "Catch Me",
+    "Chasing Car",
+    "Coin Sweeper",
+    "Deep Sense",
+    "Dizzy Vox",
+    "Do not Disturb",
+    "Dub Break",
+    "Easy Life",
+    "Evo Devotion",
+    "Extra Sauce",
+    "Fast Food",
+    "Fast Pace",
+    "Full On",
+    "Future Slap",
+    "Gas Station",
+    "Grasshopper",
+    "Greasy Hands",
+    "Growling Machine",
+    "2-OpFM Designer",
+    "4-OpFM Designer",
+    "A U R O R A",
+    "A-HA!",
+    "Abience",
+    "Aesthetic",
+    "Affirmator",
+    "Aggressive One X",
+    "Aggressive Poly",
+    "Aggressive Punk",
+    "Aggressive One",
+    "Ahead",
+    "Analog Bells",
+    "Analog Strings",
+    "Apaixona",
+    "Ascending",
+    "Asterisma",
+    "Astonishing",
+    "Atavista",
+    "Atmos ‘Cyber Horror’",
+    "Atmos ‘Fearsome’",
+    "Atmos ‘Tension’",
+    "Awbass",
+    "Batlery",
+    "Bending Circuitry",
+    "Bionic Bells",
+    "Bitonica",
+    "Black Flash",
+    "Brasiana",
+    "Bully Fat",
+    "Buzzlyzer",
+    "Laserhyze mk I",
+    "Laserhyze mk II",
+    "LoStrings mk I",
+    "LoStrings mk II",
+    "LoStrings mk III",
+    "LoStrings mk IV",
+    "LoStrings mk V",
+    "LoStrings mk VI",
+    "Lounge",
+    "Lounger Spiral",
+    "Lucid St",
+    "Lunardial",
+    "Lyxavlat",
+    "Madphase",
+    "Mandarina",
+    "Manymoog",
+    "Maple",
+    "Marchmeister",
+    "Marimba mk I",
+    "Marimba mk II",
+    "Marimba mk III",
+    "Massmash",
+    "Masterkeys",
+    "Matrix Strings mk I",
+    "Matrix Strings mk II",
+    "Matrix Strings mk III",
+    "Matrix Syncstrings",
+    "Matrix Vibrastrings",
+    "Maximal",
+    "Median",
+    "Megachromica",
+    "Jellybean",
+    "JGiant",
+    "Ju Tylinoid",
+    "Jupicraft",
+    "Jupiterian",
+    "JX Basic Pluck",
+    "JX Bentdream",
+    "JX Creamologue",
+    "JX Default",
+    "JX DualSaw",
+    "JX Duoscillator",
+    "JX Oscillotomic",
+    "JX Piano mk I",
+    "JX Piano mk II",
+    "JX Piano mk III",
+    "JX Piano mk IV",
+    "JX Piano mk V",
+    "JX Pluck",
+    "JX Polypluck",
+    "JX Polysynth mk I",
+    "JX Polysynth mk II",
+    "JX SawSimple",
+    "JX Stellar",
+    "Kicker FM mk I",
+    "Kicker FM mk II",
+    "Kinkbells",
+    "Klaningram",
+    "Kliptron",
+    "Krystabellica",
+    "Krystalis",
+    "L u c e n t u m",
+    "Laser Engraver",
+    "J60 Replica",
+    "J60 Resonator",
+    "J62 Florgan",
+    "J62 Laser Synth",
+    "J62 Laserator",
+    "J62 Wavetracker",
+    "J64 Control Panel",
+    "J64 Generic PWM mk I",
+    "J64 Generic PWM mk II",
+    "J64 Lite",
+    "J64 S&H",
+    "J64 Snap",
+    "J64 Template mk I",
+    "J64 Template mk II",
+    "J64 Wobbilator",
+    "J106 Baritone mk I",
+    "J106 Baritone mk II",
+    "J106 Baritone mk III",
+    "J106 Brass Lite",
+    "J106 Brass XL",
+    "J106 ePiano Env PWM",
+    "J106 ePiano LFO PWM",
+    "J106 Horn mk I",
+    "J106 Horn mk II",
+    "J106 Organ",
+    "J106 Varishape",
+    "J108 Mellow Brass",
+    "J108 Versatile Brass",
+    "JBells",
+    "JCompact",
+    "JComposite",
+    "Guitarine Legato",
+    "Guitarine",
+    "Gyrocker",
+    "Heroichestra mk I",
+    "Heroichestra mk II",
+    "Heroichestra mk III",
+    "HiStrings mk I",
+    "HiStrings mk II",
+    "HiStrings mk III",
+    "HiStrings mk IV",
+    "Holoscenia",
+    "HousePopper",
+    "Hufena mk I",
+    "Hufena mk II",
+    "Hufena Unison",
+    "Hydrotoid",
+    "Ignator 2",
+    "Ironcloud",
+    "Isogong XL",
+    "Isogong",
+    "J6 Flanging Strings",
+    "J6 Harp",
+    "J6 Lite",
+    "J7 Orch",
+    "J7 Unisodynamix",
+    "J11 Flexiverse",
+    "J11 Plusitron mk II",
+    "J11 Plusitron mk III",
+    "J11 Plusitron",
+    "J60 Monolead",
+    "Glimmertone",
+    "Glomar mk I",
+    "Glomar mk II",
+    "Gloomrays mk I",
+    "Gloomrays mk II",
+    "Gloomrays mk III",
+    "Glossbox",
+    "Goldbrass",
+    "Goodwill",
+    "Grace PWM mk I",
+    "Grace PWM mk II",
+    "Grace PWM mk III",
+    "Grace PWM Unison",
+    "Grace PWM XL",
+    "Grandbell",
+    "Grandbrass",
+    "Grasswalk mk I",
+    "Grasswalk mk II",
+    "Grasswalk mk III",
+    "Gravitas accomp mk I",
+    "Gravitas accomp mk II",
+    "Gravitas arp mk I",
+    "Gravitas arp mk II",
+    "Gravitas bassline",
+    "Gravitate",
+    "Groovelagato mk I",
+    "Groovelagato mk II",
+    "Groovetron Legato",
+    "Groovetron",
+    "Grounder",
+    "Growling FM",
+    "Fatline mk II",
+    "Fatline mk III",
+    "Fatline mk IV",
+    "Festivine mk I",
+    "Festivine mk II",
+    "Fibroballad",
+    "Flowery",
+    "Fluffy Strings",
+    "Flusterator mk I",
+    "Flusterator mk II",
+    "Flusterator mk III",
+    "Flytan",
+    "FM Puncher Unison",
+    "FM Puncher XL",
+    "FM Puncher",
+    "FModex",
+    "FMulation mk I",
+    "FMulation mk II",
+    "FMulation mk III",
+    "Foldbass",
+    "Force Control",
+    "Forcenter",
+    "Forestarimba",
+    "Forestune",
+    "Frapture",
+    "Fuzzy Guitar",
+    "Galaesthetica",
+    "Galvanized Keys mk I",
+    "Galvanized Keys mk II",
+    "Gilbertum",
+    "Glassica",
+    "DXEP mk I",
+    "DXEP mk II",
+    "DXEP mk III",
+    "DXEP mk IV",
+    "DXEP mk V",
+    "DXEP mk VI",
+    "DXEP XL",
+    "Dyabrass",
+    "Dynakey",
+    "Dynama",
+    "Dystopad",
+    "Eatalo Bassine",
+    "Eatalo",
+    "Eenie Meenie",
+    "Elation",
+    "Elec FM Bass",
+    "Electripluck",
+    "Electrofunk",
+    "Emanator mk I",
+    "Emanator mk II",
+    "Epitomizer",
+    "EX8000 Brass mk I",
+    "EX8000 Brass mk II",
+    "EX8000 Brass mk III",
+    "Extacy mk I",
+    "Extacy mk II",
+    "Fancy Toypiano",
+    "Farmonica",
+    "Fast Strings mk I",
+    "Fast Strings mk II",
+    "Fatline mk I",
+    "Canarp Bouncer",
+    "Canarp",
+    "Canolog Pump",
+    "Canolog Stew",
+    "Carpenteroid Compoly",
+    "Carpenteroid Compunsion",
+    "Carpenteroid Mono",
+    "Carpenteroid Poly",
+    "Carpenteroid Polyunison",
+    "Catalyne",
+    "Celestiala",
+    "Celestophone",
+    "Centrome",
+    "Chillstack Maj",
+    "Chillstack Min",
+    "Chillwave mk I",
+    "Chillwave mk II",
+    "Choirah",
+    "ChromeDX",
+    "Chuarina mk I",
+    "Chuarina mk II",
+    "Chuarinakeys",
+    "Claribell mk I",
+    "Claribell mk II",
+    "Clarion",
+    "Clash Clang",
+    "Claviorga",
+    "ClouDX",
+    "Condorium",
+    "Coremover",
+    "Corrosion",
+    "Brass or America",
+    "BrightBrass",
+    "Brilliance",
+    "BrimmingUnison",
+    "Bristler mk I",
+    "Bristler mk II",
+    "Bristler mk III",
+    "Brunette mk I",
+    "Brunette mk II",
+    "Brunette mk III",
+    "C l a s s y n c XL",
+    "C l a s s y n c",
+    "C15 mk I",
+    "C15 mk II",
+    "C15 mk III",
+    "C15 mk IV",
+    "C15 mk V",
+    "C15 mk VI",
+    "Calmaline mk I",
+    "Calmaline mk II",
+    "Calmaline mk III",
+    "Calmaline mk IV",
+    "Astralica",
+    "Astralog",
+    "Astrozap XL",
+    "Astrozap",
+    "Aurasion",
+    "Autosyncron",
+    "Axelogue Bass",
+    "Axelogue Lead",
+    "Axialic XL",
+    "Axialic",
+    "Badsector",
+    "Basic dualPW Env",
+    "Basic dualsaw",
+    "Basic dualsquare",
+    "Basic dualsquaresync",
+    "Basic PWM",
+    "Basic Saw & Sub",
+    "Bellesteem",
+    "BentBell",
+    "Big Sweep mk I",
+    "Big Sweep mk II",
+    "Bioscillator Bassline",
+    "Black Hawk Unison",
+    "Black Hawk",
+    "Blackbelly",
+    "Blaster",
+    "BlissBells",
+    "Bloom",
+    "Bluepiano",
+    "Bostone",
+    "Brass of America XL",
+    "PLK Anim Wood Box",
+    "PLK Attackless",
+    "PLK Bensaid Island",
+    "PLK Big Butterfly",
+    "PLK Cloudy Head",
+    "PLK Custom Zither",
+    "PLK Fretless Pluck",
+    "PLK Fugace Stuff",
+    "PLK Guzheng Secret",
+    "PLK Hidden Carpet",
+    "PLK Island To Play",
+    "PLK Plucked",
+    "PLK Syn Shamisen",
+    "PLK World Pluck",
+    "ARP Acoustic Guitar",
+    "ARP Dreamy Guitar",
+    "ARP Nostalgic",
+    "ARP Random Filter Bass",
+    "ARP Retromute",
+    "ARP Single Ballad",
+    "ARP Synthmute",
+    "ARP Woodbox",
+    "BSS Electric Muted",
+    "BSS Evolving Reso",
+    "BSS Fat Detune",
+    "BSS Hybrid Contra",
+    "BSS Mega Man",
+    "BSS Muted Bass Arp",
+    "BSS Short Octave",
+    "BSS Wha Double",
+    "GTR Acoustic Muted",
+    "GTR Bad Ass Harm",
+    "GTR Big Strat",
+    "GTR Dreamable",
+    "GTR Feedback Sat",
+    "GTR Lo End Wah",
+    "GTR Magic Qanun",
+    "GTR Mutamonic Acoustic",
+    "GTR Mutamonic Arp",
+    "GTR Mutamonic Electric",
+    "GTR Mutamonic Stick",
+    "GTR Mutamonic Synth",
+    "GTR Mutamonic World",
+    "GTR Pure Muted Basic",
+    "GTR Pure Muted Octave",
+    "GTR Pure Muted Speaker",
+    "GTR Smooth Intermod",
+    "GTR Strange Clavi",
+    "GTR Wha Muted",
+    "GTR Wobbling Reso",
+    "Brush Circle Square",
+    "Stick Big Stax",
+    "Stick Blind",
+    "Stick Cellular",
+    "Stick Crazy",
+    "Stick Cymbal Shift",
+    "Stick Fellaw",
+    "Stick Ghost Not",
+    "Stick Machine Gut",
+    "Stick Roller Track",
+    "Stick Tennessee",
+    "Stick Trap Attack",
+    "WET Attackless Stadium",
+    "WET Comp Punishment",
+    "WET DnB Mood",
+    "WET Fat Metal",
+    "WET Filter Transient",
+    "WET Gabber Thriller",
+    "WET Garage Ricochets",
+    "WET Old Sampler",
+    "WET Phase Along",
+    "WET Resonant Trap",
+    "WET Transient Processed",
+    "WET Water Kit",
+    "BAS JP Analogie",
+    "BAS JP Decay",
+    "BAS JP Japan Taurus",
+    "BAS JP Vibra Lows",
+    "BAS MM 3 Oct Sub Click",
+    "BAS MM 3 Oct Sustain",
+    "BAS MM Oboe Boo",
+    "BAS OB Grain Bass",
+    "BAS OB Gray Bass",
+    "BAS OB Power Bass",
+    "BAS OB Xtreme Sync",
+    "BAS P1 Daft Me",
+    "BAS P1 Elephant Square",
+    "BAS P1 Prophet 5 Bass",
+    "BAS P1 Stereo Sub",
+    "BEL JP Digital Bells",
+    "BEL MM Analog Bells",
+    "BEL MM Bell and Dawn",
+    "BEL OB Songery",
+    "BEL P1 FMish",
+    "BRS JP OB Style",
+    "BRS JP Royal O Bar",
+    "BRS MM Brabrass",
+    "BRS MM Brass 12 dB",
+    "BRS OB Staccato Brass",
+    "BRS OB Vangerine",
+    "BRS P1 Prophet Brass",
+    "BRS P1 SythSect",
+    "EFX JP Fire Higher",
+    "EFX MM Steam CS",
+    "EFX OB R2D2",
+    "EFX P1 Space Boulez",
+    "KEY JP CP JP 70",
+    "KEY JP Synth Tines",
+    "KEY MM Cat Keys",
+    "KEY MM Synth Harpsichord",
+    "KEY OB Ice Toys",
+    "KEY OB Magic Keys",
+    "KEY P1 CP70 Like",
+    "KEY P1 Granular Keys",
+    "LED JP Funk Trish",
+    "LED JP Mono Me",
+    "LED JP Montreal Dry",
+    "LED JP Stereo Mono",
+    "LED MM Big Short Lead",
+    "LED MM Cool Perfection",
+    "LED MM Nasty Tremolead",
+    "LED MM Turbo Charged",
+    "LED OB Clicky Lead",
+    "LED OB Dirty Fresh",
+    "LED OB Expressive",
+    "LED OB Metal Bottom Lead",
+    "LED P1 High Frequency",
+    "LED P1 Mosquitox",
+    "LED P1 Stereo Dist",
+    "LED P1 Sync Lead",
+    "ORG JP Klikoss",
+    "ORG MM Organ Chapel",
+    "ORG OB Modern Organ",
+    "ORG P1 Expressive Organ",
+    "PAD JP Aristopad",
+    "PAD JP Lunar Dune",
+    "PAD JP Moonlight",
+    "PAD JP Voice Up",
+    "PAD MM Dark Sleep",
+    "PAD MM Silver Ramper",
+    "PAD MM Wheel Done",
+    "PAD OB Infusion",
+    "PAD OB Jolie Choir",
+    "PAD OB Tender",
+    "PAD P1 Ambience",
+    "PAD P1 Anthemic Mod",
+    "SYN JP DXRover",
+    "SYN JP Galaxy Mod",
+    "SYN MM Bentorem",
+    "SYN MM Electro Hum",
+    "SYN MM Hover",
+    "SYN OB Infinite",
+    "SYN OB Tropic Touch",
+    "SYN OB Vibrawaves",
+    "SYN P1 Bellatrix",
+    "SYN P1 Oro Sync",
+    "Prominy V-METAL",
+    "Prominy SC Electric Guitar 2",
+    "Prominy LPC Electric Guitar",
+    "Shreddage 3 Stratus",
+    "Shreddage 3 Stratus FREE",
+    "Shreddage 3 Hydra",
+    "Shreddage 3 Abyss",
+    "Shreddage 3 Serpent",
+    "Orange Tree Evolution Infinity",
+    "Orange Tree Evolution Strawberry",
+    "Three-Body Tech Heavier7Strings",
+    "Ilya Efimov LP Electric Guitar",
+    "Ilya Efimov TC Electric Guitar",
+    "MusicLab RealGuitar 6",
+    "MusicLab RealStrat",
+    "Ample Metal Eclipse",
+    "Ample Metal Hellrazer",
+    "Ample Guitar LP",
+    "Ample Guitar TC",
+    "Ample Guitar VC",
+    "Ample Sound Complete Bundle",
+    "Native Instruments Session Guitarist Electric Sunburst",
+    "Native Instruments Session Guitarist Electric Sunburst Deluxe",
+    "Native Instruments Session Guitarist Electric Storm Deluxe",
+    "UJAM Virtual Guitarist IRON 2",
+    "UJAM Virtual Guitarist CARBON",
+    "Spitfire Audio LABS Electric Guitars",
+    "Spitfire Audio Ambient Guitars",
+    "Spitfire Audio Afterglow Electric Guitar",
+    "8dio Songwriting Guitar",
+    "Pettinhouse Funky Guitar",
+    "Prominy SR5 Rock Bass 2",
+    "Ample Metal Ray5",
+    "Ample Bass P",
+    "Ample Bass J",
+    "Ample Bass JF",
+    "Orange Tree Evolution Roundwound Bass",
+    "Eurobass 3 (Submission Audio)",
+    "Modo Bass 2 (IK Multimedia)",
+    "Trilian (Spectrasonics)",
+    "Shreddage 3 Stratus (Impact Soundworks)",
+    "Orange Tree Samples Evolution Infinity",
+    "Orange Tree Samples Evolution Strawberry",
+    "TSE Audio BOD",
+    "GetGood Drums Modern & Massive",
+    "GetGood Drums P IV Matt Halpern",
+    "GetGood Drums One Kit Wonder Metal",
+    "Toontrack Superior Drummer 3",
+    "Toontrack EZdrummer 3",
+    "Toontrack Death & Darkness SDX",
+    "Toontrack The Rock Foundry SDX",
+    "Toontrack Metal Foundry SDX",
+    "Steven Slate Drums SSD 5.5",
+    "MixWave Drums",
+    "Solemn Tones Drums",
+    "Ugritone Drums",
+    "Chaostones Deviant Drums",
+    "XLN Audio Addictive Drums 2",
+    "Krimh Drums Free (Bogren Digital)",
+    "AVA Music PRISM Drums Lite",
+    "Neural DSP Archetype: Gojira X",
+    "Neural DSP Archetype: Nolly X",
+    "Neural DSP Archetype: Petrucci",
+    "Neural DSP Granophyre",
+    "Neural DSP (unspecified module)",
+    "Positive Grid BIAS Amp 2",
+    "Positive Grid BIAS FX 2",
+    "Positive Grid BIAS AMP Studio Bundle",
+    "Waves GTR 3",
+    "Line6 Pod Farm 2.5",
+    "Line6 Helix Native",
+    "Audified AmpLion Pro",
+    "Audified STA Preamp 2",
+    "Studio Devil Virtual Guitar Amp II",
+    "Studio Devil Virtual Amp Pro",
+    "Avid Eleven MK II",
+    "UAD Fender 55 Tweed Deluxe",
+    "UAD Marshall Plexi Super Lead 1959",
+    "UAD Fuchs Overdrive Supreme 50 Amp",
+    "Kuassa Amplifikation Vermilion",
+    "Audiority Tube Modulator",
+    "Blackstar St James Plugin",
+    "Engl Amp Room",
+    "Friedman Buxom Betty",
+    "Friedman Be100 (Neural DSP)",
+    "Tone King Picklehead",
+    "Orange Micro Crusher Plugin",
+    "Vox AC30 Digital Plugin",
+    "Peavey 5150 Plugin",
+    "Mesa Boogie Triple Rectifier Plugin",
+    "Marshall JCM800 Plugin",
+    "TSE Audio TSE X50 V2",
+    "TSE Audio TSE X30 V2",
+    "TSE Audio TSE 808",
+    "TSE Audio R47",
+    "TSE Audio Shredder",
+    "Audio Assault RVXX",
+    "Audio Assault Cascade",
+    "Audio Assault Core Collection",
+    "OTO Audio Bim",
+    "Mercuriall Unchained",
+    "Mercuriall G2 Plugin",
+    "Free LSD4 Distortion",
+    "Samplephonics The Synth Vol 1–5",
+    "Waves Element 3D",
+    "Waves Sansamp Plug-in",
+    "Ample Guitar M Lite II (Free)",
+    "Ample Guitar P Lite (Free)",
+    "Ample Guitar T Lite (Free)",
+    "ARIA Sounds Nylon Guitar",
+    "ARIA Sounds Grand Piano",
+    "MonsterDAW Monster Guitar",
+    "Solaris GTR Lite",
+    "Zak Sound Sapphire Guitar",
+    "Echo Sound Works Vinyl Guitar",
+    "Audiolatry PlastikGuitar",
+    "Steinberg Guitar Harmonics Essential",
+    "Steinberg GRAND Piano",
+    "Kontakt Band Collection (Guitar)",
+    "Modartt Classical Guitar",
+    "Mike Georgades MG Soft Nylon",
+    "Spectrasonics Nylon Sky",
+    "Ample Guitar Luthier",
+    "Music Labs Real Guitar Classic",
+    "Native Instruments Picked Nylon",
+    "Native Instruments Strummed Acoustic",
+    "Spitfire Audio Electric Mint",
+    "Spitfire Audio Electric Strings",
+    "Spitfire Audio Georgian Voices",
+    "Basic Cinematic LITE",
+    "Basic Cinematic",
+    "Basic Close LITE",
+    "Basic Close",
+    "Basic Hall LITE",
+    "Basic Hall",
+    "Basic Hard",
+    "Basic Mono",
+    "Basic Soft",
+    "Blues Piano",
+    "Bowed Piano",
+    "Cinematic Piano",
+    "Deeply Flanged Keys",
+    "Dream EP",
+    "Dub Piano",
+    "Endless Piano",
+    "Filter Epidemy",
+    "Funky Piano",
+    "Gomme Piano",
+    "Highly Unstable Piano",
+    "Indian Dream",
+    "Jazzistic",
+    "Levvo Piano",
+    "Long Pad",
+    "Low Pad",
+    "M1 Madness",
+    "Midnight Perfect World",
+    "Porka Slap",
+    "Radio Piano",
+    "Retired Amp Piano",
+    "Romantic Piano",
+    "Scratchy",
+    "Soft Boy Piano",
+    "Soloist",
+    "Space Piano",
+    "Staccatic",
+    "Strings Motion",
+    "Submarine EP",
+    "Suspense Piano",
+    "Tape Piano",
+    "Soft Wurli",
+    "Stadium Guitar",
+    "Tsymbaly Piano",
+    "Vintage Dream Piano",
+    "Xtra Full Mics",
+    "Brush Circle Square: Precision experimental percussion design",
+    "Stick Big Stax: Precision high-energy stick impact design",
+    "Stick Blind: Precision muted percussive design",
+    "Stick Cellular: Precision glitch-infused stick percussion",
+    "Stick Crazy: Precision chaotic stick dynamics",
+    "Stick Cymbal Shift: Precision metallic-shifted percussive tone",
+    "Stick Fellaw: Precision warm percussive body",
+    "Stick Ghost Not: Precision ghost-note articulation",
+    "Stick Machine Gut: Precision mechanical percussive tone",
+    "Stick Roller Track: Precision driven stick rolls",
+    "Stick Tennessee: Precision roots-inspired stick tone",
+    "Stick Trap Attack: Precision modern trap percussive punch",
+    "WET Attackless Stadium: Precision reverb-massive percussion",
+    "WET Comp Punishment: Precision hard-compressed percussive tone",
+    "WET DnB Mood: Precision high-velocity percussive design",
+    "WET Fat Metal: Precision heavy processed percussive weight",
+    "WET Filter Transient: Precision filter-shaped percussion",
+    "WET Gabber Thriller: Precision extreme-speed percussive aggression",
+    "WET Garage Ricochets: Precision UKG-inspired percussive bounce",
+    "WET Old Sampler: Precision vintage-sampler coloration",
+    "WET Phase Along: Precision phaser-processed percussion",
+    "WET Resonant Trap: Precision resonant-filter percussion",
+    "WET Transient Processed: Precision hyper-shaped percussive transients",
+    "WET Water Kit: Precision liquid-processed percussion",
+    "BAS JP Analogie: Precision analog-style bass tone",
+    "BAS JP Decay: Precision decay-shaped bass tone",
+    "BAS JP Japan Taurus: Precision Taurus-inspired low-end",
+    "BAS JP Vibra Lows: Precision vibrato-modulated bass tone",
+    "BAS MM 3 Oct Sub Click: Precision sub‑octave bass tone",
+    "BAS MM 3 Oct Sustain: Precision sustained sub design",
+    "BAS MM Oboe Boo: Precision hybrid oboe-bass tone",
+    "BAS MM This Is D Mode: Precision D‑mode shaped bass tone",
+    "BAS MM This Is D Mode",
+    "LED MM Nasty Tremelead",
+    "PAD OB Noisyminous",
+    "PAD OB Touchable",
+    "PAD P1 Prophet Pad",
+    "PAD P1 Spectral Split",
+    "PAD P1 Sunrise",
+    "PLK JP Analog Pluck",
+    "PLK JP Attack Flute",
+    "PLK MM Relax",
+    "PLK MM Sequensation",
+    "PLK OB Harp X",
+    "PLK OB PluXa",
+    "PLK P1 Folkoto",
+    "PLK P1 Prophet Soft",
+    "PLY JP King Bed",
+    "PLY JP Poly Sync",
+    "PLY MM Four Midable",
+    "PLY MM Rendez Vous",
+    "PLY OB Phaser Day",
+    "PLY OB Raspail Bells",
+    "PLY OB SynXa",
+    "PLY P1 Hook To Bass",
+    "PLY P1 Shining",
+    "PLY P1 Yanni Hook",
+    "STR JP Large Orchestra",
+    "STR JP Orchestrash",
+    "STR MM Mellow Strings",
+    "STR MM Pure Old Analog",
+    "STR OB Square Strings",
+    "STR P1 Pizzicati",
+    "STR P1 Soft Orchestra Hit",
+    "Shadowing Piano",
+    "ATM Abyss Swells",
+    "ATM Badabook",
+    "ATM Count",
+    "ATM Dissonant Bassmaphere",
+    "ATM Diviners Mint",
+    "ATM Drama",
+    "ATM Dystopian Horizon",
+    "ATM Lamenting",
+    "ATM Mist",
+    "ATM Oram",
+    "ATM Quake",
+    "ATM Space Ambient Drone Stab",
+    "ATM Spectres",
+    "ATM Voodoo Organ",
+    "EPC Black Hole 1‑Shot",
+    "EPC Black Hole SEQ",
+    "EPC Gladiators Arena",
+    "EPC Moby Glitch",
+    "EPC Rescue Team",
+    "FX Box of Bees",
+    "FX Factory Machine",
+    "FX Intoxicated Clown",
+    "FX Lunar Gravity",
+    "FX OuterSpace",
+    "FX Slaughter Swells",
+    "HIT Blended Hell",
+    "HIT Brass Low",
+    "HIT Cluster Punch Strings",
+    "HIT Loki",
+    "HIT Mammoth",
+    "HIT Mars",
+    "HIT Menacing",
+    "HIT Mordor",
+    "HIT Oxford Whydah",
+    "HIT Power Stomp",
+    "HIT Punctuate",
+    "HIT Sledgehammer",
+    "HIT Statues",
+    "HIT Tower Knight",
+    "MTN Alarm",
+    "MTN Granular Tuba",
+    "MTN Gritty Box",
+    "MTN Openings",
+    "MTN Screech",
+    "NAT Arrivals",
+    "NAT Century",
+    "NAT Crescendo",
+    "NAT Decrescendo",
+    "NAT InBetween",
+    "NAT Staccato",
+    "NAT Sustain Velocity",
+    "Clav C Basic Dry 1",
+    "Clav C Basic Dry 2",
+    "Clav C Basic Reverb 2",
+    "Clav C Chorused 2",
+    "Clav C Phase Dark 2",
+    "Clav C Rotary 1",
+    "Clav C Space Bells 1",
+    "Clav C TremoPan 2",
+    "Clav C Wah 2",
+    "Clav L1 Basic Dry",
+    "Clav L1 Basic Reverb",
+    "Clav L1 Chorused",
+    "Clav L1 Phase Dark",
+    "Clav L1 Rotary",
+    "Clav L1 Space Bells",
+    "Clav L1 TremoPan",
+    "Clav L1 Wah",
+    "Clav Viba Basic FT",
+    "Clav Viba Basic Lead",
+    "Clav Viba Basic Reverb FT",
+    "Clav Viba Basic Rhythm",
+    "Clav Viba Chorused FT",
+    "Clav Viba Chorused R",
+    "Clav Viba Phase Dark Lead",
+    "Clav Viba Rotary FT",
+    "Clav Viba Space Bells FT",
+    "Clav Viba TremoPan FT",
+    "Clav Viba Wah FT",
+    "E Piano Basic Dry",
+    "E Piano Basic High",
+    "E Piano Basic Reverb",
+    "E Piano Broken Toy",
+    "E Piano Chorused",
+    "E Piano Endless",
+    "E Piano Little Dirt",
+    "E Piano Phase Dark",
+    "E Piano Phaser",
+    "E Piano Random Chorus",
+    "E Piano Retired Amp",
+    "E Piano Rotary",
+    "E Piano Small Horns",
+    "E Piano Space Bells",
+    "E Piano TremoPan",
+    "E Piano Unstable Filtered",
+    "W 200Studio Basic Dry",
+    "W 200Studio Basic Reverb",
+    "W 200Studio Chorused",
+    "W 200Studio Phase Dark",
+    "W 200Studio Rotary",
+    "W 200Studio Space Bells",
+    "W 200Studio TremoPan",
+    "W 270 B2 Basic Dry",
+    "W 270 B2 Basic Reverb",
+    "W 270 B2 Chorused",
+    "W 270 B2 Phase Dark",
+    "W 270 B2 Rotary",
+    "W 270 B2 Space Bells",
+    "W 270 B2 TremoPan",
+    "Aisling",
+    "Alienizer",
+    "Analex",
+    "Analog Circuitry",
+    "Arpy Bit",
+    "Atari2600",
+    "Atmo Drone",
+    "Atomic",
+    "AutoPilot",
+    "BeeThree",
+    "Bronze",
+    "CS82",
+    "Camila",
+    "Cedric",
+    "Chase",
+    "Chronosix",
+    "Citator",
+    "Conjuring",
+    "Cyberemotion",
+    "Cyberorch",
+    "Cyclon",
+    "Darkened",
+    "Deep drone",
+    "Digilog",
+    "Disco Shuttle",
+    "Divine Lyre",
+    "Dronx",
+    "Dynasynth",
+    "EMC2",
+    "Eclipcity",
+    "Edges",
+    "Empyrean",
+    "Epoch",
+    "Equibrass",
+    "Equinox",
+    "Equiseq 1",
+    "Equiseq 2",
+    "FM Grand",
+    "Fafeasta",
+    "Fantasizer",
+    "Flexibit",
+    "Flowly",
+    "Fluidity",
+    "Foley Six",
+    "Forcer",
+    "Fretless Bass",
+    "Ghouls",
+    "Giant One",
+    "Global",
+    "Hard Time",
+    "Harmonicfull",
+    "Haunted",
+    "Heap",
+    "Hexanus Piccolo",
+    "Hexanus Tutti",
+    "High Brass",
+    "Horgan",
+    "Imagination",
+    "Infrared",
+    "Jarring Beat",
+    "Julian",
+    "Junior",
+    "Junoheim",
+    "Kinetique",
+    "Laser Harp",
+    "Love Moments",
+    "Lunar Fluter",
+    "Macchine Stringhe",
+    "Magnetic Bass",
+    "Magnetic Lead",
+    "Magnetic Pad",
+    "MamaGama",
+    "Mandarine",
+    "Marvelous 1",
+    "Marvelous 2",
+    "Mighty Pops",
+    "Mindset",
+    "Mini MG",
+    "Model D Solo",
+    "Mopper",
+    "Morphase",
+    "Muffin",
+    "Naughty Boy",
+    "Nerver",
+    "Neutrons",
+    "Night Vision",
+    "Ninjitsu",
+    "Nucleon",
+    "O2 Sequence 1",
+    "O2 Sequence 2",
+    "Oddful",
+    "Operator X",
+    "Oscar",
+    "OxyBass",
+    "Oxystrings",
+    "Phasement",
+    "Physical Bass",
+    "Pink Flood",
+    "Polieten",
+    "Polylogue",
+    "Polysynth",
+    "Pumpin",
+    "Quasibell",
+    "R.E.M.",
+    "RainBladder",
+    "Ranges",
+    "Rendezvous",
+    "Rertro Rumba",
+    "Retro Bass",
+    "RetroFlex",
+    "Returning",
+    "Revival",
+    "Revolution",
+    "Rusty Panel",
+    "SH‑100",
+    "Saba",
+    "Sabre",
+    "SciBrass",
+    "Seadiver",
+    "Sephia",
+    "Smeared Stone",
+    "Soleil Noir",
+    "Achillia",
+    "Adroitex",
+    "Alpha Juno Prime",
+    "Alpha Juno Refilter",
+    "Alloymix",
+    "Almondo Mono",
+    "Almondo Poly",
+    "Almondo Unison",
+    "Almondo",
+    "Alpha Beam",
+    "Alpha Vibrocity",
+    "Analog Funky mk I",
+    "Analog Funky mk II",
+    "Analog Funky mk III",
+    "Angustia XL",
+    "Angustia",
+    "Aquatica mk I",
+    "Aquatica mk II",
+    "Arcade",
+    "Arctica mk I",
+    "Arctica mk II",
+    "Arctica mk III",
+    "Arrayer",
+    "Artemisal",
+    "Asbury Polysynth",
+    "Aseita mk I",
+    "Aseita mk II",
+    "Astounding Kicks",
+    "Astounding Snares",
+    "Celina Grunger",
+    "Celina His Shattered Soul",
+    "Celina Messophobia",
+    "Celina Metatronic",
+    "Celina Shattering Bass",
+    "George Ergem Beatbox Kit",
+    "George Ergem Pluck Mono",
+    "George Ergem Pluck Poly",
+    "George Ergem Strings",
+    "George Ergem Vocals & Ad-Libs",
+    "George Ergem Vox Doo",
+    "Interruptor ePiano",
+    "Interruptor Funky Groove",
+    "Interruptor GlassePiano",
+    "Interruptor HammerSaw",
+    "Interruptor PowerAddon",
+    "Interruptor Pumper",
+    "Interruptor RawSlap-Lubro Bells",
+    "Lubro Junowave",
+    "Lubro Polykeys",
+    "Pashang Pluckeys",
+    "RAN Fat Guitar",
+    "RAN Phaser Rhythm",
+    "RAN Power Guitar",
+    "RAN Rhythm Screamer",
+    "Younsou Bass",
+    "Younsou Getaway",
+    "Younsou Solo",
+    "ZXPS Manylogue",
+    "ZXSP Carbon",
+    "ZXSP Drone",
+    "Clav C TremoPan",
+    "Classync XL",
+    "Classync",
+    "Carpenteroid Compunison",
+    "Corrosivestrings",
+    "Cortney mk I",
+    "Cortney mk II",
+    "Cosmic Bells",
+    "Cosmicana",
+    "CRush",
+    "Cryptoplasma",
+    "Crystaline",
+    "Cyberchase",
+    "Cybertronik mk I",
+    "Cybertronik mk II",
+    "Cybertronik mk III",
+    "Cyclomoog",
+    "Cyquential",
+    "Darkmatter",
+    "Darkrage mk I",
+    "Darkrage mk II",
+    "Daybreak",
+    "DCO Board",
+    "DCO Plugged",
+    "DCO Saw",
+    "Decoy XL",
+    "Decoy",
+    "Delightone mk I",
+    "Delightone mk II",
+    "Depryderus",
+    "DigiTrumpet",
+    "DigiWave ePiano mk I",
+    "DigiWave ePiano mk II",
+    "Discotech",
+    "Dream EP mk I",
+    "Dream EP mk II",
+    "Dreamy Tubular mk I",
+    "Dreamy Tubular mk II",
+    "Drivingrinder",
+    "Dropamine XL",
+    "Drumcore",
+    "Dualator Basic",
+    "Dualator PWM",
+    "Dualator Sync",
+    "Duffelect mk I",
+    "Duffelect mk II",
+    "Duffelect PWM",
+    "Duffelsync",
+    "DX Boutique Legato",
+    "DX Boutique Mono",
+    "DX Boutique Unison",
+    "DX Boutique",
+    "DX Cybercore mk I",
+    "DX Cybercore mk II",
+    "DX Harp",
+    "Lucentum",
+    "Mellow ePiano mk I",
+    "Mellow ePiano mk II",
+    "Mercurious",
+    "Michigan mk I",
+    "Michigan mk II",
+    "Michigan mk III",
+    "Microwave",
+    "Mighty mk I",
+    "Mighty mk II",
+    "Mighty mk III",
+    "MKS Legend EP",
+    "MKS Pairedual",
+    "Mocha",
+    "Modesty",
+    "Modunison mk I",
+    "Modunison mk II",
+    "Modunison mk III",
+    "Monopolitan mk I",
+    "Monopolitan mk II",
+    "Monopoly Phat",
+    "Monopoly Xtraphat",
+    "Moonshade",
+    "NeonBells XL",
+    "NeonBells",
+    "Neonflow Unison",
+    "Neonflow",
+    "NeonGlow",
+    "NeonPluck",
+    "Neonpulser",
+    "Neostring XL",
+    "Neostring",
+    "Neptuntron",
+    "Ninineteen",
+    "Noisawlo",
+    "OB Bigbrass",
+    "OB Brass mk I",
+    "OB Brass mk II",
+    "OB PolyPWM Unison",
+    "OB PolyPWM",
+    "OB Polysynth",
+    "OB PolyUnison",
+    "OB Resweep mk I",
+    "OB Resweep mk II",
+    "OB Resweep mk III",
+    "OB Resweep Unison",
+    "OB Resweep variporta",
+    "Obelizer mk I",
+    "Obelizer mk II",
+    "Oblate Poly",
+    "Oblate Unison",
+    "Orbistring Cloudy Unison",
+    "Orbistring Cloudy",
+    "Obristring Dark Unison",
+    "Obristring Dark",
+    "Octanic mk I",
+    "Octanic mk II",
+    "Ogustia",
+    "Opetron",
+    "OPL Woodbass mk I",
+    "OPL Woodbass mk II",
+    "Orangewave",
+    "Outburst",
+    "Ovalean",
+    "Overclocker",
+    "Percorgan",
+    "Percussions & SFX rom 1",
+    "Percussions & SFX rom 2",
+    "Phantasian",
+    "Phatline mk I",
+    "Phatline mk II",
+    "Piano Galore",
+    "Piano Padded mk I",
+    "Piano Padded mk II",
+    "Pianophilia",
+    "Pinnacle",
+    "Pithon",
+    "Pizzacocoa mk I",
+    "Pizzacocoa mk II",
+    "Planetary",
+    "Plasticid",
+    "Platedox",
+    "Plunk Piano",
+    "Popkeys",
+    "Power Kicks",
+    "Power Snares",
+    "Power Toms",
+    "Pristina",
+    "Pro Resweep mk I",
+    "Pro Resweep mk II",
+    "Pro Syncsweep",
+    "Probrass",
+    "Prodigy Funk",
+    "Prodigy Hardcore",
+    "Profix Polysynth mk I",
+    "Profix Polysynth mk II",
+    "Profix Polysynth mk III",
+    "Profix Polysynth mk IV",
+    "Profix Quickbow",
+    "Profix Slowbow",
+    "Profix Syncbow",
+    "Prophepica mk I",
+    "Prophepica mk II",
+    "Prophepica mk III",
+    "Prophesync mk I",
+    "Prophesync mk II",
+    "Prophesync mk III",
+    "Prophesync mk IV",
+    "Prophettwank",
+    "Prophiscape",
+    "Prophluctuater",
+    "Protrumpet",
+    "Proxy mk I",
+    "Proxy mk II",
+    "Proxy mk III",
+    "Proxy Morph Env",
+    "Amiga Advanced",
+    "Analogue",
+    "Androids Dance",
+    "Artificial Balance",
+    "Auditio",
+    "Avalon",
+    "Backpacker",
+    "Backviews",
+    "Ballooner",
+    "Bashing",
+    "Bass Drop",
+    "Beach Pluck",
+    "Bella",
+    "Bitter Bell",
+    "Blib Blob",
+    "Bora",
+    "Brainwasher",
+    "Brass",
+    "Burping Elk",
+    "Can Shaker",
+    "Cat Blanche",
+    "Cello",
+    "Classic Trancer",
+    "Clubber",
+    "Coconut",
+    "Concept",
+    "Culmination",
+    "Current Voltage",
+    "Demonostrator",
+    "Done Deal",
+    "Downer",
+    "Dream Piano",
+    "Dreamweaver",
+    "Drum Loop 1",
+    "Drum Loop 2",
+    "Drum Loop 3",
+    "Drums Menu",
+    "Electrify",
+    "Epic Chords",
+    "Evolution",
+    "Famou5",
+    "Ferry Bass",
+    "Flat Screen",
+    "Fluffy Bells",
+    "Frozen Valleys",
+    "Fundamental",
+    "Gently Bassline",
+    "Guitano",
+    "Happy Days",
+    "Healing",
+    "Horizons",
+    "Huge Spaceship",
+    "Infinity",
+    "Intelligentsia",
+    "Interconnected",
+    "Jungle Hunt",
+    "Jungle Mallets",
+    "Lo-Fi Synsemble",
+    "Lube Bass",
+    "Lushness",
+    "Magnetic Fields",
+    "Malfunction",
+    "Manner",
+    "Middler",
+    "Mini Chords",
+    "Miracoulus",
+    "Monstrous",
+    "Motion Pictures",
+    "Multilogue",
+    "My Purpose",
+    "Nippon",
+    "Open Your Mind",
+    "Paraglider",
+    "Phasing Modulator",
+    "Post Strings",
+    "Prelude",
+    "Primordial",
+    "Procession",
+    "Processor",
+    "Pulse Blower",
+    "Radiator",
+    "Raining Needles",
+    "Raw",
+    "Reflection",
+    "Reliance",
+    "Resicopter",
+    "Reward",
+    "Riser Menu",
+    "Rising Robots",
+    "Rocking Saws",
+    "Salada",
+    "Signpost",
+    "Silky Stars",
+    "Sky Catcher",
+    "Smoker",
+    "Sodium",
+    "Soft Focus",
+    "Soft Squares",
+    "Sonic Boom",
+    "Squeak",
+    "Stairways",
+    "Stratosphere",
+    "Stunning",
+    "Sub Bass",
+    "Super Strings",
+    "Synced",
+    "Synthetic Strings",
+    "Talamanca",
+    "The Chief",
+    "The Forgotten",
+    "The Last Chapter",
+    "The Source",
+    "Thermosphere",
+    "Tokyo",
+    "Touching Sermon",
+    "Traveller",
+    "Trip To Juno",
+    "Tube Bass",
+    "Ultimate Kick",
+    "Ultimate Snare",
+    "Under Tension",
+    "Unicorn",
+    "Unknown Past",
+    "Valentine",
+    "Vintage Phazor",
+    "Ace Nylon Lite",
+    "Ace Nylon MK I",
+    "Ace of Space",
+    "Bright Humbucker AC15",
+    "Brighter Humbucker AC15",
+    "Brighter Humbucker Xtra",
+    "BritBlub",
+    "BritBlub X",
+    "Chill Guitar",
+    "Daisy Rock Acoustic",
+    "Daisy Rock Xtra",
+    "Dark Star Accoustic",
+    "Dark Star Hybrid",
+    "Dark Star Metal",
+    "Dark Star Metal Feedback",
+    "Dark Star Overdriven",
+    "DiddyWah",
+    "Ebow",
+    "Finger Neck Humb",
+    "Metal Chords 1",
+    "Metal Chords 2",
+    "Muted Strat 1",
+    "Muted Strat 2",
+    "Muted Strat 3",
+    "Nylon Shimmer",
+    "Ovation E.Lite",
+    "Ovation Elite Plus",
+    "Ovation Elite Xtra",
+    "Ovation Hybrid",
+    "Piezo Dub",
+    "Piezoish",
+    "Piezoish Xtra",
+    "Pignose FullGain",
+    "Pignose FullGain Xtra",
+    "Pignose HalfGain 1",
+    "Pignose HalfGain 2",
+    "Pignose HalfGain 3",
+    "Pignose Lite Slide",
+    "Pignose QuarterGain 1",
+    "Pignose QuarterGain 2",
+    "Power Chorder",
+    "Power Chorder Split",
+    "Steel MK I",
+    "TalkBox Wah",
+    "Tocco di Terra X",
+    "Bosendorfer",
+    "Bosendorfer Lite",
+    "Close Grand",
+    "Close Grand Lite",
+    "Electric Eighties",
+    "Electric Piano",
+    "Electric Piano Bright",
+    "Grand Piano",
+    "Grand Piano Lite",
+    "Pianomix",
+    "Pianopad",
+    "Rhodes Basic",
+    "Rhodes MK1",
+    "Rhodes MK1 Lite",
+    "Stage Grand",
+    "Stage Grand Lite",
+    "Steinway D",
+    "Steinway D Lite",
+    "Westworld",
+    "Yamaha C7",
+    "Yamaha C7 Lite",
+    "Zero Eighties",
+    "Bassoon Staccato",
+    "Bassoon Sustain",
+    "Bassoon Sustain Lite",
+    "Clarinets Staccato",
+    "Clarinets Sustain",
+    "Clarinets Sustain Lite",
+    "Flutes Staccato",
+    "Flutes Sustain",
+    "Flutes Sustain Lite",
+    "Full Brass Staccato",
+    "Full Brass Sustain",
+    "Full Brass Sustain Lite",
+    "Full Winds Staccato",
+    "Full Winds Sustain",
+    "Full Winds Sustain Lite",
+    "Horns Staccato",
+    "Horns Sustain",
+    "Horns Sustain Lite",
+    "Oboes Staccato",
+    "Oboes Sustain",
+    "Oboes Sustain Lite",
+    "Trombones Staccato",
+    "Trombones Sustain",
+    "Trombones Sustain Lite",
+    "Trumpets Staccato",
+    "Trumpets Sustain",
+    "Trumpets Sustain Lite",
+    "Tubas Staccato",
+    "Tubas Sustain",
+    "Tubas Sustain Lite",
+    "BAS D’andria",
+    "BAS Deriv",
+    "BAS Ginzu",
+    "BAS Hamptoni",
+    "BAS Husa",
+    "BAS Kesi",
+    "BAS Pongo",
+    "BAS Wizard",
+    "BRS 364 Days",
+    "CHD Woodsun",
+    "KEY Bones",
+    "KEY Clues",
+    "KEY Drama",
+    "KEY Dramu",
+    "KEY Jamiso",
+    "KEY Jankson",
+    "KEY JavlinSyn pt2",
+    "KEY JavlinSYn",
+    "KEY Loy",
+    "KEY Mantre",
+    "KEY Modje",
+    "KEY Opwer",
+    "KEY Pia Pia",
+    "KEY Road Ahead",
+    "KEY Se Youn",
+    "KEY Spaced",
+    "KEY Speci",
+    "KEY Trompy",
+    "ORG Tegrity",
+    "PAD Blaq Flock",
+    "PAD Ding",
+    "PAD Grumbo",
+    "PAD Inso",
+    "PAD Joe Gullin",
+    "PAD Nova",
+    "PAD Pneu",
+    "PAD Polarize",
+    "PAD She",
+    "PAD Shwartsky",
+    "PAD StayDeeUmm",
+    "PAD SwordSLinger",
+    "PAD Yula",
+    "PLK Haversin",
+    "PLK Insea",
+    "PLK SideBar",
+    "PLK What the Bell",
+    "SYN 2004 Hills",
+    "SYN Farry",
+    "SYN Flock Of Kilos",
+    "SYN Flok Flam",
+    "SYN Flok",
+    "SYN Fremo",
+    "SYN Giz Moe",
+    "SYN Harmon",
+    "SYN Hauer",
+    "SYN Humbo State",
+    "SYN Jembo",
+    "SYN Jersox",
+    "SYN June",
+    "SYN Kilometer",
+    "SYN Lime Frog",
+    "SYN Mongoe",
+    "SYN Pandre",
+    "SYN Poh"
+  ],
+  "categoryCounts": {
+    "Synthesizers & Patches": 845,
+    "Atmos, FX & Cinematic": 47,
+    "Drums & Percussion": 102,
+    "Arps & Sequences": 20,
+    "Bass & Low-End": 79,
+    "Orchestral & Acoustic": 115,
+    "Synth Leads": 20,
+    "Guitars & Amps": 115,
+    "Synth Plucks": 29,
+    "Keys & Pianos": 159,
+    "Synth Pads": 30
+  }
+}
