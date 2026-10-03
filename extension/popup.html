@@ -205,13 +205,34 @@
         <textarea id="pop-style" class="sf-textarea" rows="2">Dream Pop &amp; Shoegaze, TRAP &amp; DRILL, 140 BPM, ethereal female vocals, 808 sub bass, Roland Juno-106</textarea>
       </div>
 
-      <!-- Lyrics & Metatags -->
+            <!-- Lyrics & Prompt Directives -->
       <div style="margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-          <label class="sf-label">Lyrics &amp; Metatags:</label>
+          <label class="sf-label">Lyrics &amp; Prompt Directives:</label>
           <button id="pop-btn-clear-lyrics" class="sf-pick-btn" style="padding:1px 5px;font-size:10px;">Clear</button>
         </div>
-        <textarea id="pop-lyrics" class="sf-textarea" rows="2">[Intro]&#10;[Verse 1]&#10;Neon shadows flicker in the haze&#10;&#10;[Chorus]&#10;Drifting high</textarea>
+
+        <!-- Suno V6 / Simple Mode Directive Dropdown -->
+        <div style="margin-bottom:4px;">
+          <select id="pop-v6-directive-select" class="sf-select" style="width:100%;font-size:10.5px;padding:3px 5px;background:#18181b;border:1px solid #6366f1;color:#e0e7ff;border-radius:5px;" title="Suno V6 / Simple Mode Natural Language Prompt Directives">
+            <option value="standard">?? Standard Structured Lyrics</option>
+            <option value="v6-template">? Suno V6: General Template (Source?Task?Keep?Change?Lyrics)</option>
+            <option value="v6-restyle">?? Suno V6: 1. Restyle a Complete Song</option>
+            <option value="v6-part">?? Suno V6: 2. Build Around Selected Part / Riff</option>
+            <option value="v6-premise">?? Suno V6: 3. New Lyrics from Emotional Premise</option>
+            <option value="v6-chatgpt">?? ChatGPT Prep Prompt (Copy to Clipboard)</option>
+          </select>
+        </div>
+
+        <textarea id="pop-lyrics" class="sf-textarea" rows="3">[Intro]&#10;[Verse 1]&#10;Neon shadows flicker in the haze&#10;&#10;[Chorus]&#10;Drifting high</textarea>
+
+        <!-- Simple Mode Targeting Checkbox -->
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+          <input type="checkbox" id="pop-toggle-simple-target" style="cursor:pointer;accent-color:#6366f1;width:13px;height:13px;" />
+          <label for="pop-toggle-simple-target" style="font-size:10.5px;color:#a5b4fc;cursor:pointer;user-select:none;font-weight:600;" title="Stay in Suno Simple mode and fill single prompt box">
+            ?? Target Suno Simple Mode Box (Natural Language Prompt)
+          </label>
+        </div>
       </div>
 
       <!-- Title & Instrumental Toggle -->

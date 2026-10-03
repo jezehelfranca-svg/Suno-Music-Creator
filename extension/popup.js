@@ -604,6 +604,60 @@ document.addEventListener('DOMContentLoaded', () => {
   weirdnessSlider.oninput = () => weirdnessVal.textContent = weirdnessSlider.value + '%';
   influenceSlider.oninput = () => influenceVal.textContent = influenceSlider.value + '%';
 
+  // ==========================================
+  // SUNO V6 & SIMPLE MODE PROMPT DIRECTIVES
+  // ==========================================
+  const v6DirectiveSelect = document.getElementById('pop-v6-directive-select');
+  const simpleTargetToggle = document.getElementById('pop-toggle-simple-target');
+  let standardLyricCache = lyricsInput ? lyricsInput.value : '';
+
+  const V6_DIRECTIVES = {
+    'v6-template': 'Use [attached song / selected audio passage / pasted lyrics] to create [desired result]. Follow the style supplied in the Style field. Preserve [specific musical elements, words, or emotional meaning]. Change [specific elements to rebuild]. For the lyrics, [keep them unchanged / rewrite selected sections / write entirely new lyrics]. [Additional requirement, such as a changed perspective, stronger final chorus, or different ending.]',
+    'v6-restyle': 'Create a restyled cover of the attached song using the style supplied separately. Preserve the main melody, recognizable hook, original lyrics, and section order. Rebuild the instrumentation, accompaniment, vocal delivery, and production around that style. Keep every lyric unchanged and fit the performance to the original melodic phrasing.',
+    'v6-part': 'Use only the guitar riff at [start?end timestamp] from the attached song as the foundation for a new song. Preserve its note sequence and rhythmic character. Develop new verses, a chorus, and a contrasting bridge around it using the style supplied separately. Write new lyrics about [subject]. Leave the source song?s remaining melodies, lyrics, and arrangement out of the new composition.',
+    'v6-premise': 'Use the pasted lyrics as a reference for their central emotional premise: [describe the meaning to retain]. Write a new song expressing that premise through a different situation, fresh imagery, and an original chorus hook. Use concrete actions and natural, singable language. Avoid forced rhymes and generic emotional declarations. Let each verse develop the situation, and make the final chorus reflect a believable change in the narrator?s understanding. Follow the musical style supplied separately.\n\nREFERENCE LYRICS:\n',
+    'v6-chatgpt': 'Write one concise, paste-ready creation instruction for Suno V6 Simple mode based on my request. The musical style is supplied separately. Focus on what Suno should do with the source: restyle the complete song, reuse selected musical elements, rewrite lyrics, or create a new song from its emotional premise. State what must remain, what may change, and how to handle the lyrics. Identify selected audio parts by section or timestamp when available. When rewriting lyrics over a retained melody, request natural phrasing that fits its rhythm and vocal pauses. Return only the creation instruction. Do not write finished lyrics or add an unsolicited style description.'
+  };
+
+  if (v6DirectiveSelect) {
+    v6DirectiveSelect.onchange = () => {
+      const val = v6DirectiveSelect.value;
+      if (val === 'standard') {
+        lyricsInput.value = standardLyricCache || '[Intro]\n[Verse 1]\nNeon shadows flicker in the haze\n\n[Chorus]\nDrifting high';
+        statusEl.textContent = '?? Restored standard song lyrics scaffold!';
+      } else if (val === 'v6-chatgpt') {
+        navigator.clipboard.writeText(V6_DIRECTIVES['v6-chatgpt']);
+        statusEl.textContent = '?? Copied ChatGPT prompt prep instruction to clipboard!';
+      } else if (val === 'v6-premise') {
+        const currentRef = (lyricsInput.value && !lyricsInput.value.includes('REFERENCE LYRICS:')) ? lyricsInput.value.trim() : (standardLyricCache || '').trim();
+        lyricsInput.value = V6_DIRECTIVES['v6-premise'] + (currentRef || '[paste lyrics here]');
+        statusEl.textContent = '?? Loaded V6 Emotional Premise prompt directive!';
+      } else if (V6_DIRECTIVES[val]) {
+        lyricsInput.value = V6_DIRECTIVES[val];
+        statusEl.textContent = '? Loaded Suno V6 prompt directive!';
+      }
+    };
+  }
+
+  // Track Simple Mode targeting preference
+  let targetSimpleMode = false;
+  chrome.storage?.local?.get(['sf_target_simple_mode'], (res) => {
+    if (res && res.sf_target_simple_mode !== undefined) {
+      targetSimpleMode = !!res.sf_target_simple_mode;
+      if (simpleTargetToggle) simpleTargetToggle.checked = targetSimpleMode;
+    }
+  });
+
+  if (simpleTargetToggle) {
+    simpleTargetToggle.onchange = () => {
+      targetSimpleMode = simpleTargetToggle.checked;
+      chrome.storage?.local?.set({ sf_target_simple_mode: targetSimpleMode });
+      statusEl.textContent = targetSimpleMode
+        ? '?? Target Simple Mode enabled (fills single prompt box)!'
+        : '?? Target Custom Mode enabled (fills Style + Lyrics separately)!';
+    };
+  }
+
   // Clear Lyrics
   const clearLyricsBtn = document.getElementById('pop-btn-clear-lyrics');
   if (clearLyricsBtn) {
@@ -788,7 +842,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadPromptIntoForm(data, reason) {
     if (data.sunoStyleTag) styleInput.value = data.sunoStyleTag;
-    if (data.lyricSnippet) lyricsInput.value = data.lyricSnippet;
+    if (data.lyricSnippet) {
+      lyricsInput.value = data.lyricSnippet;
+      standardLyricCache = data.lyricSnippet;
+      if (v6DirectiveSelect) v6DirectiveSelect.value = 'standard';
+    }
     if (data.title) titleInput.value = data.title;
     if (data.excludeStyles) excludeInput.value = data.excludeStyles;
     if (data.bpm && bpmSlider && bpmVal) {
@@ -1355,6 +1413,7 @@ document.addEventListener('DOMContentLoaded', () => {
         weirdness: parseInt(weirdnessSlider.value, 10),
         styleInfluence: parseInt(influenceSlider.value, 10),
         isInstrumental,
+        targetSimpleMode,
         autoCreate: shouldCreate
       }
     };

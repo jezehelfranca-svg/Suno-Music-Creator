@@ -1,4 +1,4 @@
-// Suno Fusion v2.4 - Studio & AutoFill Engine for suno.com & topmediai.com
+﻿// Suno Fusion v2.4 - Studio & AutoFill Engine for suno.com & topmediai.com
 (function () {
   if (window.__sunoFusionInjected) return;
   window.__sunoFusionInjected = true;
@@ -348,7 +348,7 @@
     }
 
     // 2. Explicit data-testid, aria-label & placeholder selectors
-    let styleTextarea = document.querySelector('textarea[data-testid="style-input"], textarea[data-testid*="style" i], textarea[aria-label*="Style of Music" i], textarea[aria-label*="Style" i]');
+    let styleTextarea = document.querySelector('[data-testid="create-form-styles-wrapper"] textarea, textarea[data-testid="style-input"], textarea[data-testid*="style" i], textarea[placeholder*="clean electric guitar" i], textarea[placeholder*="city pop" i], textarea[aria-label*="Style of Music" i], textarea[aria-label*="Style" i]');
     let lyricsTextarea = document.querySelector('textarea[data-testid="lyrics-input"], textarea[data-testid*="lyrics" i], textarea[aria-label*="Lyrics" i]');
     let titleInput = document.querySelector('input[data-testid="title-input"], input[data-testid*="title" i], input[aria-label*="Title" i]');
     let excludeInput = document.querySelector('input[placeholder*="Exclude" i], textarea[placeholder*="Exclude" i], [aria-label*="Exclude" i]');
@@ -359,7 +359,7 @@
 
       for (const el of labels) {
         const t = (el.textContent || '').trim().toLowerCase();
-        if (!styleTextarea && (t === 'style of music' || t.includes('style of music') || t === 'music style')) {
+        if (!styleTextarea && (t === 'style of music' || t.includes('style of music') || t === 'music style' || t === 'styles')) {
           const parent = el.closest('div, section, fieldset') || el.parentElement;
           styleTextarea = parent?.querySelector('textarea');
         }
@@ -699,8 +699,16 @@
 
     if (!isTopMedia) {
       ensureOnCreatePage();
-      ensureSunoCustomMode(true);
-      expandMoreOptions();
+      if (!promptData.targetSimpleMode) {
+        ensureSunoCustomMode(true);
+        expandMoreOptions();
+      } else {
+        const tabs = Array.from(document.querySelectorAll('button[role="tab"]'));
+        const simpleTab = tabs.find(b => b.textContent.trim().toLowerCase() === 'simple');
+        if (simpleTab && simpleTab.getAttribute('aria-selected') !== 'true') {
+          simpleTab.click();
+        }
+      }
 
       if (promptData.isInstrumental) {
         toggleInstrumental(true);
@@ -710,6 +718,22 @@
     let hasTriggeredAutoCreate = false;
 
     const runFill = () => {
+      if (promptData.targetSimpleMode) {
+        const simpleInput = document.querySelector(
+          'textarea[aria-label*="description" i], textarea[aria-label*="prompt" i], textarea[placeholder*="describe" i], textarea[placeholder*="song" i], textarea[data-testid*="description" i], textarea'
+        );
+        if (simpleInput) {
+          const directiveVal = promptData.lyricSnippet || promptData.styleTag;
+          setInputValueReliably(simpleInput, directiveVal);
+          showToast('?? Suno Simple Mode prompt directive injected!', 'success', 4000);
+          if (promptData.autoCreate && !hasTriggeredAutoCreate) {
+            hasTriggeredAutoCreate = true;
+            triggerCreateButton(500);
+          }
+        }
+        return { success: true, count: 1, platform: 'Suno Simple Mode' };
+      }
+
       const { styleTextarea, lyricsTextarea, titleInput, excludeInput, styleInput, lyricsInput } = findTargetInputs();
       const targetStyle = styleInput || styleTextarea;
       const targetLyrics = lyricsInput || lyricsTextarea;
