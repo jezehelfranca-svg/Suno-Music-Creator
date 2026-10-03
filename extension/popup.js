@@ -502,8 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Creative title generator
     const titleSeeds = [
       "Electric Horizon", "Velvet Frequency", "Cybernetic Mirage", "Midnight Resonance",
-      "Neon Solitude", "Solar Flare", "Infinite Echo", "Astral Wanderer", "Chrono Rift",
-      "Subtle Pulse", "Gravity Bloom", "Obsidian Dream", "Vapor Twilight", "Hyperion Drift"
+      "Tin Roof Solitude", "Solar Flare", "Postcard From Orbit", "Astral Wanderer", "Chrono Rift",
+      "Ferry Timetable", "Gravity Bloom", "Obsidian Dream", "Vapor Twilight", "Hyperion Drift"
     ];
     const newTitle = getRandom(titleSeeds) + ' (' + g1.split(' ')[0] + ' x ' + g2.split(' ')[0] + ')';
     if (titleInput) titleInput.value = newTitle;

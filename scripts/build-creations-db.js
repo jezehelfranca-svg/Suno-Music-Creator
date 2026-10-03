@@ -13,6 +13,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { clampStyle, deriveExcludeStyles, findBannedWords, splitAvoids } from '../src/utils/sunoBlueprint.js';
 
 function clean(str) {
   if (!str) return '';
@@ -87,6 +88,9 @@ function parseFile(content, fileName, fallbackMeta = null, fileDate = null) {
   else if (pMatch2) prompt = clean(pMatch2[1]);
 
   if (!prompt || prompt.length < 20) return null;
+  // "Avoid ..." sentences belong in Exclude Styles, not in the style Suno is asked to play.
+  const { style: promptWithoutAvoids, avoided } = splitAvoids(prompt);
+  prompt = clampStyle(promptWithoutAvoids);
 
   // 2. Band Name
   let band = fallbackMeta?.bandName || '';
@@ -141,14 +145,33 @@ function parseFile(content, fileName, fallbackMeta = null, fileDate = null) {
   const { minBpm, maxBpm, bpm } = extractBpm(content);
   const timeSig = extractTimeSig(content);
 
-  // 10. Lyrics Scaffold
-  let lyricSnippet = '';
-  const quoteMatch = content.match(/"([^"\n]{10,120})"/);
-  if (quoteMatch) {
-    lyricSnippet = '[Intro]\n[Verse 1]\n' + quoteMatch[1] + '\n\n[Pre-Chorus]\nEchoes rising from the deep\n\n[Chorus]\n' + track + '\n\n[Drop]\n\n[Outro]\n[Fade Out]';
-  } else {
-    lyricSnippet = '[Intro]\n[Verse 1]\n' + (vibe ? vibe.slice(0, 80) : 'Voices drift through the silence') + '\n\n[Pre-Chorus]\nCounting down every heartbeat\n\n[Chorus]\n' + track + '\n\n[Drop]\n\n[Outro]\n[Fade Out]';
-  }
+  // 10. Lyrics & Metatags Blueprint: the band's own sung hook, never filler clichés
+  // Each track story quotes one signature lyric line; lore elsewhere quotes names and terms.
+  const stories = content.match(/^.*Story\s*&\s*Context.*$/gim) || [];
+  const hook = stories
+    .flatMap(line => [...line.matchAll(/["“]([^"”\n]{10,120})["”]/g)].map(m => m[1].trim()))
+    .find(line => line.split(/\s+/).length >= 3 && findBannedWords(line).length === 0);
+  const lead = instruments
+    .map(name => clean(name).replace(/\s+[-–—]\s.*$|\s*\(.*$/, ''))
+    .find(name => /^[a-z0-9]/i.test(name) && name.length <= 40 && !/instrument|:/i.test(name)) || '';
+  const lyricSnippet = [
+    lead ? `[Intro - ${lead}]` : '[Intro - Instrumental]',
+    '[Verse 1]',
+    ...(hook ? [hook] : []),
+    '',
+    '[Chorus - Full Band]',
+    track,
+    '',
+    '[Instrumental Bridge]',
+    '',
+    '[Outro - Fade]'
+  ].join('\n');
+
+  // 11. Exclude Styles: the profile's own section, else derived from its genres
+  const exMatch = content.match(/(?:^|\n)#*\s*\**Exclude\s+Styles:?\**\s*:?\s*\n+([^\n#]+)/i);
+  const excludeStyles = exMatch
+    ? clean(exMatch[1])
+    : deriveExcludeStyles({ genres: [genre, ...ingredients], instruments, style: prompt, avoid: avoided });
 
   const category = categorizeCreation(genre, ingredients, prompt);
   const slug = band.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -174,7 +197,7 @@ function parseFile(content, fileName, fallbackMeta = null, fileDate = null) {
     maxBpm: maxBpm,
     timeSig: timeSig,
     lyricSnippet: lyricSnippet,
-    excludeStyles: 'screaming, harsh distortion, muddy bass, generic pop EDM',
+    excludeStyles: excludeStyles,
     vocalGender: 'Female',
     weirdness: 50,
     styleInfluence: 85,
@@ -269,7 +292,8 @@ export function buildCreationsDatabase() {
       const parts = line.split('|').map(s => s.trim()).filter(Boolean);
       if (parts.length >= 3 && /^\d+$/.test(parts[0])) {
         const name = parts[1];
-        const prompt = parts[2];
+        const { style: cleanPrompt, avoided } = splitAvoids(parts[2]);
+        const prompt = clampStyle(cleanPrompt);
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         if (!database.has(slug)) {
           const { minBpm, maxBpm, bpm } = extractBpm(prompt);
@@ -287,8 +311,8 @@ export function buildCreationsDatabase() {
             vibe: 'High-energy eclectic genre collision',
             instruments: [],
             bpm, minBpm, maxBpm, timeSig,
-            lyricSnippet: '[Intro]\n[Verse 1]\nElectric currents pulse in the dark\n\n[Chorus]\n' + name + '\n\n[Outro]\n[Fade Out]',
-            excludeStyles: 'screaming, harsh distortion, muddy bass, generic pop EDM',
+            lyricSnippet: '[Intro - Instrumental]\n[Verse 1]\n\n[Chorus - Full Band]\n' + name + '\n\n[Instrumental Bridge]\n\n[Outro - Fade]',
+            excludeStyles: deriveExcludeStyles({ genres: [name], style: prompt, avoid: avoided }),
             vocalGender: 'Female',
             weirdness: 55,
             styleInfluence: 85,

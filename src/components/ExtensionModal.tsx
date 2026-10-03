@@ -20,6 +20,7 @@ import {
 import { GeneratedPrompt } from '../types';
 import { getExtensionSourceCode, downloadExtensionZip } from '../utils/extensionGenerator';
 import { syncCreationToExtension } from '../utils/extensionSync';
+import { buildLyricBlueprint } from '../utils/sunoBlueprint.js';
 
 interface ExtensionModalProps {
   isOpen: boolean;
@@ -77,7 +78,7 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({
   const handleRunSimulator = () => {
     setSimCustomMode(true);
     const styleVal = activePrompt?.sunoStyleTag || 'Dream Pop, TRAP & DRILL, 140 BPM, ethereal vocals, 808 sub bass, Roland Juno-106';
-    const lyricsVal = activePrompt?.lyricSnippet || '[Verse 1]\nNeon shadows flicker in the twilight haze\n\n[Chorus]\nDrifting through the echoes of another phase';
+    const lyricsVal = activePrompt?.lyricSnippet || buildLyricBlueprint();
     const titleVal = activePrompt?.title || 'Nebula Drift';
 
     setSimStyle(styleVal);

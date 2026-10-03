@@ -1,5 +1,6 @@
 import express from "express";
 import { designGroove } from "./src/utils/grooveDesign.js";
+import { buildLyricBlueprint, clampStyle, deriveExcludeStyles, findBannedWords } from "./src/utils/sunoBlueprint.js";
 import path from "path";
 import fs from "fs";
 import JSZip from "jszip";
@@ -112,7 +113,7 @@ function generateHeuristicInspiration(idea: string) {
   let timeSig = "4/4";
   let minBpm = 95;
   let maxBpm = 130;
-  let title = "Neon Meridian";
+  let title = "Tin Roof Meridian";
   let vibe = `Atmospheric cinematic fusion inspired by "${idea || 'your concept'}".`;
 
   if (text.includes("cyber") || text.includes("tokyo") || text.includes("neon") || text.includes("rain") || text.includes("motorcycle")) {
@@ -144,7 +145,7 @@ function generateHeuristicInspiration(idea: string) {
     genres = ["Asian Pop", "Math Rock & MathCORE", "Electropop"];
     minBpm = 145;
     maxBpm = 175;
-    title = "Prism Overdrive";
+    title = "Prism Rush";
     vibe = "High-energy sparkling melodies, complex syncopated basslines, and euphoric vocal peaks.";
   } else if (text.includes("trap") || text.includes("hip hop") || text.includes("rap") || text.includes("808") || text.includes("club")) {
     genres = ["Urban Soul / Pop (Nu R&B I)", "Trap & Boom Bap", "Nu Disco & Funktronnica"];
@@ -174,15 +175,24 @@ function generateHeuristicInspiration(idea: string) {
 }
 
 /**
- * Intelligent rule-based heuristic for Suno V4 Prompt Polish
+ * Rule-based Suno package in GMIV+P+Era order, used without an API key or
+ * when every model is unavailable.
  */
 function generateHeuristicEnhancement(prompt?: string, genres?: string[], timeSig?: string, bpm?: number, key?: string, instruments?: string[]) {
   const genreList = genres && genres.length > 0 ? genres.join(", ") : "Cinematic Hybrid";
   const primaryGenre = genres && genres.length > 0 ? genres[0] : "Hybrid Sound";
   const groove = designGroove({ genres, instruments, timeSig, bpm });
+  const style = clampStyle([
+    genreList,
+    `${bpm || '120'} BPM`, timeSig || '4/4', key || 'A minor',
+    ...(instruments || []),
+    groove.description,
+    groove.production
+  ].join(', '));
 
   return {
-    enhancedSunoTag: [genreList, `${bpm || '120'} BPM`, timeSig || '4/4', key || 'A minor', ...(instruments || []), groove.description, groove.production].join(', '),
+    enhancedSunoTag: style,
+    excludeStyles: deriveExcludeStyles({ genres, instruments, style: `${style} ${prompt || ''}` }),
     arrangementNotes: [
       `Groove: ${groove.description}`,
       `Sound design: ${groove.production}`,
@@ -191,14 +201,15 @@ function generateHeuristicEnhancement(prompt?: string, genres?: string[], timeSi
       "Outro: Let the final phrase resolve through the seed's existing instruments"
     ],
     suggestedMetatags: [
-      `[Intro: ${groove.anchor} motif]`,
-      `[Verse 1: ${groove.pulse} enters]`,
-      "[Pre-Chorus: Shorten the phrase]",
-      "[Chorus: Full groove]",
-      "[Bridge: Rest and response]",
-      "[Outro: Let the final note decay]"
+      `[Intro - ${groove.anchor} alone]`,
+      `[Verse 1 - ${groove.pulse} enters]`,
+      "[Pre-Chorus - Strip Back]",
+      "[Chorus - Full Band]",
+      "[Instrumental Bridge]",
+      "[Outro - Fade]"
     ],
-    customLyrics: `[Intro]\n(${groove.anchor} states the motif)\n\n[Verse 1]\n[Write a concrete place, action, and consequence]\n\n[Chorus]\n[Return to one changed detail from the verse]\n\n[Bridge]\n(Leave a rest before the response)\n\n[Outro]\n(${groove.anchor} resolves the motif)`,
+    customLyrics: buildLyricBlueprint({ anchor: groove.anchor, pulse: groove.pulse }),
+    lyricWarnings: [],
     aiPowered: false,
     notice: "Generated with our rule-based production upgrade engine."
   };
@@ -220,14 +231,31 @@ async function startServer() {
     const { prompt, genres, timeSig, bpm, key, instruments } = req.body;
 
     try {
-      const systemPrompt = `You are a music producer writing a specific Suno style prompt from the user's seed.
-Design the groove from the exact genres, named instruments, meter, and tempo in that seed. Explain which existing low or rhythmic part anchors the phrase, how it interlocks with drums or percussion if present, where notes shorten or sustain, and which deliberate rests make room for other parts. Use offbeat 16ths, ghost notes, glides, call-and-response, or separate clean sub and textured mid layers only when they fit this seed. Do not apply a house bass pattern to rock, jazz, folk, or ambient seeds by default. Do not introduce an 808, synth, bass guitar, or mode that the seed does not imply. Keep true sub centered and upper harmonic grit wider only when an electronic sub layer is actually present. Respect odd meters; do not flatten them into 4/4. Preserve the user's genre and instrument names. Avoid artist imitation and vague production adjectives.
+      const systemPrompt = `You are an expert music producer and Suno prompt engineer working from the user's seed. Produce three deliverables.
+
+1. enhancedSunoTag, the Style of Music prompt, strictly under 1,000 characters, written in this order:
+- G (Genre & Subgenres): the seed's genres as specific micro-genres, never a broad label alone.
+- M (Mood & Energy): emotional tone, scene and energy level.
+- I (Instrumentation & Tempo): exact BPM, meter and key, the named instruments with their playing roles, and one dynamic choice.
+- V (Vocals): timbre, range, processing, delivery, and where doubling happens.
+- P+Era (Production & Time Period): mix characteristics anchored to a decade or studio era.
+Inside I, design the groove from the exact genres, named instruments, meter, and tempo in the seed. Explain which existing low or rhythmic part anchors the phrase, how it interlocks with drums or percussion if present, where notes shorten or sustain, and which deliberate rests make room for other parts. Use offbeat 16ths, ghost notes, glides, call-and-response, or separate clean sub and textured mid layers only when they fit this seed. Do not apply a house bass pattern to rock, jazz, folk, or ambient seeds by default. Do not introduce an 808, synth, bass guitar, or mode that the seed does not imply. Keep true sub centered and upper harmonic grit wider only when an electronic sub layer is actually present. Respect odd meters; do not flatten them into 4/4. Preserve the user's genre and instrument names. Never name a real artist, band or producer, and avoid vague praise adjectives.
+
+2. excludeStyles: 3 to 6 comma-separated elements that oppose this sound, drawn from opposing genres, opposing textures and vocal artifacts (for example: trap hi-hats, autotune, distorted guitar, lo-fi hiss, acoustic folk). Never exclude anything the style prompt names.
+
+3. customLyrics: a complete lyric with [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Instrumental Bridge], [Final Chorus] and [Outro - Fade], plus functional tags such as [Bassline Drop] where the arrangement calls for them.
+- Never use these words in any form: neon, shadows, static, whisper, ignite, heartbeat, overdrive, echo, digital, symphony, pulse.
+- No AABB couplets. Mix line lengths, prefer slant rhymes, and build every section from concrete, physical nouns (objects, places, times, prices).
+- Verse 2 moves time, stakes or camera forward; the final chorus changes one detail from the first chorus.
+- Put every arrangement direction in square brackets. Never put directions in parentheses, because Suno sings parenthesized text.
+
 Return JSON with the following schema:
 {
-  "enhancedSunoTag": "string (concrete Suno Style description with seed genres, instruments, BPM, meter, groove relationship and relevant sound design)",
+  "enhancedSunoTag": "string (GMIV+P+Era Style of Music prompt, under 1000 characters)",
+  "excludeStyles": "string (3-6 comma-separated exclusions)",
   "arrangementNotes": ["array of 4-5 tactical production & sound design tips for this fusion"],
-  "suggestedMetatags": ["array of 6 structural metatags suitable for Suno lyrics"],
-  "customLyrics": "a 12-line starter lyrics template formatted with Suno structural metatags [Intro], [Verse 1], [Chorus], [Outro]"
+  "suggestedMetatags": ["array of 6 bracketed functional metatags for this arrangement"],
+  "customLyrics": "string (the full lyric with bracketed metatags, using \\n line breaks)"
 }`;
 
       const userMessage = `Optimize this Suno fusion prompt:
@@ -247,7 +275,14 @@ Original Prompt: "${prompt || ''}"`;
       );
 
       const parsed = JSON.parse(responseText);
-      return res.json({ ...parsed, aiPowered: true });
+      const style = clampStyle(String(parsed.enhancedSunoTag || ""));
+      return res.json({
+        ...parsed,
+        enhancedSunoTag: style,
+        excludeStyles: String(parsed.excludeStyles || "").trim() || deriveExcludeStyles({ genres, instruments, style }),
+        lyricWarnings: findBannedWords(parsed.customLyrics),
+        aiPowered: true
+      });
     } catch (err: unknown) {
       console.warn("AI enhance falling back to heuristic engine due to:", err instanceof Error ? err.message : String(err));
       // Seamless graceful fallback: Never break user experience due to API spikes

@@ -89,15 +89,15 @@ export const KEYS = [
 ];
 
 export const TITLE_A = [
-  'Neon', 'Cosmic', 'Midnight', 'Spectral', 'Velvet', 'Digital', 'Retro', 'Quantum',
+  'Tin', 'Cosmic', 'Midnight', 'Spectral', 'Velvet', 'Cobalt', 'Retro', 'Quantum',
   'Fractal', 'Lunar', 'Solar', 'Electric', 'Phantom', 'Crimson', 'Azure', 'Golden',
-  'Hollow', 'Liquid', 'Static', 'Chrome', 'Sapphire', 'Obsidian', 'Paper', 'Iron',
+  'Hollow', 'Liquid', 'Copper', 'Chrome', 'Sapphire', 'Obsidian', 'Paper', 'Iron',
   'Glass', 'Amber', 'Twilight', 'Nocturne', 'Ember', 'Marble', 'Feral', 'Sacred',
   'Broken', 'Endless', 'Hidden', 'Distant', 'Silent', 'Wired', 'Faded', 'Drifting'
 ];
 
 export const TITLE_B = [
-  'Pulse', 'Drift', 'Mirage', 'Cascade', 'Horizon', 'Echo', 'Reverie', 'Vortex',
+  'Ledger', 'Drift', 'Mirage', 'Cascade', 'Horizon', 'Postcard', 'Reverie', 'Vortex',
   'Serenade', 'Odyssey', 'Circuit', 'Bloom', 'Requiem', 'Parade', 'Lament', 'Machine',
   'Dialect', 'Anatomy', 'Gospel', 'Ritual', 'Archive', 'Signal', 'Fracture', 'Meridian',
   'Threshold', 'Interlude', 'Momentum', 'Cadence', 'Spiral', 'Tide', 'Chapel',

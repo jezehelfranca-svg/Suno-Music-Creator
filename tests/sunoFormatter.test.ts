@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateSunoPrompt } from '../src/utils/sunoFormatter';
+import { formatPromptForCopy, generateSunoPrompt } from '../src/utils/sunoFormatter';
+import { findBannedWords } from '../src/utils/sunoBlueprint.js';
 import type { VariationOptions } from '../src/types';
 
 const options: VariationOptions = {
@@ -25,4 +26,16 @@ test('rhythm and production toggles omit the related direction', () => {
   assert.ok(prompt);
   assert.doesNotMatch(prompt.sunoStyleTag, /Phrase the accents|Keep Upright Bass/);
   assert.doesNotMatch(prompt.fullPrompt, /Groove:|Sound design:/);
+});
+
+test('generated prompts carry a matched Exclude Styles and a cliché-free lyric blueprint', () => {
+  const prompt = generateSunoPrompt(['City Pop', 'AOR Funk'], '4/4', 112, 120, '320',
+    { ...options, vocals: true }, () => 0, ['Slap Bass', 'Electric Piano', 'Disco Drums']);
+  assert.ok(prompt);
+  const exclude = (prompt.excludeStyles || '').split(', ');
+  assert.ok(exclude.length >= 3 && exclude.length <= 6);
+  assert.deepEqual(findBannedWords(prompt.lyricSnippet), []);
+  assert.match(prompt.lyricSnippet || '', /\[Bassline Drop\]/);
+  assert.ok(prompt.sunoStyleTag.length < 1000);
+  assert.match(formatPromptForCopy(prompt, 'complete-bundle'), /=== EXCLUDE STYLES ===\n.+/);
 });

@@ -24,6 +24,8 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
     arrangementNotes?: string[];
     suggestedMetatags?: string[];
     customLyrics?: string;
+    excludeStyles?: string;
+    lyricWarnings?: string[];
     aiPowered?: boolean;
     notice?: string;
   } | null>(null);
@@ -227,7 +229,8 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-bold text-violet-300 flex items-center gap-1.5">
                         <Music className="w-3.5 h-3.5" />
-                        <span>Optimized Suno V4 Style Box Tag</span>
+                        <span>Style of Music (GMIV+P+Era)</span>
+                        <span className="font-mono font-normal text-zinc-500">{(enhancedResult.enhancedSunoTag || '').length} / 1000</span>
                       </span>
                       <button
                         type="button"
@@ -242,6 +245,26 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
                       {enhancedResult.enhancedSunoTag}
                     </p>
                   </div>
+
+                  {/* Exclude Styles (negative prompt) */}
+                  {enhancedResult.excludeStyles && (
+                    <div className="bg-zinc-950 p-3.5 rounded-xl border border-rose-900/60">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-bold text-rose-300">Exclude Styles</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(enhancedResult.excludeStyles || '', 'exclude')}
+                          className="text-xs flex items-center gap-1 text-zinc-400 hover:text-white"
+                        >
+                          {copiedKey === 'exclude' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedKey === 'exclude' ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+                      <p className="text-xs font-mono text-zinc-100 leading-relaxed bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
+                        {enhancedResult.excludeStyles}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Production & Arrangement Notes */}
                   {enhancedResult.arrangementNotes && (
@@ -261,7 +284,7 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
                   {enhancedResult.customLyrics && (
                     <div className="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-zinc-200">Suggested Suno Lyric Template:</span>
+                        <span className="text-xs font-bold text-zinc-200">Lyrics &amp; Metatags Blueprint:</span>
                         <button
                           type="button"
                           onClick={() => handleCopy(enhancedResult.customLyrics || '', 'lyrics')}
@@ -271,6 +294,11 @@ export const AICoProducerModal: React.FC<AICoProducerModalProps> = ({
                           <span>{copiedKey === 'lyrics' ? 'Copied' : 'Copy Lyrics'}</span>
                         </button>
                       </div>
+                      {enhancedResult.lyricWarnings && enhancedResult.lyricWarnings.length > 0 && (
+                        <p className="mb-2 text-[11px] text-amber-300">
+                          Rewrite before use: contains cliché AI words ({enhancedResult.lyricWarnings.join(', ')}).
+                        </p>
+                      )}
                       <pre className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-mono text-zinc-300 whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
                         {enhancedResult.customLyrics}
                       </pre>

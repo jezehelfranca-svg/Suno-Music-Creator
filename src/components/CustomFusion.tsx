@@ -84,9 +84,10 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
     initialTemplate?.instruments || []
   );
 
-  // Suno Advanced Settings ("More Options") state
+  // Suno Advanced Settings ("More Options") state; an empty Exclude Styles
+  // keeps the list generateSunoPrompt derives from the selected genres.
   const [excludeStyles, setExcludeStyles] = useState(
-    initialTemplate?.excludeStyles || 'screaming, harsh distortion, muddy bass, generic pop EDM'
+    initialTemplate?.excludeStyles || ''
   );
   const [vocalGender, setVocalGender] = useState<'Male' | 'Female' | 'Duet' | 'None'>(
     initialTemplate?.vocalGender || 'Female'
@@ -166,7 +167,6 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
       }
     );
     if (initial) {
-      initial.excludeStyles = 'screaming, harsh distortion, muddy bass, generic pop EDM';
       initial.vocalGender = 'Female';
       initial.weirdness = 50;
       initial.styleInfluence = 85;
@@ -321,7 +321,7 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
       }
 
       if (promptObj) {
-        promptObj.excludeStyles = excludeStyles;
+        if (excludeStyles.trim()) promptObj.excludeStyles = excludeStyles.trim();
         promptObj.vocalGender = isInstrumental ? 'None' : vocalGender;
         promptObj.weirdness = weirdness;
         promptObj.styleInfluence = styleInfluence;
@@ -571,13 +571,13 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
               <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 mb-1.5">
                 <Ban className="w-3.5 h-3.5 text-rose-400" />
                 <span>Exclude Styles (Negative Prompt):</span>
-                <span className="text-[11px] text-zinc-500 font-normal">Styles Suno should actively avoid</span>
+                <span className="text-[11px] text-zinc-500 font-normal">Leave empty to match it to your genres</span>
               </label>
               <input
                 type="text"
                 value={excludeStyles}
                 onChange={(e) => setExcludeStyles(e.target.value)}
-                placeholder="e.g. screaming, harsh distortion, muddy bass, generic pop EDM"
+                placeholder="Auto: opposing genres, textures and vocal artifacts (e.g. trap hi-hats, autotune, lo-fi hiss)"
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
               />
             </div>

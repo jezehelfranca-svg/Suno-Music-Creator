@@ -1,6 +1,7 @@
 import { VariationOptions, GeneratedPrompt, SunoPromptFormat } from '../types';
 import { POOLS, KEYS, TITLE_A, TITLE_B, LEADS, OPENERS, SUNO_METATAGS } from '../data/pools';
 import { designGroove } from './grooveDesign.js';
+import { buildLyricBlueprint, clampStyle, deriveExcludeStyles } from './sunoBlueprint.js';
 
 function pick<T>(arr: T[], rng = Math.random): T {
   return arr[Math.floor(rng() * arr.length)];
@@ -139,7 +140,13 @@ export function generateSunoPrompt(
     selectedMood ? selectedMood.split(' and ')[0] : ''
   ].filter(Boolean));
 
-  const sunoStyleTag = tagComponents.join(', ');
+  const sunoStyleTag = clampStyle(tagComponents.join(', '));
+  const excludeStyles = deriveExcludeStyles({
+    genres: validGenres,
+    instruments: selectedInstruments,
+    style: sunoStyleTag,
+    instrumental: selectedVocals.includes('no vocals')
+  });
 
   // Standard Suno song structure metatags
   const structureTags = [
@@ -154,23 +161,7 @@ export function generateSunoPrompt(
     "[Outro]"
   ];
 
-  const lyricSnippet = `[Intro: ${timeSig}, atmospheric build]
-(Guitar riffs gently echo against soft analog pads)
-
-[Verse 1]
-Midnight shadows through the glowing rain
-Neon reflections washing out the pain
-Underneath the pulse of an electric sky
-We leave the heavy city hours behind
-
-[Chorus: ${bpmLabel}, full drive]
-Feel the rhythm start to collide
-Two worlds colliding in the neon light!
-Nothing holds us in this gravity
-Lost inside this hybrid symmetry!
-
-[Outro]
-(Fading into silence)`;
+  const lyricSnippet = buildLyricBlueprint({ anchor: groove.anchor, pulse: groove.pulse, rng });
 
   return {
     id: `fusion-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
@@ -186,6 +177,7 @@ Lost inside this hybrid symmetry!
     selectedInstruments,
     lyricSnippet,
     structureTags,
+    excludeStyles,
     createdAt: Date.now()
   };
 }
@@ -198,12 +190,16 @@ export function formatPromptForCopy(item: GeneratedPrompt, format: SunoPromptFor
     return item.fullPrompt;
   }
   // Complete bundle
+  const exclude = item.excludeStyles ? `
+
+=== EXCLUDE STYLES ===
+${item.excludeStyles}` : '';
   return `=== SUNO STYLE OF MUSIC TAG ===
-${item.sunoStyleTag}
+${item.sunoStyleTag}${exclude}
 
 === FULL CINEMATIC SPECIFICATION ===
 ${item.fullPrompt}
 
-=== SUGGESTED SONG STRUCTURE & LYRIC SCAFFOLD ===
+=== LYRICS & METATAGS BLUEPRINT ===
 ${item.lyricSnippet || ''}`;
 }
