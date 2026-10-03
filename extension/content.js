@@ -77,13 +77,14 @@
         element._valueTracker.setValue('');
       }
 
-      // Dispatch InputEvent and change event
+      // Dispatch InputEvent, native input, change, and keyboard events for React SyntheticEvent listeners
       try {
         element.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: text }));
-      } catch (e) {
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-      }
+      } catch (e) {}
+      element.dispatchEvent(new Event('input', { bubbles: true }));
       element.dispatchEvent(new Event('change', { bubbles: true }));
+      element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
+      element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
 
       applyGlowFeedback(element);
       return true;
@@ -118,7 +119,6 @@
       element.style.transition = origTransition;
     }, 2000);
   }
-
   const setReactInputValue = setInputValueReliably;
 
   // Ensure /create view is loaded (Suno-specific)
@@ -141,12 +141,30 @@
     return false;
   }
 
-  // Ensure Suno Custom Mode is Active (Suno-Specific Safeguard)
+  // Ensure Suno Mode (Custom vs Simple)
   function ensureSunoCustomMode(targetState = true) {
     if (window.location.hostname.includes('topmediai')) {
       return true; // Not required on TopMediai
     }
 
+    const targetName = targetState ? 'custom' : 'simple';
+
+    // 1. New Suno Segmented Tabs (role="tab")
+    const tabs = Array.from(document.querySelectorAll('button[role="tab"], [role="tab"]'));
+    const matchedTab = tabs.find(b => (b.textContent || '').trim().toLowerCase() === targetName);
+    if (matchedTab) {
+      const isSelected = matchedTab.getAttribute('aria-selected') === 'true' ||
+                         matchedTab.hasAttribute('data-active') ||
+                         matchedTab.hasAttribute('data-composite-item-active');
+      if (!isSelected) {
+        matchedTab.click();
+        console.log('[Suno Fusion] Switched to ' + targetName.toUpperCase() + ' tab');
+        return true;
+      }
+      return true;
+    }
+
+    // 2. Legacy switches (switch buttons / checkboxes)
     const allSwitches = Array.from(document.querySelectorAll('button[role="switch"], [data-state], input[type="checkbox"], [aria-checked]'));
     for (const sw of allSwitches) {
       const container = sw.closest('div, label, section') || sw.parentElement;
@@ -165,21 +183,21 @@
       }
     }
 
+    // 3. Legacy buttons with text
     const buttons = Array.from(document.querySelectorAll('button, [role="button"], span, div')).filter(el => {
       const t = (el.textContent || '').trim().toLowerCase();
-      return t === 'custom' || t === 'custom mode';
+      return t === targetName || t === (targetName + ' mode');
     });
 
     for (const btn of buttons) {
       if (btn.offsetParent !== null) {
         btn.click();
-        console.log('[Suno Fusion] Clicked Custom button');
+        console.log('[Suno Fusion] Clicked ' + targetName + ' button');
         return true;
       }
     }
     return false;
   }
-
   const ensureCustomMode = ensureSunoCustomMode;
 
   // Expand Suno "More Options" Accordion
@@ -328,8 +346,72 @@
     return false;
   }
 
+  // Dedicated Suno Style Input Locator with Auto-Open Drawer capability
+  function findOrCreateSunoStyleTextarea() {
+    // 1. Check if user set a custom style selector
+    if (userCustomSelectors.styleSelector) {
+      const customStyle = document.querySelector(userCustomSelectors.styleSelector);
+      if (customStyle) return customStyle;
+    }
+
+    // 2. Exact data-testid and placeholder targeting
+    let styleTextarea = document.querySelector(
+      '[data-testid="create-form-styles-wrapper"] textarea, ' +
+      'textarea[placeholder*="clean electric guitar" i], ' +
+      'textarea[placeholder*="city pop" i], ' +
+      'textarea[data-testid="style-input"], ' +
+      'textarea[data-testid*="style" i], ' +
+      'textarea[aria-label*="Style of Music" i], ' +
+      'textarea[aria-label*="Style" i]'
+    );
+    if (styleTextarea) return styleTextarea;
+
+    // 3. Traversal inside a container with 'Styles' or 'Style of Music' header
+    const styleHeaders = Array.from(document.querySelectorAll('span, label, div, p, h2, h3, h4')).filter(el => {
+      const t = (el.textContent || '').trim().toLowerCase();
+      return (t === 'styles' || t === 'style of music' || t === 'style') && el.children.length === 0;
+    });
+    for (const h of styleHeaders) {
+      const container = h.closest('div.flex, div, section, fieldset') || h.parentElement;
+      const ta = container?.querySelector('textarea');
+      if (ta) return ta;
+    }
+
+    // 4. If Style drawer is closed, find and click the trigger button to open it
+    const triggers = Array.from(document.querySelectorAll('button, [role="button"], div[tabindex="0"]')).filter(b => {
+      if (b.offsetParent === null) return false;
+      const aria = (b.getAttribute('aria-label') || '').toLowerCase();
+      const testid = (b.getAttribute('data-testid') || '').toLowerCase();
+      const t = (b.textContent || '').trim().toLowerCase();
+      if (aria.includes('close') || aria.includes('saved style') || testid.includes('close')) return false;
+      return t === 'styles' || t === 'style' || t === 'add style' || t === 'choose style' ||
+             testid.includes('style') || (aria.includes('style') && !aria.includes('saved'));
+    });
+
+    for (const trigger of triggers) {
+      if (!trigger.querySelector('textarea')) {
+        try {
+          console.log('[Suno Fusion] Opening Styles drawer via trigger:', trigger);
+          trigger.click();
+          break;
+        } catch (e) {}
+      }
+    }
+
+    // 5. Re-check for textarea after trigger click
+    styleTextarea = document.querySelector(
+      '[data-testid="create-form-styles-wrapper"] textarea, ' +
+      'textarea[placeholder*="clean electric guitar" i], ' +
+      'textarea[placeholder*="city pop" i], ' +
+      'textarea[data-testid="style-input"], ' +
+      'textarea[data-testid*="style" i]'
+    );
+
+    return styleTextarea;
+  }
+
   /**
-   * PROVEN 4-TIER WATERFALL SUNO INPUT TARGETING (Retained from v2.0/v2.1)
+   * PROVEN 4-TIER WATERFALL SUNO INPUT TARGETING
    */
   function findSunoInputs() {
     // 1. Check custom user-picked selectors first
@@ -347,25 +429,31 @@
       }
     }
 
-    // 2. Explicit data-testid, aria-label & placeholder selectors
-    let styleTextarea = document.querySelector('[data-testid="create-form-styles-wrapper"] textarea, textarea[data-testid="style-input"], textarea[data-testid*="style" i], textarea[placeholder*="clean electric guitar" i], textarea[placeholder*="city pop" i], textarea[aria-label*="Style of Music" i], textarea[aria-label*="Style" i]');
+    // 2. Locate Style Textarea using dedicated helper
+    let styleTextarea = findOrCreateSunoStyleTextarea();
+
+    // Helper: is an element the style textarea or inside the style container?
+    const isStyleBox = (el) => !el || el === styleTextarea || !!el.closest?.('[data-testid="create-form-styles-wrapper"]');
+
+    // 3. Explicit lyrics selectors (MUST NOT be the style box!)
     let lyricsTextarea = document.querySelector('textarea[data-testid="lyrics-input"], textarea[data-testid*="lyrics" i], textarea[aria-label*="Lyrics" i]');
+    if (isStyleBox(lyricsTextarea)) lyricsTextarea = null;
+
     let titleInput = document.querySelector('input[data-testid="title-input"], input[data-testid*="title" i], input[aria-label*="Title" i]');
     let excludeInput = document.querySelector('input[placeholder*="Exclude" i], textarea[placeholder*="Exclude" i], [aria-label*="Exclude" i]');
 
-    // 3. Exact Leaf Label Traversal (only text nodes with children.length === 0)
-    if (!styleTextarea || !lyricsTextarea || !excludeInput) {
+    // 4. Exact Leaf Label Traversal (only text nodes with children.length === 0)
+    if (!lyricsTextarea || !excludeInput || !titleInput) {
       const labels = Array.from(document.querySelectorAll('label, div, span, p')).filter(el => el.children.length === 0 && (el.textContent || '').trim().length > 0);
 
       for (const el of labels) {
         const t = (el.textContent || '').trim().toLowerCase();
-        if (!styleTextarea && (t === 'style of music' || t.includes('style of music') || t === 'music style' || t === 'styles')) {
+        if (!lyricsTextarea && (t === 'lyrics' || t.includes('enter your lyrics') || t.includes('lyrics & prompt') || t.includes('write lyrics'))) {
           const parent = el.closest('div, section, fieldset') || el.parentElement;
-          styleTextarea = parent?.querySelector('textarea');
-        }
-        if (!lyricsTextarea && (t === 'lyrics' || t.includes('enter your lyrics') || t.includes('lyrics & prompt'))) {
-          const parent = el.closest('div, section, fieldset') || el.parentElement;
-          lyricsTextarea = parent?.querySelector('textarea');
+          const found = parent?.querySelector('textarea');
+          if (found && !isStyleBox(found)) {
+            lyricsTextarea = found;
+          }
         }
         if (!titleInput && (t === 'title' || t === 'song title' || t.includes('title (optional)'))) {
           const parent = el.closest('div, section, fieldset') || el.parentElement;
@@ -378,19 +466,22 @@
       }
     }
 
-    // 4. Semantic placeholder and aria-label fallback on visible textareas
+    // 5. Semantic placeholder and aria-label fallback on visible textareas
     const allTextareas = Array.from(document.querySelectorAll('textarea')).filter(t => t.offsetParent !== null || t.getBoundingClientRect().height > 0);
+
     if (!styleTextarea) {
       styleTextarea = allTextareas.find(t => {
         const p = (t.placeholder || '').toLowerCase();
         const a = (t.getAttribute('aria-label') || '').toLowerCase();
-        return p.includes('style') || p.includes('genre') || p.includes('pop') || p.includes('acoustic') ||
+        return p.includes('clean electric guitar') || p.includes('city pop') || p.includes('style') ||
+               p.includes('genre') || p.includes('pop') || p.includes('acoustic') ||
                p.includes('upbeat') || p.includes('tempo') || p.includes('vibe') || a.includes('style');
       });
     }
 
     if (!lyricsTextarea) {
       lyricsTextarea = allTextareas.find(t => {
+        if (isStyleBox(t)) return false;
         const p = (t.placeholder || '').toLowerCase();
         const a = (t.getAttribute('aria-label') || '').toLowerCase();
         return p.includes('lyric') || p.includes('verse') || p.includes('chorus') || p.includes('words') ||
@@ -407,21 +498,25 @@
       });
     }
 
-    // 5. Positional fallback: In Suno Custom Mode, index 0 is Lyrics, index 1 is Style of Music
-    if (!styleTextarea || !lyricsTextarea) {
-      if (allTextareas.length >= 2) {
-        if (!lyricsTextarea) lyricsTextarea = allTextareas[0];
-        if (!styleTextarea) styleTextarea = allTextareas[1];
-      } else if (allTextareas.length === 1) {
-        if (!styleTextarea) styleTextarea = allTextareas[0];
-      }
+    // 6. Positional fallback: non-style textareas for lyrics
+    const nonStyleTextareas = allTextareas.filter(t => !isStyleBox(t));
+    if (!lyricsTextarea && nonStyleTextareas.length > 0) {
+      lyricsTextarea = nonStyleTextareas[0];
     }
 
-    // Collision safeguard: ensure style and lyrics never target the exact same element
+    // 7. STRICT COLLISION GUARD: ensure style and lyrics NEVER target the exact same element
     if (styleTextarea && lyricsTextarea && styleTextarea === lyricsTextarea) {
       if (allTextareas.length >= 2) {
-        lyricsTextarea = allTextareas[0];
-        styleTextarea = allTextareas[1];
+        lyricsTextarea = allTextareas.find(t => !isStyleBox(t)) || allTextareas[0];
+        styleTextarea = allTextareas.find(t => t !== lyricsTextarea) || null;
+      } else {
+        const p = (styleTextarea.placeholder || '').toLowerCase();
+        const isStyleLike = p.includes('style') || p.includes('clean electric') || p.includes('city pop') || !!styleTextarea.closest('[data-testid="create-form-styles-wrapper"]');
+        if (isStyleLike) {
+          lyricsTextarea = null;
+        } else {
+          styleTextarea = null;
+        }
       }
     }
 
@@ -435,9 +530,6 @@
     };
   }
 
-  /**
-   * TopMediai Specific Input Locator (Isolated from Suno to prevent false positives)
-   */
   function findTopMediaInputs() {
     if (userCustomSelectors.styleSelector) {
       const customStyle = document.querySelector(userCustomSelectors.styleSelector);
@@ -703,12 +795,11 @@
         ensureSunoCustomMode(true);
         expandMoreOptions();
       } else {
-        const tabs = Array.from(document.querySelectorAll('button[role="tab"]'));
-        const simpleTab = tabs.find(b => b.textContent.trim().toLowerCase() === 'simple');
-        if (simpleTab && simpleTab.getAttribute('aria-selected') !== 'true') {
-          simpleTab.click();
-        }
+        ensureSunoCustomMode(false);
       }
+
+      // Pre-warm / open Styles drawer if needed so it's ready for injection
+      findOrCreateSunoStyleTextarea();
 
       if (promptData.isInstrumental) {
         toggleInstrumental(true);
@@ -718,37 +809,81 @@
     let hasTriggeredAutoCreate = false;
 
     const runFill = () => {
-      if (promptData.targetSimpleMode) {
-        const simpleInput = document.querySelector(
-          'textarea[aria-label*="description" i], textarea[aria-label*="prompt" i], textarea[placeholder*="describe" i], textarea[placeholder*="song" i], textarea[data-testid*="description" i], textarea'
+      let filledCount = 0;
+      const platformName = isTopMedia ? 'TopMediai' : 'Suno';
+
+      // ==========================================
+      // BRANCH A: SUNO SIMPLE MODE (V6 WORKFLOW)
+      // ==========================================
+      if (!isTopMedia && promptData.targetSimpleMode) {
+        // 1. Locate the Simple Prompt / Directive Box
+        let simpleInput = document.querySelector(
+          'textarea[aria-label*="description" i], ' +
+          'textarea[aria-label*="prompt" i], ' +
+          'textarea[placeholder*="describe" i], ' +
+          'textarea[placeholder*="song" i], ' +
+          'textarea[data-testid*="description" i]'
         );
-        if (simpleInput) {
-          const directiveVal = promptData.lyricSnippet || promptData.styleTag;
+        if (!simpleInput) {
+          const nonStyleTextareas = Array.from(document.querySelectorAll('textarea')).filter(
+            t => !t.closest('[data-testid="create-form-styles-wrapper"]') && (t.offsetParent !== null || t.getBoundingClientRect().height > 0)
+          );
+          if (nonStyleTextareas.length > 0) simpleInput = nonStyleTextareas[0];
+        }
+
+        const directiveVal = promptData.lyricSnippet || promptData.styleTag;
+        if (simpleInput && directiveVal) {
           setInputValueReliably(simpleInput, directiveVal);
-          showToast('?? Suno Simple Mode prompt directive injected!', 'success', 4000);
-          if (promptData.autoCreate && !hasTriggeredAutoCreate) {
-            hasTriggeredAutoCreate = true;
-            triggerCreateButton(500);
+          filledCount++;
+          console.log('[Suno Fusion] Simple Mode prompt directive filled (' + directiveVal.length + ' chars)');
+        }
+
+        // 2. CRITICAL: ALSO LOCATE AND FILL THE DEDICATED STYLE FIELD IN SIMPLE MODE!
+        const styleVal = promptData.styleTag || promptData.sunoStyleTag;
+        if (styleVal) {
+          let styleTextarea = findOrCreateSunoStyleTextarea();
+          if (styleTextarea && styleTextarea !== simpleInput) {
+            setInputValueReliably(styleTextarea, styleVal);
+            filledCount++;
+            console.log('[Suno Fusion] Simple Mode dedicated style field filled (' + styleVal.length + ' chars)');
+          } else {
+            console.warn('[Suno Fusion] Simple Mode dedicated style field not found or same as simpleInput');
           }
         }
-        return { success: true, count: 1, platform: 'Suno Simple Mode' };
+
+        if (filledCount > 0) {
+          if (promptData.autoCreate && !hasTriggeredAutoCreate) {
+            hasTriggeredAutoCreate = true;
+            showToast(`⚡ Suno Simple Mode Auto-Filled (${filledCount} fields)! Triggering Create...`, 'success', 2500);
+            triggerCreateButton(500);
+          } else {
+            showToast(`✓ Suno Simple Mode Auto-Filled! (${filledCount} fields updated)`, 'success', 3500);
+          }
+          return { success: true, filledCount, platform: 'Suno Simple Mode' };
+        }
+        return { success: false };
       }
 
+      // ==========================================
+      // BRANCH B: CUSTOM MODE (SUNO & TOPMEDIAI)
+      // ==========================================
       const { styleTextarea, lyricsTextarea, titleInput, excludeInput, styleInput, lyricsInput } = findTargetInputs();
       const targetStyle = styleInput || styleTextarea;
       const targetLyrics = lyricsInput || lyricsTextarea;
-      let filledCount = 0;
 
       const styleVal = promptData.styleTag || promptData.sunoStyleTag;
       if (targetStyle && styleVal) {
         setInputValueReliably(targetStyle, styleVal);
         filledCount++;
+        console.log('[Suno Fusion] Style field filled (' + styleVal.length + ' chars)');
       }
 
       const lyricVal = promptData.lyricSnippet || promptData.lyrics;
-      if (targetLyrics && lyricVal) {
+      // CRITICAL: Strictly ensure lyrics are only written if targetLyrics is distinct from targetStyle!
+      if (targetLyrics && lyricVal && targetLyrics !== targetStyle) {
         setInputValueReliably(targetLyrics, lyricVal);
         filledCount++;
+        console.log('[Suno Fusion] Lyrics field filled (' + lyricVal.length + ' chars)');
       }
 
       if (titleInput && promptData.title) {
@@ -788,7 +923,6 @@
         }
       }
 
-      const platformName = isTopMedia ? 'TopMediai' : 'Suno';
       if (filledCount > 0) {
         if (promptData.autoCreate && !hasTriggeredAutoCreate) {
           hasTriggeredAutoCreate = true;
@@ -807,8 +941,13 @@
     if (!firstAttempt.success) {
       setTimeout(() => {
         if (!isTopMedia) {
-          ensureSunoCustomMode(true);
-          expandMoreOptions();
+          if (!promptData.targetSimpleMode) {
+            ensureSunoCustomMode(true);
+            expandMoreOptions();
+          } else {
+            ensureSunoCustomMode(false);
+          }
+          findOrCreateSunoStyleTextarea();
         }
         const secondAttempt = runFill();
         if (!secondAttempt.success) {
@@ -820,7 +959,7 @@
             }
           }, 500);
         }
-      }, 400);
+      }, 350);
     }
 
     return { success: true };
@@ -869,7 +1008,11 @@
         setTimeout(() => target.style.outline = '', 2000);
 
         let selector = '';
-        if (target.id) {
+        if (target.closest && target.closest('[data-testid="create-form-styles-wrapper"]')) {
+          selector = '[data-testid="create-form-styles-wrapper"] textarea';
+        } else if (target.getAttribute && target.getAttribute('data-testid')) {
+          selector = target.tagName.toLowerCase() + '[data-testid="' + target.getAttribute('data-testid') + '"]';
+        } else if (target.id) {
           selector = '#' + target.id;
         } else if (target.getAttribute('name')) {
           selector = target.tagName.toLowerCase() + '[name="' + target.getAttribute('name') + '"]';

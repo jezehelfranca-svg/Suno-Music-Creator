@@ -624,17 +624,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const val = v6DirectiveSelect.value;
       if (val === 'standard') {
         lyricsInput.value = standardLyricCache || '[Intro]\n[Verse 1]\nNeon shadows flicker in the haze\n\n[Chorus]\nDrifting high';
-        statusEl.textContent = '?? Restored standard song lyrics scaffold!';
+        statusEl.textContent = '🎵 Restored standard song lyrics scaffold!';
       } else if (val === 'v6-chatgpt') {
         navigator.clipboard.writeText(V6_DIRECTIVES['v6-chatgpt']);
-        statusEl.textContent = '?? Copied ChatGPT prompt prep instruction to clipboard!';
+        statusEl.textContent = '📋 Copied ChatGPT prompt prep instruction to clipboard!';
       } else if (val === 'v6-premise') {
         const currentRef = (lyricsInput.value && !lyricsInput.value.includes('REFERENCE LYRICS:')) ? lyricsInput.value.trim() : (standardLyricCache || '').trim();
         lyricsInput.value = V6_DIRECTIVES['v6-premise'] + (currentRef || '[paste lyrics here]');
-        statusEl.textContent = '?? Loaded V6 Emotional Premise prompt directive!';
+        statusEl.textContent = '✨ Loaded V6 Emotional Premise prompt directive!';
       } else if (V6_DIRECTIVES[val]) {
         lyricsInput.value = V6_DIRECTIVES[val];
-        statusEl.textContent = '? Loaded Suno V6 prompt directive!';
+        statusEl.textContent = '✨ Loaded Suno V6 prompt directive!';
       }
     };
   }
@@ -653,8 +653,8 @@ document.addEventListener('DOMContentLoaded', () => {
       targetSimpleMode = simpleTargetToggle.checked;
       chrome.storage?.local?.set({ sf_target_simple_mode: targetSimpleMode });
       statusEl.textContent = targetSimpleMode
-        ? '?? Target Simple Mode enabled (fills single prompt box)!'
-        : '?? Target Custom Mode enabled (fills Style + Lyrics separately)!';
+        ? '⚡ Target Simple Mode enabled (fills Prompt Directive + Style box)!'
+        : '⚡ Target Custom Mode enabled (fills Style + Lyrics separately)!';
     };
   }
 
