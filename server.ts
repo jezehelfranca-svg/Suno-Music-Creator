@@ -276,10 +276,11 @@ Original Prompt: "${prompt || ''}"`;
 
       const parsed = JSON.parse(responseText);
       const style = clampStyle(String(parsed.enhancedSunoTag || ""));
+      const exclude = Array.isArray(parsed.excludeStyles) ? parsed.excludeStyles.join(", ") : String(parsed.excludeStyles || "");
       return res.json({
         ...parsed,
         enhancedSunoTag: style,
-        excludeStyles: String(parsed.excludeStyles || "").trim() || deriveExcludeStyles({ genres, instruments, style }),
+        excludeStyles: exclude.trim() || deriveExcludeStyles({ genres, instruments, style }),
         lyricWarnings: findBannedWords(parsed.customLyrics),
         aiPowered: true
       });
