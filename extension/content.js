@@ -346,6 +346,83 @@
     return false;
   }
 
+  // Set Suno Target Duration (supports preset buttons, range sliders, and text/number inputs)
+  function setSunoDuration(durationStr) {
+    if (!durationStr) return false;
+    expandMoreOptions();
+
+    let totalSeconds = 0;
+    const parts = String(durationStr).trim().split(':');
+    if (parts.length === 2) {
+      totalSeconds = (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    } else {
+      totalSeconds = parseInt(durationStr, 10) || 0;
+    }
+
+    const allLabels = Array.from(document.querySelectorAll('div, label, span, p')).filter(el => {
+      const t = (el.textContent || '').trim().toLowerCase();
+      return (t === 'duration' || t === 'target duration' || t === 'song duration' || t === 'track duration' || t === 'clip length' || t === 'length') && el.children.length <= 2;
+    });
+
+    for (const lbl of allLabels) {
+      const row = lbl.closest('div, section, fieldset') || lbl.parentElement;
+      if (!row) continue;
+
+      // 1. Check for matching preset button (e.g. "3:00", "2:30", "3m", "180s")
+      const minsLabel = (totalSeconds % 60 === 0) ? (totalSeconds / 60) + 'm' : (totalSeconds / 60).toFixed(1) + 'm';
+      const secsLabel = totalSeconds + 's';
+      const candidateButtons = Array.from(row.querySelectorAll('button, [role="button"], [role="radio"], span'));
+      const matchedBtn = candidateButtons.find(b => {
+        const bt = (b.textContent || '').trim().toLowerCase();
+        return bt === durationStr.toLowerCase() || bt === minsLabel || bt === secsLabel;
+      });
+      if (matchedBtn) {
+        matchedBtn.click();
+        console.log('[Suno Fusion] Selected Duration preset:', durationStr);
+        return true;
+      }
+
+      // 2. Check for <input type="range">
+      const rangeInput = row.querySelector('input[type="range"]');
+      if (rangeInput && totalSeconds > 0) {
+        const min = parseFloat(rangeInput.min) || 0;
+        const max = parseFloat(rangeInput.max) || 300;
+        const val = max <= 100
+          ? Math.min(100, Math.max(0, Math.round((totalSeconds / 300) * 100)))
+          : Math.min(max, Math.max(min, totalSeconds));
+        const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+        if (nativeSetter) nativeSetter.call(rangeInput, val);
+        else rangeInput.value = val;
+        rangeInput.dispatchEvent(new Event('input', { bubbles: true }));
+        rangeInput.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('[Suno Fusion] Set Duration range slider to', val);
+        return true;
+      }
+
+      // 3. Check for Radix UI [role="slider"]
+      const radixSlider = row.querySelector('[role="slider"]');
+      if (radixSlider && totalSeconds > 0) {
+        const max = parseFloat(radixSlider.getAttribute('aria-valuemax') || '300');
+        const val = max <= 100
+          ? Math.min(100, Math.max(0, Math.round((totalSeconds / 300) * 100)))
+          : totalSeconds;
+        radixSlider.focus();
+        radixSlider.setAttribute('aria-valuenow', val.toString());
+        radixSlider.dispatchEvent(new Event('input', { bubbles: true }));
+        radixSlider.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      }
+
+      // 4. Check for text/number input
+      const textInput = row.querySelector('input[type="text"], input[type="number"], input:not([type])');
+      if (textInput) {
+        setInputValueReliably(textInput, durationStr);
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Dedicated Suno Style Input Locator with Auto-Open Drawer capability
   function findOrCreateSunoStyleTextarea() {
     // 1. Check if user set a custom style selector
@@ -831,7 +908,10 @@
           if (nonStyleTextareas.length > 0) simpleInput = nonStyleTextareas[0];
         }
 
-        const directiveVal = promptData.lyricSnippet || promptData.styleTag;
+        let directiveVal = promptData.lyricSnippet || promptData.styleTag;
+        if (promptData.duration && directiveVal && !directiveVal.toLowerCase().includes(promptData.duration.toLowerCase())) {
+          directiveVal = directiveVal.trim() + ' Target duration: ' + promptData.duration + '.';
+        }
         if (simpleInput && directiveVal) {
           setInputValueReliably(simpleInput, directiveVal);
           filledCount++;
@@ -915,6 +995,11 @@
         // Settings: Variety
         if (promptData.variety) {
           setSunoVariety(promptData.variety);
+        }
+
+        // Settings: Target Duration
+        if (promptData.duration) {
+          setSunoDuration(promptData.duration);
         }
 
         // Settings: Max Mode

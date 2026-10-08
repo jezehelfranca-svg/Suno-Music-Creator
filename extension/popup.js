@@ -176,6 +176,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const bpmSlider = document.getElementById('pop-bpm-slider');
   const bpmVal = document.getElementById('pop-bpm-val');
+  const durationSelect = document.getElementById('pop-duration');
+  const settingsDurationSelect = document.getElementById('pop-settings-duration');
+  const settingsDurationVal = document.getElementById('pop-settings-duration-val');
+  let selectedDuration = '';
   const metronomeBtn = document.getElementById('pop-btn-metronome');
   const styleLenEl = document.getElementById('pop-style-len');
   const loadedStatusEl = document.getElementById('pop-loaded-status');
@@ -429,6 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagParts = [
       ...activeGenres,
       bpm + ' BPM',
+      selectedDuration ? (selectedDuration + ' duration') : '',
       ...selectedInstruments,
       groove.description,
       groove.production,
@@ -529,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
       vocalGender: selectedGender,
       weirdness: parseInt(weirdnessSlider.value, 10),
       styleInfluence: parseInt(influenceSlider.value, 10),
+      duration: selectedDuration,
       isInstrumental
     };
     allCreationsList = [creation, ...allCreationsList].slice(0, 30);
@@ -549,6 +555,49 @@ document.addEventListener('DOMContentLoaded', () => {
     bpmVal.textContent = bpmSlider.value + ' BPM';
     updateStylePrompt();
   };
+
+  function syncDurationControls(newDur, updateStyle = true) {
+    selectedDuration = newDur || '';
+    if (durationSelect) durationSelect.value = selectedDuration;
+    if (settingsDurationSelect) settingsDurationSelect.value = selectedDuration;
+    if (settingsDurationVal) settingsDurationVal.textContent = selectedDuration || 'Auto';
+    chrome.storage?.local?.set({ sf_target_duration: selectedDuration });
+
+    if (updateStyle && styleInput) {
+      let cur = styleInput.value.trim();
+      // Remove any existing duration tag like ", 3:00 duration" or "3:00 duration, "
+      cur = cur.replace(/,\s*[0-9]+:[0-9]+\s*duration/gi, '').replace(/[0-9]+:[0-9]+\s*duration\s*,\s*/gi, '').replace(/[0-9]+:[0-9]+\s*duration/gi, '').trim();
+      if (selectedDuration) {
+        cur = cur ? (cur + ', ' + selectedDuration + ' duration') : (selectedDuration + ' duration');
+      }
+      styleInput.value = cur;
+      updateStyleLength();
+    }
+  }
+
+  chrome.storage?.local?.get(['sf_target_duration'], (res) => {
+    if (res && res.sf_target_duration !== undefined) {
+      syncDurationControls(res.sf_target_duration, !!res.sf_target_duration);
+    }
+  });
+
+  if (durationSelect) {
+    durationSelect.onchange = () => {
+      syncDurationControls(durationSelect.value, true);
+      statusEl.textContent = selectedDuration
+        ? ('⏱️ Target Duration set to ' + selectedDuration)
+        : '⏱️ Target Duration set to Auto (Default)';
+    };
+  }
+
+  if (settingsDurationSelect) {
+    settingsDurationSelect.onchange = () => {
+      syncDurationControls(settingsDurationSelect.value, true);
+      statusEl.textContent = selectedDuration
+        ? ('⏱️ Target Duration set to ' + selectedDuration)
+        : '⏱️ Target Duration set to Auto (Default)';
+    };
+  }
 
   metronomeBtn.onclick = () => {
     if (isMetronomePlaying) {
@@ -614,8 +663,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const V6_DIRECTIVES = {
     'v6-template': 'Use [attached song / selected audio passage / pasted lyrics] to create [desired result]. Follow the style supplied in the Style field. Preserve [specific musical elements, words, or emotional meaning]. Change [specific elements to rebuild]. For the lyrics, [keep them unchanged / rewrite selected sections / write entirely new lyrics]. [Additional requirement, such as a changed perspective, stronger final chorus, or different ending.]',
     'v6-restyle': 'Create a restyled cover of the attached song using the style supplied separately. Preserve the main melody, recognizable hook, original lyrics, and section order. Rebuild the instrumentation, accompaniment, vocal delivery, and production around that style. Keep every lyric unchanged and fit the performance to the original melodic phrasing.',
-    'v6-part': 'Use only the guitar riff at [start?end timestamp] from the attached song as the foundation for a new song. Preserve its note sequence and rhythmic character. Develop new verses, a chorus, and a contrasting bridge around it using the style supplied separately. Write new lyrics about [subject]. Leave the source song?s remaining melodies, lyrics, and arrangement out of the new composition.',
-    'v6-premise': 'Use the pasted lyrics as a reference for their central emotional premise: [describe the meaning to retain]. Write a new song expressing that premise through a different situation, fresh imagery, and an original chorus hook. Use concrete actions and natural, singable language. Avoid forced rhymes and generic emotional declarations. Let each verse develop the situation, and make the final chorus reflect a believable change in the narrator?s understanding. Follow the musical style supplied separately.\n\nREFERENCE LYRICS:\n',
+    'v6-part': 'Use only the guitar riff at [start–end timestamp] from the attached song as the foundation for a new song. Preserve its note sequence and rhythmic character. Develop new verses, a chorus, and a contrasting bridge around it using the style supplied separately. Write new lyrics about [subject]. Leave the source song’s remaining melodies, lyrics, and arrangement out of the new composition.',
+    'v6-premise': 'Use the pasted lyrics as a reference for their central emotional premise: [describe the meaning to retain]. Write a new song expressing that premise through a different situation, fresh imagery, and an original chorus hook. Use concrete actions and natural, singable language. Avoid forced rhymes and generic emotional declarations. Let each verse develop the situation, and make the final chorus reflect a believable change in the narrator’s understanding. Follow the musical style supplied separately.\n\nREFERENCE LYRICS:\n',
     'v6-chatgpt': 'Write one concise, paste-ready creation instruction for Suno V6 Simple mode based on my request. The musical style is supplied separately. Focus on what Suno should do with the source: restyle the complete song, reuse selected musical elements, rewrite lyrics, or create a new song from its emotional premise. State what must remain, what may change, and how to handle the lyrics. Identify selected audio parts by section or timestamp when available. When rewriting lyrics over a retained melody, request natural phrasing that fits its rhythm and vocal pauses. Return only the creation instruction. Do not write finished lyrics or add an unsolicited style description.'
   };
 
@@ -871,6 +920,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.styleInfluence !== undefined) {
       influenceSlider.value = data.styleInfluence;
       influenceVal.textContent = data.styleInfluence + '%';
+    }
+    if (data.duration !== undefined) {
+      syncDurationControls(data.duration, false);
     }
 
     // Match genres/ingredients to genre selectors
@@ -1412,6 +1464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         vocalGender: selectedGender,
         weirdness: parseInt(weirdnessSlider.value, 10),
         styleInfluence: parseInt(influenceSlider.value, 10),
+        duration: selectedDuration,
         isInstrumental,
         targetSimpleMode,
         autoCreate: shouldCreate
