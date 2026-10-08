@@ -445,12 +445,18 @@ document.addEventListener('DOMContentLoaded', () => {
       styleInput.value = generated;
       updateStyleLength();
     }
-    if (typeof buildHumanizedSeedForPopup === 'function' && lyricsInput && (!v6DirectiveSelect || v6DirectiveSelect.value === 'standard')) {
-      const nonEmpty = String(lyricsInput.value || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      if (nonEmpty.length === 0 || nonEmpty.every(l => l.startsWith('[') && l.endsWith(']'))) {
-        const syncedScaffold = buildHumanizedSeedForPopup(humanizeRollCounter);
-        lyricsInput.value = syncedScaffold;
-        standardLyricCache = syncedScaffold;
+    if (typeof buildHumanizedSeedForPopup === 'function' && lyricsInput) {
+      const curModeVal = v6DirectiveSelect ? v6DirectiveSelect.value : 'standard';
+      if (curModeVal === 'standard') {
+        const nonEmpty = String(lyricsInput.value || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (nonEmpty.length === 0 || nonEmpty.every(l => l.startsWith('[') && l.endsWith(']'))) {
+          const syncedScaffold = buildHumanizedSeedForPopup(humanizeRollCounter);
+          lyricsInput.value = syncedScaffold;
+          standardLyricCache = syncedScaffold;
+        }
+      } else if (typeof getV6DirectiveText === 'function' && curModeVal.startsWith('v6-') && curModeVal !== 'v6-chatgpt' && curModeVal !== 'v6-premise') {
+        const refreshed = getV6DirectiveText(curModeVal);
+        if (refreshed) lyricsInput.value = refreshed;
       }
     }
   }
@@ -793,30 +799,155 @@ document.addEventListener('DOMContentLoaded', () => {
   const simpleTargetToggle = document.getElementById('pop-toggle-simple-target');
   let standardLyricCache = lyricsInput ? lyricsInput.value : '';
 
-  const V6_DIRECTIVES = {
-    'v6-template': 'Use [attached song / selected audio passage / pasted lyrics] to create [desired result]. Follow the style supplied in the Style field. Preserve [specific musical elements, words, or emotional meaning]. Change [specific elements to rebuild]. For the lyrics, [keep them unchanged / rewrite selected sections / write entirely new lyrics]. [Additional requirement, such as a changed perspective, stronger final chorus, or different ending.]',
-    'v6-restyle': 'Create a restyled cover of the attached song using the style supplied separately. Preserve the main melody, recognizable hook, original lyrics, and section order. Rebuild the instrumentation, accompaniment, vocal delivery, and production around that style. Keep every lyric unchanged and fit the performance to the original melodic phrasing.',
-    'v6-part': 'Use only the guitar riff at [start–end timestamp] from the attached song as the foundation for a new song. Preserve its note sequence and rhythmic character. Develop new verses, a chorus, and a contrasting bridge around it using the style supplied separately. Write new lyrics about [subject]. Leave the source song’s remaining melodies, lyrics, and arrangement out of the new composition.',
-    'v6-premise': 'Use the pasted lyrics as a reference for their central emotional premise: [describe the meaning to retain]. Write a new song expressing that premise through a different situation, fresh imagery, and an original chorus hook. Use concrete actions and natural, singable language. Avoid forced rhymes and generic emotional declarations. Let each verse develop the situation, and make the final chorus reflect a believable change in the narrator’s understanding. Follow the musical style supplied separately.\n\nREFERENCE LYRICS:\n',
-    'v6-chatgpt': 'Write one concise, paste-ready creation instruction for Suno V6 Simple mode based on my request. The musical style is supplied separately. Focus on what Suno should do with the source: restyle the complete song, reuse selected musical elements, rewrite lyrics, or create a new song from its emotional premise. State what must remain, what may change, and how to handle the lyrics. Identify selected audio parts by section or timestamp when available. When rewriting lyrics over a retained melody, request natural phrasing that fits its rhythm and vocal pauses. Return only the creation instruction. Do not write finished lyrics or add an unsolicited style description.'
-  };
+  function getActiveInstrumentTriplet() {
+    const cleanInst = (s) => String(s || '').replace(/\s*\([^)]*\)/g, '').trim();
+    const list = selectedInstruments.map(cleanInst).filter(Boolean);
+    const i1 = list[0] || '808 Sub Bass';
+    const i2 = (list[1] && list[1] !== i1) ? list[1] : 'Roland Juno-106';
+    const i3 = (list[2] && list[2] !== i1 && list[2] !== i2) ? list[2] : 'Percussion';
+    return { i1, i2, i3 };
+  }
+
+  function getV6DirectiveText(val) {
+    const { i1, i2, i3 } = getActiveInstrumentTriplet();
+    const templates = {
+      'v6-hook-new-song': [
+        'Use the attached audio to create a brand-new song centered around its strongest hook. Follow the musical style supplied in the Style field. Preserve the main chorus hook melody, rhythmic catchiness, and signature melodic motif from the attached audio. Change and rebuild the intro, verses, pre-chorus lift, bridge, and instrumentation so it feels like a fresh original track rather than a cover. Place the extracted hook at the Chorus and climax Drop, and develop new contrasting verse grooves that build toward that hook.',
+        '',
+        '[Intro]',
+        `[Tease the attached audio hook motif on ${i1} and ${i2}]`,
+        '[Verse 1]',
+        `[New stripped-back groove on ${i1} and ${i2} building anticipation]`,
+        '',
+        '[Pre-Chorus]',
+        `[Rising ${i2} and ${i3} tension leading into the extracted hook]`,
+        '',
+        '[Chorus]',
+        `[Main Hook from attached audio: full arrangement with ${i1}, ${i2}, and ${i3}]`,
+        '',
+        '[Verse 2]',
+        `[Fresh rhythmic variation on ${i2} with ${i1} counter-melody]`,
+        '',
+        '[Drop]',
+        `[High-energy re-orchestrated hook drop featuring ${i1} and ${i2}]`,
+        '[Outro]',
+        `[Lingering hook motif on ${i1} resolving cleanly]`,
+        '',
+        '[Fade Out]'
+      ].join('\n'),
+
+      'v6-multi-part-stitch': [
+        `Use the attached audio file(s) to construct a brand-new song by extracting and combining each of their best musical parts—especially the hook sections. Follow the style supplied in the Style field. Preserve: (1) the opening riff/motif from the attached audio for the Intro, (2) the rhythmic pocket and bounce for the Verses, (3) the harmonic lift for the Pre-Chorus, and (4) the primary vocal and melodic hooks for the Chorus and Drop. Rebuild all transitions, chord voicings, and instrumentation (${i1}, ${i2}, ${i3}) so every extracted part fuses into one cohesive new song.`,
+        '',
+        '[Intro]',
+        `[Extracted opening motif from attached audio replayed on ${i1} and ${i2}]`,
+        '[Verse 1]',
+        `[Extracted rhythmic pocket from attached audio on ${i1} and ${i2}]`,
+        '',
+        '[Pre-Chorus]',
+        `[Extracted harmonic lift from attached audio with ${i2} and ${i3} build]`,
+        '',
+        '[Chorus]',
+        `[Primary Hook extracted from attached audio: full ${i1}, ${i2}, and ${i3} drive]`,
+        '',
+        '[Verse 2]',
+        `[Second extracted groove passage blended with ${i1} and ${i3} accents]`,
+        '',
+        '[Drop]',
+        `[Combined hook melodies from attached audio trading phrases on ${i1} and ${i2}]`,
+        '[Outro]',
+        `[Final hook refrain stripped back to ${i1} and ${i2}]`,
+        '',
+        '[Fade Out]'
+      ].join('\n'),
+
+      'v6-stem-harvest': [
+        `Harvest distinct musical sections and hooks from the attached audio to create a new composition in the target style. Keep the unmistakable earworm hook and core rhythmic DNA from the attached source, while transforming the arrangement and sonic palette with ${i1}, ${i2}, and ${i3}.`,
+        '',
+        '[Intro]',
+        `[Sampled & restyled intro motif from attached audio on ${i1}]`,
+        '[Verse 1]',
+        `[Harvested bass & drum pocket from attached audio with sparse ${i2}]`,
+        '',
+        '[Pre-Chorus]',
+        `[Rising ${i2} and ${i3} swell building toward the main hook]`,
+        '',
+        '[Chorus]',
+        `[Harvested Main Hook from attached audio locked with ${i1}, ${i2}, and ${i3}]`,
+        '',
+        '[Verse 2]',
+        `[Chopped groove variation from attached audio with ${i1} fills]`,
+        '',
+        '[Drop]',
+        `[Hook-driven instrumental climax featuring ${i1} and ${i2}]`,
+        '[Outro]',
+        `[Warm decay of the harvested hook motif on ${i1}]`,
+        '',
+        '[Fade Out]'
+      ].join('\n'),
+
+      'v6-hook-mashup': [
+        `Use the attached audio to create a new high-impact song that captures both its vocal chorus hook and its signature instrumental riff hook. Follow the style supplied in the Style field. Preserve the recognizable contour and rhythm of the main vocal hook in the Chorus, and repurpose the instrumental hook from the attached audio as the Intro motif and post-chorus Drop on ${i1} and ${i2}. Rebuild the verses, bassline, drum programming, and sonic texture around the target style to create a completely new track.`,
+        '',
+        '[Intro]',
+        `[Instrumental riff hook from attached audio played on ${i1} and ${i2}]`,
+        '[Verse 1]',
+        `[New verse groove on ${i2} and ${i3} leaving space for the build]`,
+        '',
+        '[Pre-Chorus]',
+        `[Tightening ${i2} and ${i3} tension]`,
+        '',
+        '[Chorus]',
+        `[Main Vocal Hook from attached audio backed by full ${i1}, ${i2}, and ${i3}]`,
+        '',
+        '[Verse 2]',
+        `[Syncopated ${i1} and ${i2} pocket with fresh rhythmic bounce]`,
+        '',
+        '[Drop]',
+        `[Instrumental Riff Hook + Vocal Hook mashup led by ${i1} and ${i2}]`,
+        '[Outro]',
+        `[Final riff hook tail on ${i1}]`,
+        '',
+        '[Fade Out]'
+      ].join('\n'),
+
+      'v6-vocal-hook-preserve': `Use the attached audio to create a new song built around its vocal hook. Follow the style supplied in the Style field. Preserve the vocal hook melody, phrasing, and emotional delivery in the Chorus. Change the underlying chord progression, rhythm section, verse melodies, and full instrumental arrangement (${i1}, ${i2}, ${i3}) to transform the hook into a completely new song.`,
+
+      'v6-hook-flip-instrumental': `Use the main hook and melodic earworm from the attached audio as the centerpiece of a brand-new composition. Follow the style supplied in the Style field. Preserve the hook's note sequence, rhythmic phrasing, and harmonic bounce, but replay and re-orchestrate it using ${i1}, ${i2}, and ${i3}. Build new intro motifs, verse grooves, breakdown drops, and counter-melodies around the flipped hook.`,
+
+      'v6-timestamp-splicer': `Use the attached audio to create a new song by extracting specific sections and hooks by timestamp. Follow the style supplied in the Style field. Preserve: the riff/motif at [0:00–0:15] for the Intro, the groove at [0:15–0:45] for the Verses, and the main hook at [0:45–1:10] for the Chorus and climax Drop. Rebuild all transitions, instrumentation (${i1}, ${i2}, ${i3}), and production around the supplied style so the extracted parts fuse into a brand-new song.`,
+
+      'v6-template': 'Use [attached song / selected audio passage / pasted lyrics] to create [desired result]. Follow the style supplied in the Style field. Preserve [specific musical elements, words, or emotional meaning]. Change [specific elements to rebuild]. For the lyrics, [keep them unchanged / rewrite selected sections / write entirely new lyrics]. [Additional requirement, such as a changed perspective, stronger final chorus, or different ending.]',
+      'v6-restyle': 'Create a restyled cover of the attached song using the style supplied separately. Preserve the main melody, recognizable hook, original lyrics, and section order. Rebuild the instrumentation, accompaniment, vocal delivery, and production around that style. Keep every lyric unchanged and fit the performance to the original melodic phrasing.',
+      'v6-part': 'Use only the guitar riff at [start–end timestamp] from the attached song as the foundation for a new song. Preserve its note sequence and rhythmic character. Develop new verses, a chorus, and a contrasting bridge around it using the style supplied separately. Write new lyrics about [subject]. Leave the source song’s remaining melodies, lyrics, and arrangement out of the new composition.',
+      'v6-premise': 'Use the pasted lyrics as a reference for their central emotional premise: [describe the meaning to retain]. Write a new song expressing that premise through a different situation, fresh imagery, and an original chorus hook. Use concrete actions and natural, singable language. Avoid forced rhymes and generic emotional declarations. Let each verse develop the situation, and make the final chorus reflect a believable change in the narrator’s understanding. Follow the musical style supplied separately.\n\nREFERENCE LYRICS:\n',
+      'v6-chatgpt': 'Write one concise, paste-ready creation instruction for Suno V6 Simple mode based on my request. The musical style is supplied separately. Focus on what Suno should do with the source: restyle the complete song, reuse selected musical elements, rewrite lyrics, or create a new song from its emotional premise. State what must remain, what may change, and how to handle the lyrics. Identify selected audio parts by section or timestamp when available. When rewriting lyrics over a retained melody, request natural phrasing that fits its rhythm and vocal pauses. Return only the creation instruction. Do not write finished lyrics or add an unsolicited style description.'
+    };
+    return templates[val] || '';
+  }
 
   if (v6DirectiveSelect) {
     v6DirectiveSelect.onchange = () => {
       const val = v6DirectiveSelect.value;
       if (val === 'standard') {
-        lyricsInput.value = standardLyricCache || buildHumanizedSeedForPopup(0); updateAceAuditBadge();
-        statusEl.textContent = '🎵 Restored standard song lyrics scaffold!';
+        lyricsInput.value = standardLyricCache || buildHumanizedSeedForPopup(0);
+        updateAceAuditBadge();
+        statusEl.textContent = '🎵 Restored [Section] + [Instrument Cue] scaffold!';
       } else if (val === 'v6-chatgpt') {
-        navigator.clipboard.writeText(V6_DIRECTIVES['v6-chatgpt']);
+        navigator.clipboard.writeText(getV6DirectiveText('v6-chatgpt'));
         statusEl.textContent = '📋 Copied ChatGPT prompt prep instruction to clipboard!';
       } else if (val === 'v6-premise') {
         const currentRef = (lyricsInput.value && !lyricsInput.value.includes('REFERENCE LYRICS:')) ? lyricsInput.value.trim() : (standardLyricCache || '').trim();
-        lyricsInput.value = V6_DIRECTIVES['v6-premise'] + (currentRef || '[paste lyrics here]');
+        lyricsInput.value = getV6DirectiveText('v6-premise') + (currentRef || '[paste lyrics here]');
+        updateAceAuditBadge();
         statusEl.textContent = '✨ Loaded V6 Emotional Premise prompt directive!';
-      } else if (V6_DIRECTIVES[val]) {
-        lyricsInput.value = V6_DIRECTIVES[val];
-        statusEl.textContent = '✨ Loaded Suno V6 prompt directive!';
+      } else {
+        const directiveText = getV6DirectiveText(val);
+        if (directiveText) {
+          lyricsInput.value = directiveText;
+          updateAceAuditBadge();
+          statusEl.textContent = '🪝 Loaded Attached Audio Hook & Part Extraction directive!';
+        }
       }
     };
   }

@@ -246,15 +246,28 @@
           </div>
         </div>
 
-        <!-- Suno V6 / Simple Mode Directive Dropdown -->
+        <!-- Suno V6 / Simple Mode & Attached Audio Hook Directive Dropdown -->
         <div style="margin-bottom:4px;">
-          <select id="pop-v6-directive-select" class="sf-select" style="width:100%;font-size:10.5px;padding:3px 5px;background:#18181b;border:1px solid #6366f1;color:#e0e7ff;border-radius:5px;" title="Suno V6 / Simple Mode Natural Language Prompt Directives">
-            <option value="standard">🎵 Standard Structured Lyrics</option>
-            <option value="v6-template">✨ Suno V6: General Template (Source→Task→Keep→Change→Lyrics)</option>
-            <option value="v6-restyle">🔄 Suno V6: 1. Restyle a Complete Song</option>
-            <option value="v6-part">🎸 Suno V6: 2. Build Around Selected Part / Riff</option>
-            <option value="v6-premise">💡 Suno V6: 3. New Lyrics from Emotional Premise</option>
-            <option value="v6-chatgpt">📋 ChatGPT Prep Prompt (Copy to Clipboard)</option>
+          <select id="pop-v6-directive-select" class="sf-select" style="width:100%;font-size:10.5px;padding:3px 5px;background:#18181b;border:1px solid #6366f1;color:#e0e7ff;border-radius:5px;" title="Suno V6 Attached Audio Hook Extraction &amp; Simple Mode Directives">
+            <optgroup label="🎹 Structure &amp; [Instrument Cues]">
+              <option value="standard">🎵 Standard [Section] + [Instrument Cue] Scaffold</option>
+            </optgroup>
+            <optgroup label="🪝 Attached Audio: Extract Hooks &amp; Parts → New Music">
+              <option value="v6-hook-new-song">🎯 1. Hook Extractor: Pull Attached Audio Hook → Build New Song</option>
+              <option value="v6-multi-part-stitch">🧩 2. Multi-Part Harvester: Combine Best Parts &amp; Hooks into New Music</option>
+              <option value="v6-stem-harvest">🎛️ 3. Section-by-Section Hook Harvest + [Instrument Cues]</option>
+              <option value="v6-hook-mashup">🔥 4. Dual-Hook Fusion: Combine Chorus Hook + Riff/Drop Hook</option>
+              <option value="v6-vocal-hook-preserve">🎤 5. Vocal Hook Anchor: Keep Attached Hook + Rebuild Song Around It</option>
+              <option value="v6-hook-flip-instrumental">🎹 6. Instrumental Hook Flip: Replay Attached Hook on Target Instruments</option>
+              <option value="v6-timestamp-splicer">⏱️ 7. Timestamp Splicer: Extract Intro, Groove &amp; Hook by Timestamp</option>
+            </optgroup>
+            <optgroup label="✨ Suno V6 General &amp; Restyle Templates">
+              <option value="v6-template">✨ General Template (Source→Task→Keep→Change→Lyrics)</option>
+              <option value="v6-restyle">🔄 Restyle Complete Attached Song (Cover in Target Style)</option>
+              <option value="v6-part">🎸 Build Around Single Riff / Selected Audio Passage</option>
+              <option value="v6-premise">💡 New Song from Emotional Premise</option>
+              <option value="v6-chatgpt">📋 ChatGPT Prep Prompt (Copy to Clipboard)</option>
+            </optgroup>
           </select>
         </div>
 
