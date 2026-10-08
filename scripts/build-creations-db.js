@@ -1,4 +1,4 @@
-/**
+﻿/**
  * build-creations-db.js
  * Ingests all created Suno prompts from:
  *   1. D:/Applications/Fictional-Bands (1,391+ band profiles)
@@ -13,6 +13,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { generateLyricSeed, auditLyrics } from '../src/utils/lyricSeed.js';
 
 function clean(str) {
   if (!str) return '';
@@ -141,16 +142,17 @@ function parseFile(content, fileName, fallbackMeta = null, fileDate = null) {
   const { minBpm, maxBpm, bpm } = extractBpm(content);
   const timeSig = extractTimeSig(content);
 
-  // 10. Lyrics Scaffold
-  let lyricSnippet = '';
-  const quoteMatch = content.match(/"([^"\n]{10,120})"/);
-  if (quoteMatch) {
-    lyricSnippet = '[Intro]\n[Verse 1]\n' + quoteMatch[1] + '\n\n[Pre-Chorus]\nEchoes rising from the deep\n\n[Chorus]\n' + track + '\n\n[Drop]\n\n[Outro]\n[Fade Out]';
-  } else {
-    lyricSnippet = '[Intro]\n[Verse 1]\n' + (vibe ? vibe.slice(0, 80) : 'Voices drift through the silence') + '\n\n[Pre-Chorus]\nCounting down every heartbeat\n\n[Chorus]\n' + track + '\n\n[Drop]\n\n[Outro]\n[Fade Out]';
-  }
-
   const category = categorizeCreation(genre, ingredients, prompt);
+
+  // 10. Humanized Lyrics Scaffold + /ace-audit Two-Pass Verification
+  const seedResult = generateLyricSeed({
+    title: track,
+    bandName: band,
+    category: category,
+    bpm: bpm,
+    instruments: instruments
+  });
+  const lyricSnippet = seedResult.lyricSnippet;
   const slug = band.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   const dateObj = (fileDate && !isNaN(fileDate.getTime())) ? fileDate : new Date();
@@ -287,7 +289,7 @@ export function buildCreationsDatabase() {
             vibe: 'High-energy eclectic genre collision',
             instruments: [],
             bpm, minBpm, maxBpm, timeSig,
-            lyricSnippet: '[Intro]\n[Verse 1]\nElectric currents pulse in the dark\n\n[Chorus]\n' + name + '\n\n[Outro]\n[Fade Out]',
+            lyricSnippet: generateLyricSeed({ title: name, bandName: name, category: cat, bpm, instruments: [] }).lyricSnippet,
             excludeStyles: 'screaming, harsh distortion, muddy bass, generic pop EDM',
             vocalGender: 'Female',
             weirdness: 55,
@@ -323,7 +325,17 @@ export function buildCreationsDatabase() {
     newEntriesCount: newCount
   };
 
+    let acePassCount = 0;
+  let aceP1Flags = 0;
+  let aceP2Flags = 0;
+  for (const item of creationsArray) {
+    const res = auditLyrics(item.lyricSnippet, { bpm: item.bpm });
+    if (res.passed) acePassCount++;
+    aceP1Flags += res.pass1.flags;
+    aceP2Flags += res.pass2.flags;
+  }
   console.log(`? Total Verified Creations Ingested: ${creationsArray.length} (${newCount} new/recent)`);
+  console.log(`? /ace-audit Batch Verification: ${acePassCount}/${creationsArray.length} seeds passed (Pass 1 Flags: ${aceP1Flags}, Pass 2 Flags: ${aceP2Flags})`);
 
   // Target output files
   const srcDataDir = path.resolve('src/data');

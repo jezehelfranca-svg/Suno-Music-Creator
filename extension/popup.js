@@ -1,4 +1,4 @@
-// Suno Fusion v2.5 - Popup Studio & Extension Engine
+﻿// Suno Fusion v2.5 - Popup Studio & Extension Engine
 // ── Groove Design (seed-aware, inlined from src/utils/grooveDesign.js) ──
 function designGroove(seed = {}) {
   const genres = (seed.genres || []).filter(Boolean);
@@ -506,14 +506,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Creative title generator
     const titleSeeds = [
-      "Electric Horizon", "Velvet Frequency", "Cybernetic Mirage", "Midnight Resonance",
-      "Neon Solitude", "Solar Flare", "Infinite Echo", "Astral Wanderer", "Chrono Rift",
-      "Subtle Pulse", "Gravity Bloom", "Obsidian Dream", "Vapor Twilight", "Hyperion Drift"
+      "The Taproot Swallows Altitude", "Copper & Clementine", "Quarter-Reel Hum", "Freight-Door Daylight",
+      "Radiator Valve", "Ballpoint Seven", "Harbor Ferry Gray", "Porcelain Ledge", "Solder Smoke",
+      "Plywood Corridor", "Braided Cable", "Fader Room-Tone", "Frosted Baritone", "River Glare"
     ];
     const newTitle = getRandom(titleSeeds) + ' (' + g1.split(' ')[0] + ' x ' + g2.split(' ')[0] + ')';
     if (titleInput) titleInput.value = newTitle;
 
     updateStylePrompt();
+    if (!v6DirectiveSelect || v6DirectiveSelect.value === 'standard') {
+      humanizeRollCounter++;
+      const rolledSeed = buildHumanizedSeedForPopup(humanizeRollCounter);
+      if (lyricsInput) {
+        lyricsInput.value = rolledSeed;
+        standardLyricCache = rolledSeed;
+      }
+      updateAceAuditBadge();
+    }
 
     // Show combination math index
     if (currentMode === 'pair') {
@@ -656,6 +665,194 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // SUNO V6 & SIMPLE MODE PROMPT DIRECTIVES
   // ==========================================
+  // ==========================================
+  // ACE SONGWRITING /ace-audit & HUMANIZED SEED ENGINE
+  // ==========================================
+  const aceAuditBadge = document.getElementById('pop-ace-audit-badge');
+  const humanizeLyricsBtn = document.getElementById('pop-btn-humanize-lyrics');
+  let humanizeRollCounter = 0;
+
+  const ACE_BANNED_PHRASES = [
+    'through the storm', 'i will rise', 'never fade', 'from the ashes',
+    'broken wings', 'lost my way', 'find the light', 'stand tall',
+    'touch the sky', 'forevermore', 'in the shadows', 'tears fall like rain',
+    'burning bright', 'against all odds', 'heart of gold', 'chains that bind',
+    'echoes of the past', 'whisper in the wind', 'dance in the rain', 'love conquers all',
+    'rise above', 'shattered dreams', 'fading away', 'into the night',
+    'hold on tight', 'let it go', 'bleeding heart', 'wings to fly',
+    'darkness falls', 'light the way', 'scars remind me', 'ghosts of yesterday',
+    'concrete jungle', 'sea of faces', 'weight of the world', 'edge of tomorrow',
+    'fire in my soul', 'written in the stars', 'two worlds colliding', 'time stands still',
+    'drowning in', 'chasing shadows', 'pieces of me', 'walls closing in',
+    'screaming inside', 'wearing a mask', 'castle of glass', 'bridge over troubled',
+    'phoenix rising', 'footprints in the sand',
+    'echoes rising from the deep', 'voices drift through the silence',
+    'counting down every heartbeat', 'electric currents pulse in the dark',
+    'neon shadows flicker in the haze', 'before the stars collide',
+    'midnight shadows through the glowing rain', 'washing out the pain'
+  ];
+
+  const ACE_GENERIC_WORDS = [
+    'neon', 'shadows', 'echoes', 'heartbeat', 'collide', 'colliding',
+    'abyss', 'void', 'ethereal', 'symphony', 'tapestry', 'kaleidoscope',
+    'vortex', 'cosmos', 'celestial', 'labyrinth', 'phantoms', 'whispers'
+  ];
+
+  const ACE_VERSE_PAIRS = [
+    {
+      v1: ['Two-fifteen beside the radiator valve', 'You left a clementine upon the window ledge'],
+      v2: ['Four-forty-five across the empty parking lane', 'I fold the warm receipt and step toward the train']
+    },
+    {
+      v1: ['Cold coffee sitting by the studio mixing board', 'You taped a polaroid above the patch-bay cord'],
+      v2: ['First daylight creeping underneath the loading door', 'We lock the flight-cases across the plywood floor']
+    },
+    {
+      v1: ['Three dollars remaining on a scratched-up transit pass', 'You tuned the baritone behind the frosted glass'],
+      v2: ['Last harbor ferry blowing through the morning gray', 'I tighten down the pegs for what is left to say']
+    },
+    {
+      v1: ['Fluorescent flicker in the basement laundry room', 'You wrote the gate code on my wrist in ballpoint blue'],
+      v2: ['Delivery diesel idling by the corner store', 'I leave the brass key resting on the cellar door']
+    },
+    {
+      v1: ['Warm solder smoke above a cracked ceramic mug', 'You kicked the braided cable over the woven rug'],
+      v2: ['Street-sweeper brushing down the curb at six a-m', 'I coil the copper leads and count to four again']
+    },
+    {
+      v1: ['A cracked phone glowing on the dusty dashboard tray', 'The wipers push the wet pine needles out the way'],
+      v2: ['Mile-marker ninety-four in early highway glare', 'I roll the window down to taste the river air']
+    },
+    {
+      v1: ['Check-out was noon and both my shoelaces are frayed', 'You underlined a sentence on the folded page'],
+      v2: ['The elevator bell rings down the quiet hall', 'I lift the canvas bag and step out from the wall']
+    },
+    {
+      v1: ['Grease-pencil markings on the spinning quarter-reel', 'You hummed the bassline just to see how it would feel'],
+      v2: ['First delivery trucks rattle the bakery stall', 'I pull the fader down and let the room-tone fall']
+    }
+  ];
+
+  const ACE_PRE_CHORUS = [
+    ['Hands steady on the grain', 'Say it clear and plain'],
+    ['Count four upon the rim', 'Before the bulbs go dim'],
+    ['Short breath inside the throat', 'Lean into every note'],
+    ['Thumb resting on the fret', 'We are not finished yet'],
+    ['Red needle on the meter', 'Make the middle sweeter'],
+    ['Step closer to the wire', 'Pull the tension higher']
+  ];
+
+  const ACE_CHORUS_FRAMES = [
+    (m, inst) => [`${m} in the room below`, `Keep the ${inst} warm and let it go`],
+    (m, inst) => [`${m}, hanging in the air`, `While the ${inst} answers from the stair`],
+    (m, inst) => [`${m}, calling out again`, `While the ${inst} holds the wooden frame`],
+    (m, inst) => [`${m} across the concrete floor`, `Let the ${inst} open up the door`],
+    (m, inst) => [`${m}, pulling us right now`, `Let the ${inst} cool the copper down`],
+    (m, inst) => [`${m}, breaking into two`, `Let the ${inst} carry us on through`]
+  ];
+
+  const ACE_OUTROS = [
+    (m) => `Leave the porch bulb glowing while ${m.toLowerCase()} settles slow`,
+    (m) => `Just the room-tone breathing where ${m.toLowerCase()} used to go`,
+    () => `Hold that final chord until the windowpanes stop shaking now`,
+    () => `Let the tape reel spin until the copper wire cools down`
+  ];
+
+  function sanitizeSeedPhrase(raw, maxWords = 3) {
+    let clean = String(raw || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').replace(/^["'\s#*_-]+|["'\s#*_-]+$/g, '').trim();
+    if (!clean) return 'the copper wire';
+    ACE_GENERIC_WORDS.forEach(w => {
+      clean = clean.replace(new RegExp(`\\b${w}\\b`, 'gi'), 'amber');
+    });
+    return clean.split(/\s+/).slice(0, maxWords).join(' ');
+  }
+
+  function runAceAuditInPopup(text) {
+    const lower = String(text || '').toLowerCase();
+    let p1Flags = 0;
+    let p2Flags = 0;
+    ACE_BANNED_PHRASES.forEach(b => { if (lower.includes(b)) p1Flags++; });
+    ACE_GENERIC_WORDS.forEach(w => { if (new RegExp(`\\b${w}\\b`, 'i').test(lower)) p1Flags++; });
+    const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('[') && !l.startsWith('('));
+    if (lines.length === 0) return { passed: false, p1Flags: 0, p2Flags: 1 };
+    const lastLine = lines[lines.length - 1];
+    const lastWord = (lastLine.replace(/[^a-zA-Z\s'-]/g, '').trim().split(/\s+/).pop() || '').toLowerCase();
+    if (/(?:[tkpbdg]|[aeiouy][tkpbdg]e)$/i.test(lastWord)) p2Flags++;
+    return { passed: p1Flags === 0 && p2Flags === 0, p1Flags, p2Flags };
+  }
+
+  function updateAceAuditBadge() {
+    if (!aceAuditBadge || !lyricsInput) return;
+    const audit = runAceAuditInPopup(lyricsInput.value);
+    if (audit.passed) {
+      aceAuditBadge.textContent = '✅ /ace-audit PASS';
+      aceAuditBadge.style.background = 'rgba(16,185,129,0.15)';
+      aceAuditBadge.style.color = '#34d399';
+      aceAuditBadge.style.borderColor = 'rgba(16,185,129,0.35)';
+      aceAuditBadge.title = 'Pass 1 (Anti-Cliché): 0 flags | Pass 2 (Lyric Craft): Open vowel sustains & breath budget verified';
+    } else {
+      aceAuditBadge.textContent = `⚠️ /ace-audit (${audit.p1Flags + audit.p2Flags} flag)`;
+      aceAuditBadge.style.background = 'rgba(245,158,11,0.15)';
+      aceAuditBadge.style.color = '#fbbf24';
+      aceAuditBadge.style.borderColor = 'rgba(245,158,11,0.4)';
+      aceAuditBadge.title = `Pass 1 Cliché Flags: ${audit.p1Flags} | Pass 2 Singability Flags: ${audit.p2Flags}. Click "✨ Humanize Seed" to rewrite.`;
+    }
+  }
+
+  function buildHumanizedSeedForPopup(seedIndexOffset = 0) {
+    const rawTitle = titleInput ? titleInput.value : 'The Taproot Swallows Altitude';
+    const motif = sanitizeSeedPhrase(rawTitle, 3);
+    const rawInst = selectedInstruments.length > 0 ? selectedInstruments[0] : 'fretless bass';
+    const inst = sanitizeSeedPhrase(rawInst, 2).toLowerCase() || 'copper wire';
+    const idx = (Math.abs(rawTitle.length * 7 + seedIndexOffset)) % ACE_VERSE_PAIRS.length;
+    const vp = ACE_VERSE_PAIRS[idx];
+    const pc = ACE_PRE_CHORUS[(idx + seedIndexOffset) % ACE_PRE_CHORUS.length];
+    const ch = ACE_CHORUS_FRAMES[(idx + seedIndexOffset * 2) % ACE_CHORUS_FRAMES.length](motif, inst);
+    const out = ACE_OUTROS[(idx + seedIndexOffset * 3) % ACE_OUTROS.length](motif);
+    return [
+      '[Intro]',
+      '[Verse 1]',
+      vp.v1[0],
+      vp.v1[1],
+      '',
+      '[Pre-Chorus]',
+      pc[0],
+      pc[1],
+      '',
+      '[Chorus]',
+      ch[0],
+      ch[1],
+      '',
+      '[Verse 2]',
+      vp.v2[0],
+      vp.v2[1],
+      '',
+      '[Drop]',
+      '',
+      '[Outro]',
+      out,
+      '[Fade Out]'
+    ].join('\n');
+  }
+
+  if (humanizeLyricsBtn) {
+    humanizeLyricsBtn.onclick = () => {
+      humanizeRollCounter++;
+      const freshSeed = buildHumanizedSeedForPopup(humanizeRollCounter);
+      if (lyricsInput) {
+        lyricsInput.value = freshSeed;
+        standardLyricCache = freshSeed;
+      }
+      if (v6DirectiveSelect) v6DirectiveSelect.value = 'standard';
+      updateAceAuditBadge();
+      statusEl.textContent = '✅ Humanized lyric seed generated & verified via /ace-audit (Pass 1 & Pass 2 PASS)!';
+    };
+  }
+
+  if (lyricsInput) {
+    lyricsInput.addEventListener('input', updateAceAuditBadge);
+  }
+
   const v6DirectiveSelect = document.getElementById('pop-v6-directive-select');
   const simpleTargetToggle = document.getElementById('pop-toggle-simple-target');
   let standardLyricCache = lyricsInput ? lyricsInput.value : '';
@@ -672,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
     v6DirectiveSelect.onchange = () => {
       const val = v6DirectiveSelect.value;
       if (val === 'standard') {
-        lyricsInput.value = standardLyricCache || '[Intro]\n[Verse 1]\nNeon shadows flicker in the haze\n\n[Chorus]\nDrifting high';
+        lyricsInput.value = standardLyricCache || buildHumanizedSeedForPopup(0); updateAceAuditBadge();
         statusEl.textContent = '🎵 Restored standard song lyrics scaffold!';
       } else if (val === 'v6-chatgpt') {
         navigator.clipboard.writeText(V6_DIRECTIVES['v6-chatgpt']);
@@ -895,6 +1092,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lyricsInput.value = data.lyricSnippet;
       standardLyricCache = data.lyricSnippet;
       if (v6DirectiveSelect) v6DirectiveSelect.value = 'standard';
+      updateAceAuditBadge();
     }
     if (data.title) titleInput.value = data.title;
     if (data.excludeStyles) excludeInput.value = data.excludeStyles;

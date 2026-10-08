@@ -1,6 +1,7 @@
-import { VariationOptions, GeneratedPrompt, SunoPromptFormat } from '../types';
+﻿import { VariationOptions, GeneratedPrompt, SunoPromptFormat } from '../types';
 import { POOLS, KEYS, TITLE_A, TITLE_B, LEADS, OPENERS, SUNO_METATAGS } from '../data/pools';
 import { designGroove } from './grooveDesign.js';
+import { generateLyricSeed } from './lyricSeed.js';
 
 function pick<T>(arr: T[], rng = Math.random): T {
   return arr[Math.floor(rng() * arr.length)];
@@ -154,23 +155,13 @@ export function generateSunoPrompt(
     "[Outro]"
   ];
 
-  const lyricSnippet = `[Intro: ${timeSig}, atmospheric build]
-(Guitar riffs gently echo against soft analog pads)
-
-[Verse 1]
-Midnight shadows through the glowing rain
-Neon reflections washing out the pain
-Underneath the pulse of an electric sky
-We leave the heavy city hours behind
-
-[Chorus: ${bpmLabel}, full drive]
-Feel the rhythm start to collide
-Two worlds colliding in the neon light!
-Nothing holds us in this gravity
-Lost inside this hybrid symmetry!
-
-[Outro]
-(Fading into silence)`;
+  const lyricSnippet = generateLyricSeed({
+    title,
+    bandName: fusionName,
+    category: validGenres[0] || 'Fusion',
+    bpm: Math.round((minBpm + maxBpm) / 2),
+    instruments: selectedInstruments
+  }).lyricSnippet;
 
   return {
     id: `fusion-${Date.now()}-${Math.floor(Math.random() * 10000)}`,

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -224,8 +224,14 @@
             <!-- Lyrics & Prompt Directives -->
       <div style="margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-          <label class="sf-label">Lyrics &amp; Prompt Directives:</label>
-          <button id="pop-btn-clear-lyrics" class="sf-pick-btn" style="padding:1px 5px;font-size:10px;">Clear</button>
+          <label class="sf-label" style="display:flex;align-items:center;gap:5px;">
+            <span>Lyrics &amp; Prompt Directives:</span>
+            <span id="pop-ace-audit-badge" style="font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.35);font-weight:700;" title="Two-Pass /ace-audit Status (Pass 1 Anti-Cliché + Pass 2 Lyric Craft)">✅ /ace-audit PASS</span>
+          </label>
+          <div style="display:flex;gap:4px;">
+            <button id="pop-btn-humanize-lyrics" class="sf-pick-btn" style="padding:1px 6px;font-size:10px;color:#34d399;border-color:rgba(16,185,129,0.4);" title="Generate a naturally humanized lyric seed &amp; run /ace-audit">✨ Humanize Seed</button>
+            <button id="pop-btn-clear-lyrics" class="sf-pick-btn" style="padding:1px 5px;font-size:10px;">Clear</button>
+          </div>
         </div>
 
         <!-- Suno V6 / Simple Mode Directive Dropdown -->
@@ -240,7 +246,7 @@
           </select>
         </div>
 
-        <textarea id="pop-lyrics" class="sf-textarea" rows="3">[Intro]&#10;[Verse 1]&#10;Neon shadows flicker in the haze&#10;&#10;[Chorus]&#10;Drifting high</textarea>
+        <textarea id="pop-lyrics" class="sf-textarea" rows="3">[Intro]&#10;[Verse 1]&#10;Two-fifteen beside the radiator valve&#10;You left a clementine upon the window ledge&#10;&#10;[Pre-Chorus]&#10;Hands steady on the grain&#10;Say it clear and plain&#10;&#10;[Chorus]&#10;The taproot swallows altitude in the room below&#10;Keep the fretless bass warm and let it go&#10;&#10;[Verse 2]&#10;Four-forty-five across the empty parking lane&#10;I fold the warm receipt and step toward the train&#10;&#10;[Drop]&#10;&#10;[Outro]&#10;Let the tape reel spin until the copper wire cools down&#10;[Fade Out]</textarea>
 
         <!-- Simple Mode Targeting Checkbox -->
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">

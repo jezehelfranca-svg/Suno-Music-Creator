@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Download,
   Check,
@@ -77,7 +77,7 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({
   const handleRunSimulator = () => {
     setSimCustomMode(true);
     const styleVal = activePrompt?.sunoStyleTag || 'Dream Pop, TRAP & DRILL, 140 BPM, ethereal vocals, 808 sub bass, Roland Juno-106';
-    const lyricsVal = activePrompt?.lyricSnippet || '[Verse 1]\nNeon shadows flicker in the twilight haze\n\n[Chorus]\nDrifting through the echoes of another phase';
+    const lyricsVal = activePrompt?.lyricSnippet || '[Intro]\n[Verse 1]\nTwo-fifteen beside the radiator valve\nYou left a clementine upon the window ledge\n\n[Pre-Chorus]\nHands steady on the grain\nSay it clear and plain\n\n[Chorus]\nThe taproot swallows altitude in the room below\nKeep the fretless bass warm and let it go\n\n[Verse 2]\nFour-forty-five across the empty parking lane\nI fold the warm receipt and step toward the train\n\n[Outro]\nLet the tape reel spin until the copper wire cools down\n[Fade Out]';
     const titleVal = activePrompt?.title || 'Nebula Drift';
 
     setSimStyle(styleVal);
