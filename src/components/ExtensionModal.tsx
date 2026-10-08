@@ -77,7 +77,7 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({
   const handleRunSimulator = () => {
     setSimCustomMode(true);
     const styleVal = activePrompt?.sunoStyleTag || 'Dream Pop, TRAP & DRILL, 140 BPM, ethereal vocals, 808 sub bass, Roland Juno-106';
-    const lyricsVal = activePrompt?.lyricSnippet || '[Intro]\n[Verse 1]\nTwo-fifteen beside the radiator valve\nYou left a clementine upon the window ledge\n\n[Pre-Chorus]\nHands steady on the grain\nSay it clear and plain\n\n[Chorus]\nThe taproot swallows altitude in the room below\nKeep the fretless bass warm and let it go\n\n[Verse 2]\nFour-forty-five across the empty parking lane\nI fold the warm receipt and step toward the train\n\n[Outro]\nLet the tape reel spin until the copper wire cools down\n[Fade Out]';
+    const lyricsVal = activePrompt?.lyricSnippet || '[Intro]\n[808 Sub Bass and Roland Juno-106 establish the opening groove]\n[Verse 1]\n[Sparse 808 Sub Bass pulse with muted Roland Juno-106 accompaniment]\n\n[Pre-Chorus]\n[Rising Roland Juno-106 tension with Percussion building momentum]\n\n[Chorus]\n[Full arrangement: soaring Roland Juno-106 lead over driving 808 Sub Bass]\n\n[Verse 2]\n[Groove deepens: syncopated 808 Sub Bass with Roland Juno-106 counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: 808 Sub Bass and Roland Juno-106 trading solo phrases]\n[Outro]\n[Gradual decompression as Roland Juno-106 harmonics ring out]\n\n[Fade Out]';
     const titleVal = activePrompt?.title || 'Nebula Drift';
 
     setSimStyle(styleVal);

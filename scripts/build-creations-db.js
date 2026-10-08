@@ -150,7 +150,7 @@ function parseFile(content, fileName, fallbackMeta = null, fileDate = null) {
     bandName: band,
     category: category,
     bpm: bpm,
-    instruments: instruments
+    instruments: instruments, sunoStyleTag: prompt
   });
   const lyricSnippet = seedResult.lyricSnippet;
   const slug = band.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -169,7 +169,7 @@ function parseFile(content, fileName, fallbackMeta = null, fileDate = null) {
     sunoStyleTag: prompt,
     fullPrompt: prompt,
     vibe: vibe,
-    instruments: instruments,
+    instruments: instruments, sunoStyleTag: prompt,
     forFansOf: forFansOf,
     bpm: bpm,
     minBpm: minBpm,
@@ -289,7 +289,7 @@ export function buildCreationsDatabase() {
             vibe: 'High-energy eclectic genre collision',
             instruments: [],
             bpm, minBpm, maxBpm, timeSig,
-            lyricSnippet: generateLyricSeed({ title: name, bandName: name, category: cat, bpm, instruments: [] }).lyricSnippet,
+            lyricSnippet: generateLyricSeed({ title: name, bandName: name, category: cat, bpm, instruments: [], sunoStyleTag: prompt }).lyricSnippet,
             excludeStyles: 'screaming, harsh distortion, muddy bass, generic pop EDM',
             vocalGender: 'Female',
             weirdness: 55,
