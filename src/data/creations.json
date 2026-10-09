@@ -1,5 +1,44 @@
 [
   {
+    "id": "the-4am-silt-society",
+    "title": "Locomotives Shedding Scales at Pier 4",
+    "bandName": "The 4AM Silt Society",
+    "genreName": "Gauze-Bop",
+    "category": "Hip-Hop & Urban",
+    "ingredients": [
+      "BEBOP",
+      "ETHEREAL, DREAMY & AIRY",
+      "Harp"
+    ],
+    "sunoStyleTag": "Gauze-Bop (BEBOP + ETHEREAL, DREAMY & AIRY + Harp), rapid-fire bebop chord substitutions and lightning-fast modal arpeggios are played on a delicate acoustic harp with featherlight touch, floating over ultra-fast 220 BPM brushed swing rhythms, buoyant wood-block taps, and deep sub-bass river pulses, soaked in lush dawn-mist reverbs, translucent flutter tape delays, dewy room ambiance, and airy bamboo flute overtones without any heavy brass.",
+    "fullPrompt": "Gauze-Bop (BEBOP + ETHEREAL, DREAMY & AIRY + Harp), rapid-fire bebop chord substitutions and lightning-fast modal arpeggios are played on a delicate acoustic harp with featherlight touch, floating over ultra-fast 220 BPM brushed swing rhythms, buoyant wood-block taps, and deep sub-bass river pulses, soaked in lush dawn-mist reverbs, translucent flutter tape delays, dewy room ambiance, and airy bamboo flute overtones without any heavy brass.",
+    "vibe": "Weightless kinetic lucidity, floating river mists, virtuosity whispered like morning steam.",
+    "instruments": [
+      "Concert and lever harps fitted with piezoelectric contacts and silk dampening strips",
+      "upright bass played exclusively with ultra-soft felt plectrums",
+      "water-tuned wooden temple blocks",
+      "muted upright piano",
+      "bamboo flutes processed through long-tail ambient reverbs",
+      "vintage rotary DJ mixers mounted in fruit crates."
+    ],
+    "forFansOf": "Dorothy Ashby, Alice Coltrane, Mary Lou Williams, Susumu Yokota, Floating Points",
+    "bpm": 260,
+    "minBpm": 260,
+    "maxBpm": 260,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric Concert and lever harps fitted with piezoelectric contacts and silk dampening strips motif over a warm upright bass played exclusively with ultra-soft felt plectrums bed]\n[Verse 1]\n[Stripped-back upright bass played exclusively with ultra-soft felt plectrums rhythm leaving space around Concert and lever harps fitted with piezoelectric contacts and silk dampening strips accents]\n\n[Pre-Chorus]\n[Swelling upright bass played exclusively with ultra-soft felt plectrums harmonics and tightening water-tuned wooden temple blocks drive]\n\n[Chorus]\n[Wide ensemble hook led by Concert and lever harps fitted with piezoelectric contacts and silk dampening strips, upright bass played exclusively with ultra-soft felt plectrums, and water-tuned wooden temple blocks]\n\n[Verse 2]\n[Stripped-back Concert and lever harps fitted with piezoelectric contacts and silk dampening strips variation with subtle water-tuned wooden temple blocks textures]\n\n[Drop]\n[Featured Concert and lever harps fitted with piezoelectric contacts and silk dampening strips lead showcase over upright bass played exclusively with ultra-soft felt plectrums and water-tuned wooden temple blocks rhythm section]\n[Outro]\n[Arrangement strips back to a lone Concert and lever harps fitted with piezoelectric contacts and silk dampening strips and warm upright bass played exclusively with ultra-soft felt plectrums decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-09T00:04:07.653Z",
+    "formattedDate": "Oct 9, 2026 9:04 AM",
+    "shortDate": "Oct 9 9:04 AM",
+    "isNew": true
+  },
+  {
     "id": "the-pendulum-nebula",
     "title": "Did the Spar Buoy Strike Twelve?",
     "bandName": "The Pendulum Nebula",
@@ -4821,7 +4860,7 @@
     "createdAt": "2026-10-02T00:03:31.553Z",
     "formattedDate": "Oct 2, 2026 9:03 AM",
     "shortDate": "Oct 2 9:03 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "kino-meridian",
