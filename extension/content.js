@@ -30,21 +30,58 @@
     try {
       element.focus();
 
-      // Handle contenteditable nodes / custom textboxes (common in TopMediai)
-      if (element.isContentEditable || element.getAttribute('role') === 'textbox' || element.tagName === 'DIV' || element.tagName === 'SPAN') {
+      // Handle Lexical Rich-Text Editor & ContentEditable nodes (Suno Lexical & TopMediai)
+      if (element.isContentEditable || element.getAttribute('contenteditable') === 'true' || element.hasAttribute('data-lexical-editor') || element.getAttribute('role') === 'textbox' || element.tagName === 'DIV' || element.tagName === 'SPAN') {
+        element.focus();
+
+        // 1. Select all contents in the element
         try {
           const selection = window.getSelection();
           const range = document.createRange();
           range.selectNodeContents(element);
           selection.removeAllRanges();
           selection.addRange(range);
-          if (!document.execCommand('insertText', false, text)) {
-            element.innerText = text;
-          }
-        } catch (e) {
-          element.innerText = text;
+        } catch (e) {}
+
+        // 2. Dispatch synthetic ClipboardEvent (paste) — Lexical Editor native input listener
+        try {
+          const dt = new DataTransfer();
+          dt.setData('text/plain', text);
+          const pasteEvent = new ClipboardEvent('paste', {
+            clipboardData: dt,
+            bubbles: true,
+            cancelable: true
+          });
+          element.dispatchEvent(pasteEvent);
+        } catch (pe) {}
+
+        // 2b. Dispatch beforeinput for modern Lexical input listeners
+        try {
+          element.dispatchEvent(new InputEvent('beforeinput', {
+            bubbles: true,
+            cancelable: true,
+            inputType: 'insertFromPaste',
+            data: text
+          }));
+        } catch (e) {}
+
+        // 3. Try document.execCommand('insertText')
+        try {
+          document.execCommand('insertText', false, text);
+        } catch (e) {}
+
+        // 4. Fallback: If element is still empty or has only <br>, reconstruct Lexical paragraph nodes directly
+        const cleanContent = (element.innerText || '').trim();
+        if (!cleanContent || cleanContent.length < 5) {
+          const lines = text.split('\n');
+          const pNodes = lines.map(line => {
+            const escaped = line ? line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<br>';
+            return `<p class="lyrics-paragraph" dir="auto">${line ? `<span data-lexical-text="true">${escaped}</span>` : '<br>'}</p>`;
+          }).join('');
+          element.innerHTML = pNodes;
         }
 
+        // 5. Fire input, change, and keyup events for Lexical & React synthetic listeners
         element.dispatchEvent(new Event('input', { bubbles: true }));
         element.dispatchEvent(new Event('change', { bubbles: true }));
         try {
@@ -441,10 +478,14 @@
     const a = (el.getAttribute('aria-label') || '').toLowerCase();
     const name = (el.getAttribute('name') || '').toLowerCase();
     const id = (el.id || '').toLowerCase();
+    const desc = (el.getAttribute('aria-describedby') || '').toLowerCase();
+    const cls = (el.className && typeof el.className === 'string' ? el.className : '').toLowerCase();
+    if (cls.includes('lyrics-editor') || desc.includes('lyrics-editor') || a === 'lyrics editor' || a.includes('lyrics editor')) return true;
+    if (el.hasAttribute('data-lexical-editor')) return true;
     if (testid.includes('lyric') || name.includes('lyric') || id.includes('lyric') || a.includes('lyric')) return true;
     if (p.includes('write your own lyrics') || p.includes('write your own') || p.includes('lyrics') || p.includes('add your own') || p.includes('enter your lyrics') || p.includes('paste your lyrics') || p.includes('verse')) return true;
     if (a.includes('write your own') || a.includes('your lyrics')) return true;
-    if (el.closest?.('[data-testid*="lyrics" i], [data-testid*="lyric" i]')) return true;
+    if (el.closest?.('[data-testid*="lyrics" i], [data-testid*="lyric" i], .lyrics-editor-content')) return true;
     return false;
   }
 
@@ -482,14 +523,14 @@
     });
     for (const h of styleHeaders) {
       const container = h.closest('div.flex, div, section, fieldset') || h.parentElement;
-      const ta = container?.querySelector('textarea');
+      const ta = container?.querySelector('div.lyrics-editor-content, [data-lexical-editor="true"], [contenteditable="true"][role="textbox"], textarea');
       if (ta && ta !== excludeLyricsEl && !isExplicitLyricsElement(ta)) return ta;
     }
 
     return null;
   }
 
-  // Dedicated Suno Lyrics Input Locator (Guaranteed distinct from Style)
+  // Dedicated Suno Lyrics Input Locator (Matches Suno Lexical Rich-Text Editor & Textareas)
   function findSunoLyricsTextarea(knownStyleTextarea = null) {
     // 1. Check if user set a custom lyrics selector
     if (userCustomSelectors.lyricsSelector) {
@@ -499,7 +540,42 @@
 
     const isStyle = (el) => !el || el === knownStyleTextarea || !!el.closest?.('[data-testid="create-form-styles-wrapper"]');
 
-    // 2. Exact data-testid selectors for lyrics
+    const isVisible = (el) => {
+      if (!el) return false;
+      if (el.offsetParent !== null || el.getBoundingClientRect().height > 0) return true;
+      try {
+        const s = window.getComputedStyle(el);
+        return s.display !== 'none' && s.visibility !== 'hidden';
+      } catch (e) {
+        return false;
+      }
+    };
+
+    // 2. Direct Suno Lexical Rich-Text Lyrics Editor (Matches <div class="lyrics-editor-content" data-lexical-editor="true">)
+    const lexicalSelectors = [
+      'div.lyrics-editor-content[contenteditable="true"]',
+      '.lyrics-editor-content[contenteditable="true"]',
+      'div[aria-label="Lyrics editor"][contenteditable="true"]',
+      'div[aria-label*="Lyrics editor" i]',
+      '[aria-label="Lyrics editor"]',
+      '[aria-describedby*="lyrics-editor" i]',
+      'div[data-lexical-editor="true"][aria-label*="Lyrics" i]',
+      'div[data-lexical-editor="true"][class*="lyrics" i]',
+      'div[data-lexical-editor="true"][aria-describedby*="lyrics" i]',
+      '[data-lexical-editor="true"]',
+      '.lyrics-editor-content',
+      'div[role="textbox"][contenteditable="true"][aria-label*="Lyrics" i]',
+      'div[role="textbox"][contenteditable="true"][class*="lyrics" i]',
+      '[data-testid="create-form-lyrics-wrapper"] [contenteditable="true"]'
+    ];
+    for (const sel of lexicalSelectors) {
+      const el = document.querySelector(sel);
+      if (el && !isStyle(el) && isVisible(el)) {
+        return el;
+      }
+    }
+
+    // 3. Exact data-testid selectors for lyrics (textareas & contenteditables)
     const testidSelectors = [
       '[data-testid="create-form-lyrics-wrapper"] textarea',
       '[data-testid*="lyrics-wrapper" i] textarea',
@@ -510,7 +586,7 @@
     ];
     for (const sel of testidSelectors) {
       const el = document.querySelector(sel);
-      if (el && !isStyle(el) && (el.offsetParent !== null || el.getBoundingClientRect().height > 0)) {
+      if (el && !isStyle(el) && isVisible(el)) {
         return el;
       }
     }
@@ -533,7 +609,7 @@
     ];
     for (const sel of explicitAttrs) {
       const el = document.querySelector(sel);
-      if (el && !isStyle(el) && (el.offsetParent !== null || el.getBoundingClientRect().height > 0)) {
+      if (el && !isStyle(el) && isVisible(el)) {
         return el;
       }
     }
@@ -546,15 +622,15 @@
     });
     for (const h of lyricHeadings) {
       const container = h.closest('div.flex, div, section, fieldset') || h.parentElement;
-      const ta = container?.querySelector('textarea');
-      if (ta && !isStyle(ta) && (ta.offsetParent !== null || ta.getBoundingClientRect().height > 0)) {
+      const ta = container?.querySelector('div.lyrics-editor-content, [data-lexical-editor="true"], [contenteditable="true"][role="textbox"], textarea');
+      if (ta && !isStyle(ta) && isVisible(ta)) {
         return ta;
       }
     }
 
-    // 5. Fallback across all visible textareas: any non-style textarea
-    const allVisible = Array.from(document.querySelectorAll('textarea')).filter(
-      t => !isStyle(t) && (t.offsetParent !== null || t.getBoundingClientRect().height > 0)
+    // 5. Fallback across all visible lyrics editors & textareas: any non-style element
+    const allVisible = Array.from(document.querySelectorAll('div.lyrics-editor-content, [data-lexical-editor="true"], textarea')).filter(
+      t => !isStyle(t) && isVisible(t)
     );
     if (allVisible.length > 0) {
       return allVisible[0];
@@ -903,7 +979,7 @@
       isSunoCurrentlyCustom = activeTabText.includes('custom') || activeTabText.includes('advance') || activeTabText.includes('advanced');
 
       if (!isSunoCurrentlyCustom) {
-        const existingLyrics = document.querySelector('[data-testid*="lyrics" i] textarea, textarea[data-testid*="lyrics" i], textarea[placeholder*="write your own" i], textarea[placeholder*="lyrics" i]');
+        const existingLyrics = document.querySelector('div.lyrics-editor-content, [data-lexical-editor="true"], [aria-label*="Lyrics editor" i], [data-testid*="lyrics" i] textarea, textarea[data-testid*="lyrics" i], textarea[placeholder*="write your own" i], textarea[placeholder*="lyrics" i]');
         if (existingLyrics) isSunoCurrentlyCustom = true;
       }
     }
@@ -1199,7 +1275,7 @@
       return;
     }
 
-    if (targetLyrics.isContentEditable || targetLyrics.getAttribute('role') === 'textbox') {
+    if (targetLyrics.isContentEditable || targetLyrics.getAttribute('role') === 'textbox' || targetLyrics.hasAttribute('data-lexical-editor') || targetLyrics.getAttribute('contenteditable') === 'true') {
       const current = targetLyrics.innerText || '';
       const insertion = (current.length > 0 && !current.endsWith('\n') ? '\n\n' : '') + tag + '\n';
       setInputValueReliably(targetLyrics, current + insertion);
