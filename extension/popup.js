@@ -1614,13 +1614,14 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('active');
       const targetTab = btn.getAttribute('data-tab');
 
-      ['create', 'library', 'taxonomy', 'settings', 'metatags'].forEach(t => {
+      ['create', 'library', 'taxonomy', 'settings', 'metatags', 'targets'].forEach(t => {
         const el = document.getElementById('pop-tab-' + t);
         if (el) el.classList.toggle('sf-hidden', t !== targetTab);
       });
 
       if (targetTab === 'library') filterAndRenderLibrary();
       if (targetTab === 'taxonomy') renderTaxonomy();
+      if (targetTab === 'targets') inspectPageTargets();
     };
   });
 
@@ -1816,4 +1817,329 @@ document.addEventListener('DOMContentLoaded', () => {
       statusEl.textContent = `Inserted ${tag.getAttribute('data-tag')} into lyrics`;
     };
   });
+
+  // ==========================================
+  // 12. TARGET SELECTION IDENTIFICATION & DIAGNOSTICS
+  // ==========================================
+  const diagLyricsSelInput = document.getElementById('pop-diag-lyrics-sel');
+  const diagStyleSelInput = document.getElementById('pop-diag-style-sel');
+  const diagLyricsBadge = document.getElementById('pop-diag-lyrics-badge');
+  const diagStyleBadge = document.getElementById('pop-diag-style-badge');
+  const targetBadgeStyle = document.getElementById('pop-target-badge-style');
+  const targetBadgeLyrics = document.getElementById('pop-target-badge-lyrics');
+
+  function updateTargetBadges(customSels = {}) {
+    if (customSels.sf_lyrics_sel) {
+      if (diagLyricsBadge) {
+        diagLyricsBadge.textContent = '● Custom Target Active';
+        diagLyricsBadge.style.color = '#34d399';
+        diagLyricsBadge.style.borderColor = 'rgba(52,211,153,0.3)';
+        diagLyricsBadge.style.background = 'rgba(52,211,153,0.12)';
+      }
+      if (targetBadgeLyrics) {
+        targetBadgeLyrics.textContent = '● Custom Target';
+        targetBadgeLyrics.style.color = '#34d399';
+      }
+    }
+    if (customSels.sf_style_sel) {
+      if (diagStyleBadge) {
+        diagStyleBadge.textContent = '● Custom Target Active';
+        diagStyleBadge.style.color = '#34d399';
+        diagStyleBadge.style.borderColor = 'rgba(52,211,153,0.3)';
+        diagStyleBadge.style.background = 'rgba(52,211,153,0.12)';
+      }
+      if (targetBadgeStyle) {
+        targetBadgeStyle.textContent = '● Custom Target';
+        targetBadgeStyle.style.color = '#34d399';
+      }
+    }
+  }
+
+  // Load saved custom selectors from storage into inputs
+  chrome.storage?.local?.get(['sf_style_sel', 'sf_lyrics_sel', 'sf_title_sel', 'sf_exclude_sel', 'sf_create_sel'], (res) => {
+    if (res?.sf_lyrics_sel && diagLyricsSelInput) diagLyricsSelInput.value = res.sf_lyrics_sel;
+    if (res?.sf_style_sel && diagStyleSelInput) diagStyleSelInput.value = res.sf_style_sel;
+    updateTargetBadges(res);
+  });
+
+  async function inspectPageTargets() {
+    const tab = await getSunoTab();
+    if (!tab?.id) {
+      if (diagLyricsBadge) diagLyricsBadge.textContent = 'No Suno tab open';
+      if (diagStyleBadge) diagStyleBadge.textContent = 'No Suno tab open';
+      return;
+    }
+    statusEl.textContent = '🔍 Inspecting page elements...';
+    chrome.tabs.sendMessage(tab.id, { action: 'INSPECT_TARGETS' }, (res) => {
+      if (chrome.runtime.lastError || !res) {
+        if (diagLyricsBadge) diagLyricsBadge.textContent = '○ Disconnected (Refresh Suno)';
+        if (diagStyleBadge) diagStyleBadge.textContent = '○ Disconnected (Refresh Suno)';
+        statusEl.textContent = 'Please refresh the Suno tab to reconnect.';
+        return;
+      }
+
+      // Update lyrics diagnostics
+      if (diagLyricsBadge) {
+        if (res.lyrics?.isCustom) {
+          diagLyricsBadge.textContent = '● Custom Locked';
+          diagLyricsBadge.style.color = '#a78bfa';
+        } else if (res.lyrics?.found) {
+          diagLyricsBadge.textContent = res.lyrics.isLexical ? '● Auto: Lexical Rich-Text' : '● Auto: Textarea Found';
+          diagLyricsBadge.style.color = '#34d399';
+          diagLyricsBadge.style.borderColor = 'rgba(52,211,153,0.3)';
+          diagLyricsBadge.style.background = 'rgba(52,211,153,0.12)';
+        } else {
+          diagLyricsBadge.textContent = '○ Not Detected (Switch to Custom)';
+          diagLyricsBadge.style.color = '#f87171';
+          diagLyricsBadge.style.borderColor = 'rgba(248,113,113,0.3)';
+          diagLyricsBadge.style.background = 'rgba(248,113,113,0.12)';
+        }
+      }
+      if (diagLyricsSelInput && !diagLyricsSelInput.value) {
+        diagLyricsSelInput.value = res.lyrics?.selector || '';
+      }
+      if (targetBadgeLyrics) {
+        targetBadgeLyrics.textContent = res.lyrics?.isCustom ? '● Custom' : (res.lyrics?.found ? (res.lyrics?.isLexical ? '● Lexical OK' : '● Textarea OK') : '○ Missing');
+        targetBadgeLyrics.style.color = res.lyrics?.found ? '#34d399' : '#f87171';
+      }
+
+      // Update style diagnostics
+      if (diagStyleBadge) {
+        if (res.style?.isCustom) {
+          diagStyleBadge.textContent = '● Custom Locked';
+          diagStyleBadge.style.color = '#a78bfa';
+        } else if (res.style?.found) {
+          diagStyleBadge.textContent = '● Auto: Style Found';
+          diagStyleBadge.style.color = '#34d399';
+          diagStyleBadge.style.borderColor = 'rgba(52,211,153,0.3)';
+          diagStyleBadge.style.background = 'rgba(52,211,153,0.12)';
+        } else {
+          diagStyleBadge.textContent = '○ Not Detected';
+          diagStyleBadge.style.color = '#f87171';
+          diagStyleBadge.style.borderColor = 'rgba(248,113,113,0.3)';
+          diagStyleBadge.style.background = 'rgba(248,113,113,0.12)';
+        }
+      }
+      if (diagStyleSelInput && !diagStyleSelInput.value) {
+        diagStyleSelInput.value = res.style?.selector || '';
+      }
+      if (targetBadgeStyle) {
+        targetBadgeStyle.textContent = res.style?.isCustom ? '● Custom' : (res.style?.found ? '● Style OK' : '○ Missing');
+        targetBadgeStyle.style.color = res.style?.found ? '#34d399' : '#f87171';
+      }
+
+      statusEl.textContent = '✓ Scan complete: ' + (res.platform || 'Suno') + ' (Lyrics: ' + (res.lyrics?.found ? 'OK' : 'Missing') + ', Style: ' + (res.style?.found ? 'OK' : 'Missing') + ')';
+    });
+  }
+
+  async function triggerElementPicker(targetBox) {
+    const tab = await getSunoTab();
+    if (!tab?.id) {
+      statusEl.textContent = 'Open Suno or TopMediai first!';
+      return;
+    }
+    statusEl.textContent = '🎯 Click directly on the ' + targetBox.toUpperCase() + ' box on your page...';
+    chrome.tabs.sendMessage(tab.id, { action: 'PICK_ELEMENT', target: targetBox }, (res) => {
+      if (chrome.runtime.lastError) {
+        statusEl.textContent = 'Please refresh Suno tab and retry element pick.';
+      }
+    });
+  }
+
+  // Pick buttons
+  const btnTargetLyrics = document.getElementById('pop-btn-target-lyrics');
+  if (btnTargetLyrics) btnTargetLyrics.onclick = () => triggerElementPicker('lyrics');
+  const btnPickLyrics = document.getElementById('pop-btn-pick-lyrics');
+  if (btnPickLyrics) btnPickLyrics.onclick = () => triggerElementPicker('lyrics');
+
+  const btnTargetStyle = document.getElementById('pop-btn-target-style');
+  if (btnTargetStyle) btnTargetStyle.onclick = () => triggerElementPicker('style');
+  const btnPickStyle = document.getElementById('pop-btn-pick-style');
+  if (btnPickStyle) btnPickStyle.onclick = () => triggerElementPicker('style');
+
+  const btnTargetTitle = document.getElementById('pop-btn-target-title');
+  if (btnTargetTitle) btnTargetTitle.onclick = () => triggerElementPicker('title');
+
+  const btnTargetExclude = document.getElementById('pop-btn-target-exclude');
+  if (btnTargetExclude) btnTargetExclude.onclick = () => triggerElementPicker('exclude');
+
+  const btnTargetCreate = document.getElementById('pop-btn-target-create');
+  if (btnTargetCreate) btnTargetCreate.onclick = () => triggerElementPicker('create');
+
+  // Manual save & clear
+  const diagLyricsSave = document.getElementById('pop-diag-lyrics-save');
+  if (diagLyricsSave) {
+    diagLyricsSave.onclick = () => {
+      const val = diagLyricsSelInput?.value?.trim() || '';
+      if (!val) return;
+      chrome.storage?.local?.set({ sf_lyrics_sel: val }, () => {
+        statusEl.textContent = '✓ Saved custom lyrics selector!';
+        updateTargetBadges({ sf_lyrics_sel: val });
+        inspectPageTargets();
+      });
+    };
+  }
+
+  const diagLyricsClear = document.getElementById('pop-diag-lyrics-clear');
+  if (diagLyricsClear) {
+    diagLyricsClear.onclick = () => {
+      chrome.storage?.local?.remove(['sf_lyrics_sel'], () => {
+        if (diagLyricsSelInput) diagLyricsSelInput.value = '';
+        if (diagLyricsBadge) {
+          diagLyricsBadge.textContent = 'Auto-Detect';
+          diagLyricsBadge.style.color = '#fbbf24';
+        }
+        if (targetBadgeLyrics) {
+          targetBadgeLyrics.textContent = '● Auto';
+          targetBadgeLyrics.style.color = '#fbbf24';
+        }
+        statusEl.textContent = 'Cleared custom lyrics selector. Reset to Auto.';
+        inspectPageTargets();
+      });
+    };
+  }
+
+  const diagStyleSave = document.getElementById('pop-diag-style-save');
+  if (diagStyleSave) {
+    diagStyleSave.onclick = () => {
+      const val = diagStyleSelInput?.value?.trim() || '';
+      if (!val) return;
+      chrome.storage?.local?.set({ sf_style_sel: val }, () => {
+        statusEl.textContent = '✓ Saved custom style selector!';
+        updateTargetBadges({ sf_style_sel: val });
+        inspectPageTargets();
+      });
+    };
+  }
+
+  const diagStyleClear = document.getElementById('pop-diag-style-clear');
+  if (diagStyleClear) {
+    diagStyleClear.onclick = () => {
+      chrome.storage?.local?.remove(['sf_style_sel'], () => {
+        if (diagStyleSelInput) diagStyleSelInput.value = '';
+        if (diagStyleBadge) {
+          diagStyleBadge.textContent = 'Auto-Detect';
+          diagStyleBadge.style.color = '#fbbf24';
+        }
+        if (targetBadgeStyle) {
+          targetBadgeStyle.textContent = '● Auto';
+          targetBadgeStyle.style.color = '#fbbf24';
+        }
+        statusEl.textContent = 'Cleared custom style selector. Reset to Auto.';
+        inspectPageTargets();
+      });
+    };
+  }
+
+  // Test fill buttons
+  const btnTestLyrics = document.getElementById('pop-btn-test-lyrics');
+  if (btnTestLyrics) {
+    btnTestLyrics.onclick = async () => {
+      const tab = await getSunoTab();
+      if (!tab?.id) return;
+      const text = lyricsInput?.value?.trim() || '[Verse 1]\nTesting Suno Fusion lyrics connection...';
+      statusEl.textContent = '🧪 Testing lyrics fill...';
+      chrome.tabs.sendMessage(tab.id, { action: 'TEST_FILL', target: 'lyrics', text }, (res) => {
+        if (res && res.success) {
+          statusEl.textContent = '✓ Test Fill into Lyrics Box succeeded!';
+        } else {
+          statusEl.textContent = '❌ Test Fill failed: ' + (res?.error || 'Lyrics box not found');
+        }
+      });
+    };
+  }
+
+  const btnTestStyle = document.getElementById('pop-btn-test-style');
+  if (btnTestStyle) {
+    btnTestStyle.onclick = async () => {
+      const tab = await getSunoTab();
+      if (!tab?.id) return;
+      const text = styleInput?.value?.trim() || 'Dream Pop, Shoegaze, 140 BPM, ethereal vocals';
+      statusEl.textContent = '🧪 Testing style fill...';
+      chrome.tabs.sendMessage(tab.id, { action: 'TEST_FILL', target: 'style', text }, (res) => {
+        if (res && res.success) {
+          statusEl.textContent = '✓ Test Fill into Style Box succeeded!';
+        } else {
+          statusEl.textContent = '❌ Test Fill failed: ' + (res?.error || 'Style box not found');
+        }
+      });
+    };
+  }
+
+  // Re-scan button
+  const btnInspectTargets = document.getElementById('pop-btn-inspect-targets');
+  if (btnInspectTargets) btnInspectTargets.onclick = inspectPageTargets;
+
+  // Force custom mode
+  const btnForceCustomMode = document.getElementById('pop-btn-force-custom-mode');
+  if (btnForceCustomMode) {
+    btnForceCustomMode.onclick = async () => {
+      const tab = await getSunoTab();
+      if (!tab?.id) return;
+      statusEl.textContent = '🎛️ Toggling Suno to Custom Mode...';
+      chrome.tabs.sendMessage(tab.id, { action: 'FORCE_CUSTOM_MODE' }, () => {
+        setTimeout(inspectPageTargets, 350);
+      });
+    };
+  }
+
+  // Force expand more options
+  const btnForceExpandMore = document.getElementById('pop-btn-force-expand-more');
+  if (btnForceExpandMore) {
+    btnForceExpandMore.onclick = async () => {
+      const tab = await getSunoTab();
+      if (!tab?.id) return;
+      statusEl.textContent = '📂 Expanding Suno More Options...';
+      chrome.tabs.sendMessage(tab.id, { action: 'FORCE_EXPAND_MORE' }, () => {
+        setTimeout(inspectPageTargets, 350);
+      });
+    };
+  }
+
+  // Reset all targets
+  const btnResetAllTargets = document.getElementById('pop-btn-reset-all-targets');
+  if (btnResetAllTargets) {
+    btnResetAllTargets.onclick = async () => {
+      chrome.storage?.local?.remove(['sf_style_sel', 'sf_lyrics_sel', 'sf_title_sel', 'sf_exclude_sel', 'sf_create_sel'], () => {
+        if (diagLyricsSelInput) diagLyricsSelInput.value = '';
+        if (diagStyleSelInput) diagStyleSelInput.value = '';
+        statusEl.textContent = '↺ Reset all targets to auto-detect!';
+        getSunoTab().then(t => {
+          if (t?.id) chrome.tabs.sendMessage(t.id, { action: 'RESET_TARGETS' }, () => inspectPageTargets());
+        });
+      });
+    };
+  }
+
+  // Listen for TARGET_PICKED message from content script
+  chrome.runtime?.onMessage?.addListener((msg) => {
+    if (msg.action === 'TARGET_PICKED') {
+      statusEl.textContent = '🎯 Identified and locked ' + msg.targetType.toUpperCase() + ' target: ' + msg.selector;
+      if (msg.targetType === 'lyrics') {
+        if (diagLyricsSelInput) diagLyricsSelInput.value = msg.selector;
+        if (diagLyricsBadge) {
+          diagLyricsBadge.textContent = '● Picked & Saved';
+          diagLyricsBadge.style.color = '#34d399';
+        }
+        if (targetBadgeLyrics) {
+          targetBadgeLyrics.textContent = '● Picked';
+          targetBadgeLyrics.style.color = '#34d399';
+        }
+      } else if (msg.targetType === 'style') {
+        if (diagStyleSelInput) diagStyleSelInput.value = msg.selector;
+        if (diagStyleBadge) {
+          diagStyleBadge.textContent = '● Picked & Saved';
+          diagStyleBadge.style.color = '#34d399';
+        }
+        if (targetBadgeStyle) {
+          targetBadgeStyle.textContent = '● Picked';
+          targetBadgeStyle.style.color = '#34d399';
+        }
+      }
+    }
+  });
+
+  // Run initial scan in background
+  setTimeout(inspectPageTargets, 500);
+
 });

@@ -96,6 +96,7 @@
     <button class="sf-tab-btn" data-tab="taxonomy">🧬 Taxonomy (374)</button>
     <button class="sf-tab-btn" data-tab="settings">⚙️ Settings</button>
     <button class="sf-tab-btn" data-tab="metatags">🏷️ Metatags</button>
+    <button class="sf-tab-btn" data-tab="targets" title="Identify, inspect, and pick target boxes on Suno">🎯 Targets</button>
   </div>
 
   <div class="sf-panel-body">
@@ -227,8 +228,14 @@
       <!-- Style of Music Textarea -->
       <div style="margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-          <label class="sf-label">Style of Music (Suno Tag):</label>
-          <span id="pop-style-len" style="font-size:10px;color:#a1a1aa;font-family:monospace;">0/1000</span>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <label class="sf-label" style="margin-bottom:0;">Style of Music (Suno Tag):</label>
+            <span id="pop-target-badge-style" style="font-size:9px;color:#a1a1aa;font-family:monospace;">● Auto</span>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button type="button" id="pop-btn-pick-style" class="sf-pick-btn" style="padding:1px 6px;font-size:10px;" title="Click directly on Suno's Style box to target it">🎯 Pick</button>
+            <span id="pop-style-len" style="font-size:10px;color:#a1a1aa;font-family:monospace;">0/1000</span>
+          </div>
         </div>
         <textarea id="pop-style" class="sf-textarea" rows="2">Dream Pop &amp; Shoegaze, TRAP &amp; DRILL, 140 BPM, ethereal female vocals, 808 sub bass, Roland Juno-106</textarea>
       </div>
@@ -238,11 +245,13 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
           <label class="sf-label" style="display:flex;align-items:center;gap:5px;">
             <span>Lyrics &amp; Prompt Directives:</span>
+            <span id="pop-target-badge-lyrics" style="font-size:9px;color:#fbbf24;font-family:monospace;">● Lexical Div</span>
             <span id="pop-ace-audit-badge" style="font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.35);font-weight:700;" title="Two-Pass /ace-audit Status (Pass 1 Anti-Cliché + Pass 2 Lyric Craft)">🎹 [Structure + Cues]</span>
           </label>
           <div style="display:flex;gap:4px;">
-            <button id="pop-btn-humanize-lyrics" class="sf-pick-btn" style="padding:1px 6px;font-size:10px;color:#34d399;border-color:rgba(16,185,129,0.4);" title="Generate a naturally humanized lyric seed &amp; run /ace-audit">🎸 Build [ ] Cues</button>
-            <button id="pop-btn-clear-lyrics" class="sf-pick-btn" style="padding:1px 5px;font-size:10px;">Clear</button>
+            <button type="button" id="pop-btn-pick-lyrics" class="sf-pick-btn" style="padding:1px 6px;font-size:10px;background:rgba(251,191,36,0.15);border-color:#fbbf24;color:#fbbf24;" title="Click directly on Suno's Lyrics box to target it">🎯 Pick</button>
+            <button type="button" id="pop-btn-humanize-lyrics" class="sf-pick-btn" style="padding:1px 6px;font-size:10px;color:#34d399;border-color:rgba(16,185,129,0.4);" title="Generate a naturally humanized lyric seed &amp; run /ace-audit">🎸 Build [ ] Cues</button>
+            <button type="button" id="pop-btn-clear-lyrics" class="sf-pick-btn" style="padding:1px 5px;font-size:10px;">Clear</button>
           </div>
         </div>
 
@@ -448,6 +457,93 @@
         <button class="sf-metatag-btn" data-tag="[Whispered]">[Whispered]</button>
         <button class="sf-metatag-btn" data-tag="[Spoken Word]">[Spoken Word]</button>
         <button class="sf-metatag-btn" data-tag="[Choir]">[Choir]</button>
+      </div>
+    </div>
+
+    <!-- TAB 6: TARGET SELECTION & ELEMENT DIAGNOSTICS -->
+    <div id="pop-tab-targets" class="sf-hidden">
+      <!-- Header Banner -->
+      <div style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:8px;padding:8px 10px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:800;color:#c4b5fd;">🎯 Target Identification &amp; Selectors</span>
+          <button type="button" id="pop-btn-inspect-targets" class="sf-pick-btn" style="background:#8b5cf6;color:#fff;border-color:transparent;font-weight:700;">🔄 Scan Suno Now</button>
+        </div>
+        <div style="font-size:10px;color:#a1a1aa;line-height:1.4;">
+          Identify, test, and lock custom selectors for Suno AI and TopMediai. Click <strong>🎯 Pick</strong> to visually highlight and click any box directly on the page.
+        </div>
+      </div>
+
+      <!-- Target 1: Lyrics Editor -->
+      <div class="sf-target-card" style="background:#141418;border:1px solid #27272a;border-radius:8px;padding:8px 10px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:13px;">🎤</span>
+            <span style="font-weight:700;font-size:11.5px;color:#f4f4f5;">Lyrics Box / Editor</span>
+          </div>
+          <span id="pop-diag-lyrics-badge" style="font-size:9.5px;padding:1px 6px;border-radius:4px;font-family:monospace;font-weight:700;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);">Scanning...</span>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:6px;">
+          <input type="text" id="pop-diag-lyrics-sel" class="sf-input" placeholder="e.g. div.lyrics-editor-content[contenteditable='true']" style="flex:1;font-size:10px;font-family:monospace;" />
+          <button type="button" id="pop-diag-lyrics-save" class="sf-pick-btn" title="Save custom selector">Save</button>
+          <button type="button" id="pop-diag-lyrics-clear" class="sf-pick-btn" title="Clear custom selector">✕</button>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button type="button" id="pop-btn-target-lyrics" class="sf-pick-btn" style="flex:1;padding:4px 6px;background:rgba(139,92,246,0.2);border-color:#8b5cf6;color:#c4b5fd;font-weight:700;">🎯 Pick Lyrics Box on Page</button>
+          <button type="button" id="pop-btn-test-lyrics" class="sf-pick-btn" style="padding:4px 8px;" title="Test write into the lyrics box">🧪 Test Fill</button>
+        </div>
+      </div>
+
+      <!-- Target 2: Style of Music -->
+      <div class="sf-target-card" style="background:#141418;border:1px solid #27272a;border-radius:8px;padding:8px 10px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:13px;">🎨</span>
+            <span style="font-weight:700;font-size:11.5px;color:#f4f4f5;">Style of Music Box</span>
+          </div>
+          <span id="pop-diag-style-badge" style="font-size:9.5px;padding:1px 6px;border-radius:4px;font-family:monospace;font-weight:700;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);">Scanning...</span>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:6px;">
+          <input type="text" id="pop-diag-style-sel" class="sf-input" placeholder="e.g. [data-testid='create-form-styles-wrapper'] textarea" style="flex:1;font-size:10px;font-family:monospace;" />
+          <button type="button" id="pop-diag-style-save" class="sf-pick-btn" title="Save custom selector">Save</button>
+          <button type="button" id="pop-diag-style-clear" class="sf-pick-btn" title="Clear custom selector">✕</button>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button type="button" id="pop-btn-target-style" class="sf-pick-btn" style="flex:1;padding:4px 6px;background:rgba(139,92,246,0.2);border-color:#8b5cf6;color:#c4b5fd;font-weight:700;">🎯 Pick Style Box on Page</button>
+          <button type="button" id="pop-btn-test-style" class="sf-pick-btn" style="padding:4px 8px;" title="Test write into the style box">🧪 Test Fill</button>
+        </div>
+      </div>
+
+      <!-- Target 3: Title & Exclude Fields -->
+      <div class="sf-target-card" style="background:#141418;border:1px solid #27272a;border-radius:8px;padding:8px 10px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-weight:700;font-size:11.5px;color:#f4f4f5;">🏷️ Title &amp; Exclude Fields</span>
+          <span id="pop-diag-opt-badge" style="font-size:9.5px;color:#a1a1aa;font-family:monospace;">Optional</span>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <button type="button" id="pop-btn-target-title" class="sf-pick-btn" style="flex:1;padding:4px 6px;">🎯 Pick Title Input</button>
+          <button type="button" id="pop-btn-target-exclude" class="sf-pick-btn" style="flex:1;padding:4px 6px;">🎯 Pick Exclude Box</button>
+        </div>
+      </div>
+
+      <!-- Target 4: Create Button -->
+      <div class="sf-target-card" style="background:#141418;border:1px solid #27272a;border-radius:8px;padding:8px 10px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:13px;">🚀</span>
+            <span style="font-weight:700;font-size:11.5px;color:#f4f4f5;">Create / Generate Button</span>
+          </div>
+          <span id="pop-diag-create-badge" style="font-size:9.5px;padding:1px 6px;border-radius:4px;font-family:monospace;font-weight:700;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.3);">Ready</span>
+        </div>
+        <button type="button" id="pop-btn-target-create" class="sf-pick-btn" style="width:100%;padding:4px 6px;">🎯 Pick Create Button on Page</button>
+      </div>
+
+      <!-- Helper Controls -->
+      <div style="display:flex;flex-direction:column;gap:5px;margin-top:10px;">
+        <div style="display:flex;gap:5px;">
+          <button type="button" id="pop-btn-force-expand-more" class="sf-pick-btn" style="flex:1;padding:5px;">📂 Force Expand "More Options"</button>
+          <button type="button" id="pop-btn-force-custom-mode" class="sf-pick-btn" style="flex:1;padding:5px;">🎛️ Force Custom Mode Toggle</button>
+        </div>
+        <button type="button" id="pop-btn-reset-all-targets" class="sf-pick-btn" style="width:100%;padding:5px;color:#f87171;border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.06);">↺ Reset All Custom Selectors to Auto-Detect</button>
       </div>
     </div>
   </div>

@@ -24,6 +24,16 @@
     }
   });
 
+  chrome.storage?.onChanged?.addListener((changes, area) => {
+    if (area === 'local') {
+      if (changes.sf_style_sel !== undefined) userCustomSelectors.styleSelector = changes.sf_style_sel.newValue || null;
+      if (changes.sf_lyrics_sel !== undefined) userCustomSelectors.lyricsSelector = changes.sf_lyrics_sel.newValue || null;
+      if (changes.sf_title_sel !== undefined) userCustomSelectors.titleSelector = changes.sf_title_sel.newValue || null;
+      if (changes.sf_exclude_sel !== undefined) userCustomSelectors.excludeSelector = changes.sf_exclude_sel.newValue || null;
+      if (changes.sf_create_sel !== undefined) userCustomSelectors.createSelector = changes.sf_create_sel.newValue || null;
+    }
+  });
+
   // Robust Multi-Platform Input Value Setter (React 17/18/19 & TopMediai ContentEditable)
   function setInputValueReliably(element, text) {
     if (!element) return false;
@@ -487,6 +497,39 @@
     if (a.includes('write your own') || a.includes('your lyrics')) return true;
     if (el.closest?.('[data-testid*="lyrics" i], [data-testid*="lyric" i], .lyrics-editor-content')) return true;
     return false;
+  }
+
+  function getOptimalSelector(el) {
+    if (!el) return null;
+    if (el.hasAttribute && (el.hasAttribute('data-lexical-editor') || (el.className && typeof el.className === 'string' && el.className.includes('lyrics-editor')))) {
+      return 'div.lyrics-editor-content[contenteditable="true"]';
+    }
+    if (el.closest?.('[data-testid="create-form-styles-wrapper"]')) {
+      return '[data-testid="create-form-styles-wrapper"] textarea';
+    }
+    if (el.getAttribute && el.getAttribute('data-testid')) {
+      return el.tagName.toLowerCase() + '[data-testid="' + el.getAttribute('data-testid') + '"]';
+    }
+    if (el.id) return '#' + el.id;
+    if (el.getAttribute && el.getAttribute('aria-label')) {
+      return el.tagName.toLowerCase() + '[aria-label="' + el.getAttribute('aria-label') + '"]';
+    }
+    if (el.getAttribute && el.getAttribute('placeholder')) {
+      return el.tagName.toLowerCase() + '[placeholder*="' + el.getAttribute('placeholder').slice(0, 15) + '"]';
+    }
+    if (el.className && typeof el.className === 'string') {
+      const cls = el.className.trim().split(/\s+/)[0];
+      if (cls) return el.tagName.toLowerCase() + '.' + cls;
+    }
+    return el.tagName ? el.tagName.toLowerCase() : null;
+  }
+
+  function isSunoInCustomMode() {
+    const activeTab = document.querySelector('button[role="tab"][aria-selected="true"], [role="tab"][aria-selected="true"], button[role="tab"][data-active="true"]');
+    const activeTabText = (activeTab?.textContent || '').trim().toLowerCase();
+    if (activeTabText.includes('custom') || activeTabText.includes('advance') || activeTabText.includes('advanced')) return true;
+    const existingLyrics = document.querySelector('div.lyrics-editor-content, [data-lexical-editor="true"], [aria-label*="Lyrics editor" i], [data-testid*="lyrics" i] textarea, textarea[data-testid*="lyrics" i], textarea[placeholder*="write your own" i], textarea[placeholder*="lyrics" i]');
+    return !!existingLyrics;
   }
 
   // Dedicated Suno Style Input Locator
@@ -1236,27 +1279,41 @@
           selector = target.tagName.toLowerCase();
         }
 
+        if (target.hasAttribute && (target.hasAttribute('data-lexical-editor') || (target.className && typeof target.className === 'string' && target.className.includes('lyrics-editor')))) {
+          selector = 'div.lyrics-editor-content[contenteditable="true"]';
+        } else if (target.closest && target.closest('[data-testid="create-form-styles-wrapper"]')) {
+          selector = '[data-testid="create-form-styles-wrapper"] textarea';
+        }
+
         if (targetBoxType === 'style') {
           userCustomSelectors.styleSelector = selector;
           chrome.storage?.local?.set({ sf_style_sel: selector });
-          showToast('✓ Saved Style Box target!', 'success');
+          showToast('✓ Saved Style Box target: ' + selector, 'success');
         } else if (targetBoxType === 'lyrics') {
           userCustomSelectors.lyricsSelector = selector;
           chrome.storage?.local?.set({ sf_lyrics_sel: selector });
-          showToast('✓ Saved Lyrics Box target!', 'success');
+          showToast('✓ Saved Lyrics Box target: ' + selector, 'success');
         } else if (targetBoxType === 'title') {
           userCustomSelectors.titleSelector = selector;
           chrome.storage?.local?.set({ sf_title_sel: selector });
-          showToast('✓ Saved Title Input target!', 'success');
+          showToast('✓ Saved Title Input target: ' + selector, 'success');
         } else if (targetBoxType === 'exclude') {
           userCustomSelectors.excludeSelector = selector;
           chrome.storage?.local?.set({ sf_exclude_sel: selector });
-          showToast('✓ Saved Exclude Styles target!', 'success');
+          showToast('✓ Saved Exclude Styles target: ' + selector, 'success');
         } else if (targetBoxType === 'create') {
           userCustomSelectors.createSelector = selector;
           chrome.storage?.local?.set({ sf_create_sel: selector });
-          showToast('✓ Saved Create Button target!', 'success');
+          showToast('✓ Saved Create Button target: ' + selector, 'success');
         }
+
+        try {
+          chrome.runtime?.sendMessage?.({
+            action: 'TARGET_PICKED',
+            targetType: targetBoxType,
+            selector: selector
+          });
+        } catch (e) {}
 
         updateHudStatus();
       }
@@ -1406,6 +1463,69 @@
     } else if (request.action === 'PICK_ELEMENT') {
       startElementPicker(request.target);
       sendResponse({ started: true });
+    } else if (request.action === 'INSPECT_TARGETS') {
+      const inputs = findTargetInputs();
+      const isTopMedia = window.location.hostname.includes('topmediai');
+      const isCustomMode = !isTopMedia && isSunoInCustomMode();
+      sendResponse({
+        active: true,
+        platform: isTopMedia ? 'TopMediai' : 'Suno',
+        isCustomMode,
+        style: {
+          found: !!inputs.styleTextarea,
+          selector: userCustomSelectors.styleSelector || getOptimalSelector(inputs.styleTextarea),
+          isCustom: !!userCustomSelectors.styleSelector
+        },
+        lyrics: {
+          found: !!inputs.lyricsTextarea,
+          selector: userCustomSelectors.lyricsSelector || getOptimalSelector(inputs.lyricsTextarea),
+          isCustom: !!userCustomSelectors.lyricsSelector,
+          isLexical: inputs.lyricsTextarea ? (inputs.lyricsTextarea.hasAttribute('data-lexical-editor') || (inputs.lyricsTextarea.className && typeof inputs.lyricsTextarea.className === 'string' && inputs.lyricsTextarea.className.includes('lyrics-editor'))) : false
+        },
+        title: {
+          found: !!inputs.titleInput,
+          selector: userCustomSelectors.titleSelector || getOptimalSelector(inputs.titleInput)
+        },
+        exclude: {
+          found: !!inputs.excludeInput,
+          selector: userCustomSelectors.excludeSelector || getOptimalSelector(inputs.excludeInput)
+        },
+        create: {
+          found: !!findCreateButton(),
+          selector: userCustomSelectors.createSelector || getOptimalSelector(findCreateButton())
+        }
+      });
+    } else if (request.action === 'TEST_FILL') {
+      const targetType = request.target;
+      const testText = request.text || (targetType === 'lyrics' ? '[Verse 1]\nTesting Suno Fusion lyrics connection...' : 'Dream Pop, Shoegaze, 140 BPM');
+      const inputs = findTargetInputs();
+      const el = targetType === 'lyrics' ? (inputs.lyricsInput || inputs.lyricsTextarea) : (inputs.styleInput || inputs.styleTextarea);
+      if (el) {
+        setInputValueReliably(el, testText);
+        applyGlowFeedback(el);
+        showToast('🧪 Test Fill succeeded for ' + targetType.toUpperCase() + '!', 'success', 3000);
+        sendResponse({ success: true, text: testText });
+      } else {
+        showToast('❌ Could not locate ' + targetType.toUpperCase() + ' element to test!', 'warn', 4000);
+        sendResponse({ success: false, error: 'Element not found on screen' });
+      }
+    } else if (request.action === 'RESET_TARGETS') {
+      userCustomSelectors.styleSelector = null;
+      userCustomSelectors.lyricsSelector = null;
+      userCustomSelectors.titleSelector = null;
+      userCustomSelectors.excludeSelector = null;
+      userCustomSelectors.createSelector = null;
+      chrome.storage?.local?.remove(['sf_style_sel', 'sf_lyrics_sel', 'sf_title_sel', 'sf_exclude_sel', 'sf_create_sel']);
+      showToast('✓ Reset all custom selectors to auto-detect!', 'info');
+      sendResponse({ success: true });
+    } else if (request.action === 'FORCE_CUSTOM_MODE') {
+      ensureSunoCustomMode(true);
+      showToast('🎛️ Switched Suno to Custom / Advance Mode', 'success');
+      sendResponse({ success: true });
+    } else if (request.action === 'FORCE_EXPAND_MORE') {
+      expandMoreOptions();
+      showToast('📂 Expanded Suno "More Options"', 'success');
+      sendResponse({ success: true });
     }
   });
 
