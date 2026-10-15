@@ -932,7 +932,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (val === 'standard') {
         lyricsInput.value = standardLyricCache || buildHumanizedSeedForPopup(0);
         updateAceAuditBadge();
-        statusEl.textContent = '🎵 Restored [Section] + [Instrument Cue] scaffold!';
+        setTargetMode(false);
+        statusEl.textContent = '🎵 Restored [Section] + [Instrument Cue] scaffold (Advance Mode active)!';
       } else if (val === 'v6-chatgpt') {
         navigator.clipboard.writeText(getV6DirectiveText('v6-chatgpt'));
         statusEl.textContent = '📋 Copied ChatGPT prompt prep instruction to clipboard!';
@@ -952,22 +953,52 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Track Simple Mode targeting preference
+  // Mode Selector: Advance / Custom Mode vs Simple Mode
+  const modeCustomBtn = document.getElementById('pop-btn-mode-custom');
+  const modeSimpleBtn = document.getElementById('pop-btn-mode-simple');
   let targetSimpleMode = false;
-  chrome.storage?.local?.get(['sf_target_simple_mode'], (res) => {
-    if (res && res.sf_target_simple_mode !== undefined) {
-      targetSimpleMode = !!res.sf_target_simple_mode;
-      if (simpleTargetToggle) simpleTargetToggle.checked = targetSimpleMode;
+
+  function updateModeButtonsUI() {
+    if (!modeCustomBtn || !modeSimpleBtn) return;
+    if (targetSimpleMode) {
+      modeSimpleBtn.style.background = '#6366f1';
+      modeSimpleBtn.style.color = '#fff';
+      modeSimpleBtn.style.borderColor = 'rgba(99,102,241,0.5)';
+      modeCustomBtn.style.background = 'transparent';
+      modeCustomBtn.style.color = '#a1a1aa';
+      modeCustomBtn.style.borderColor = 'transparent';
+    } else {
+      modeCustomBtn.style.background = '#6366f1';
+      modeCustomBtn.style.color = '#fff';
+      modeCustomBtn.style.borderColor = 'rgba(99,102,241,0.5)';
+      modeSimpleBtn.style.background = 'transparent';
+      modeSimpleBtn.style.color = '#a1a1aa';
+      modeSimpleBtn.style.borderColor = 'transparent';
     }
+  }
+
+  function setTargetMode(isSimple) {
+    targetSimpleMode = !!isSimple;
+    chrome.storage?.local?.set({ sf_target_simple_mode: targetSimpleMode });
+    updateModeButtonsUI();
+  }
+
+  chrome.storage?.local?.get(['sf_target_simple_mode'], (res) => {
+    targetSimpleMode = res?.sf_target_simple_mode === true;
+    updateModeButtonsUI();
   });
 
-  if (simpleTargetToggle) {
-    simpleTargetToggle.onchange = () => {
-      targetSimpleMode = simpleTargetToggle.checked;
-      chrome.storage?.local?.set({ sf_target_simple_mode: targetSimpleMode });
-      statusEl.textContent = targetSimpleMode
-        ? '⚡ Target Simple Mode enabled (fills Prompt Directive + Style box)!'
-        : '⚡ Target Custom Mode enabled (fills Style + Lyrics separately)!';
+  if (modeCustomBtn) {
+    modeCustomBtn.onclick = () => {
+      setTargetMode(false);
+      statusEl.textContent = '⚡ Advance / Custom Mode active (targets Lyrics box & Style box separately)!';
+    };
+  }
+
+  if (modeSimpleBtn) {
+    modeSimpleBtn.onclick = () => {
+      setTargetMode(true);
+      statusEl.textContent = '🎯 Simple Mode active (targets Suno single prompt directive box)!';
     };
   }
 

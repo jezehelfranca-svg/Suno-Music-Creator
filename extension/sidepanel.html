@@ -273,12 +273,16 @@
 
         <textarea id="pop-lyrics" class="sf-textarea" rows="3">[Intro]&#10;[808 Sub Bass and Roland Juno-106 establish the opening groove]&#10;[Verse 1]&#10;[Sparse 808 Sub Bass pulse with muted Roland Juno-106 accompaniment]&#10;&#10;[Pre-Chorus]&#10;[Rising Roland Juno-106 tension with Percussion building momentum]&#10;&#10;[Chorus]&#10;[Full arrangement: soaring Roland Juno-106 lead over driving 808 Sub Bass]&#10;&#10;[Verse 2]&#10;[Groove deepens: syncopated 808 Sub Bass with Roland Juno-106 counter-melody]&#10;&#10;[Drop]&#10;[Heavy instrumental breakdown: 808 Sub Bass and Roland Juno-106 trading solo phrases]&#10;[Outro]&#10;[Gradual decompression as Roland Juno-106 harmonics ring out]&#10;&#10;[Fade Out]</textarea>
 
-        <!-- Simple Mode Targeting Checkbox -->
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
-          <input type="checkbox" id="pop-toggle-simple-target" style="cursor:pointer;accent-color:#6366f1;width:13px;height:13px;" />
-          <label for="pop-toggle-simple-target" style="font-size:10.5px;color:#a5b4fc;cursor:pointer;user-select:none;font-weight:600;" title="Stay in Suno Simple mode and fill single prompt box">
-            🎯 Target Suno Simple Mode Box (Natural Language Prompt)
-          </label>
+        <!-- Mode Selector: Advance/Custom vs Simple -->
+        <div style="margin-top:5px;padding:3px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:6px;">
+          <div style="display:flex;gap:3px;width:100%;">
+            <button type="button" id="pop-btn-mode-custom" class="sf-mode-pill active" style="flex:1;padding:4px 6px;font-size:10.5px;font-weight:700;border-radius:4px;border:1px solid rgba(99,102,241,0.5);cursor:pointer;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px;" title="Advance / Custom Mode: Targets both the Lyrics box and the Style box separately in Suno">
+              ⚡ Advance / Custom Mode
+            </button>
+            <button type="button" id="pop-btn-mode-simple" class="sf-mode-pill" style="flex:1;padding:4px 6px;font-size:10.5px;font-weight:700;border-radius:4px;border:1px solid transparent;cursor:pointer;background:transparent;color:#a1a1aa;display:flex;align-items:center;justify-content:center;gap:4px;" title="Simple Mode: Targets Suno's single prompt directive box">
+              🎯 Simple Mode
+            </button>
+          </div>
         </div>
       </div>
 
