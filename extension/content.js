@@ -44,16 +44,32 @@
       if (element.isContentEditable || element.getAttribute('contenteditable') === 'true' || element.hasAttribute('data-lexical-editor') || element.getAttribute('role') === 'textbox' || element.tagName === 'DIV' || element.tagName === 'SPAN') {
         element.focus();
 
-        // 1. Select all contents in the element
+        // Step 1: CLEAR existing content completely so previous songs or sections NEVER append or duplicate
         try {
-          const selection = window.getSelection();
-          const range = document.createRange();
-          range.selectNodeContents(element);
-          selection.removeAllRanges();
-          selection.addRange(range);
+          document.execCommand('selectAll', false, null);
+          document.execCommand('delete', false, null);
         } catch (e) {}
 
-        // 2. Dispatch synthetic ClipboardEvent (paste) — Lexical Editor native input listener
+        // Step 1b: If content is still not completely empty, reset DOM container to clean initial paragraph
+        if ((element.innerText || '').trim().length > 0) {
+          try {
+            element.innerHTML = '<p class="lyrics-paragraph"><br></p>';
+          } catch (e) {}
+        }
+
+        // Step 1c: Position caret cleanly inside the empty paragraph
+        try {
+          const p = element.querySelector('p') || element;
+          const range = document.createRange();
+          range.selectNodeContents(p);
+          range.collapse(true);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch (e) {}
+
+        // Step 2: Insert text ONCE via native ClipboardEvent with DataTransfer (invokes Lexical's PASTE_COMMAND)
+        let pasteSucceeded = false;
         try {
           const dt = new DataTransfer();
           dt.setData('text/plain', text);
@@ -63,26 +79,25 @@
             cancelable: true
           });
           element.dispatchEvent(pasteEvent);
+          const currentText = (element.innerText || '').trim();
+          if (currentText && currentText.length >= 5) {
+            pasteSucceeded = true;
+          }
         } catch (pe) {}
 
-        // 2b. Dispatch beforeinput for modern Lexical input listeners
-        try {
-          element.dispatchEvent(new InputEvent('beforeinput', {
-            bubbles: true,
-            cancelable: true,
-            inputType: 'insertFromPaste',
-            data: text
-          }));
-        } catch (e) {}
+        // Step 3: Fallback ONLY if paste event failed to populate the editor
+        if (!pasteSucceeded) {
+          try {
+            document.execCommand('insertText', false, text);
+            const currentText = (element.innerText || '').trim();
+            if (currentText && currentText.length >= 5) {
+              pasteSucceeded = true;
+            }
+          } catch (e) {}
+        }
 
-        // 3. Try document.execCommand('insertText')
-        try {
-          document.execCommand('insertText', false, text);
-        } catch (e) {}
-
-        // 4. Fallback: If element is still empty or has only <br>, reconstruct Lexical paragraph nodes directly
-        const cleanContent = (element.innerText || '').trim();
-        if (!cleanContent || cleanContent.length < 5) {
+        // Step 4: Fallback 2 ONLY if still completely empty: reconstruct Lexical paragraph nodes directly
+        if (!pasteSucceeded) {
           const lines = text.split('\n');
           const pNodes = lines.map(line => {
             const escaped = line ? line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<br>';
@@ -91,7 +106,20 @@
           element.innerHTML = pNodes;
         }
 
-        // 5. Fire input, change, and keyup events for Lexical & React synthetic listeners
+        // Step 5: Deduplication Sanity Guard - strictly ensure no stacked/duplicated intro sections
+        const expectedIntros = (text.match(/\[Intro\]/gi) || []).length;
+        const actualIntros = (element.innerText.match(/\[Intro\]/gi) || []).length;
+        if (expectedIntros > 0 && actualIntros > expectedIntros) {
+          console.warn('[Suno Fusion] Detected duplicate insertion in editor, enforcing clean single-copy AST paragraphs');
+          const lines = text.split('\n');
+          const pNodes = lines.map(line => {
+            const escaped = line ? line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<br>';
+            return `<p class="lyrics-paragraph" dir="auto">${line ? `<span data-lexical-text="true">${escaped}</span>` : '<br>'}</p>`;
+          }).join('');
+          element.innerHTML = pNodes;
+        }
+
+        // Step 6: Dispatch single set of input/change events for React & Lexical listeners
         element.dispatchEvent(new Event('input', { bubbles: true }));
         element.dispatchEvent(new Event('change', { bubbles: true }));
         try {
