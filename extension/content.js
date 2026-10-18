@@ -1,4 +1,4 @@
-﻿// Suno Fusion v2.4 - Studio & AutoFill Engine for suno.com & topmediai.com
+// Suno Fusion v2.4 - Studio & AutoFill Engine for suno.com & topmediai.com
 (function () {
   if (window.__sunoFusionInjected) return;
   window.__sunoFusionInjected = true;
@@ -42,91 +42,83 @@
 
       // Handle Lexical Rich-Text Editor & ContentEditable nodes (Suno Lexical & TopMediai)
       if (element.isContentEditable || element.getAttribute('contenteditable') === 'true' || element.hasAttribute('data-lexical-editor') || element.getAttribute('role') === 'textbox' || element.tagName === 'DIV' || element.tagName === 'SPAN') {
-        element.focus();
+        const isLexical = element.hasAttribute('data-lexical-editor') ||
+                          element.getAttribute('data-lexical-editor') === 'true' ||
+                          (element.classList && element.classList.contains('lyrics-editor-content')) ||
+                          !!(element.closest && element.closest('[data-lexical-editor]'));
 
-        // Step 1: CLEAR existing content completely so previous songs or sections NEVER append or duplicate
+        // AST-Safe Clearance & Caret Prime
+        element.focus();
         try {
           document.execCommand('selectAll', false, null);
           document.execCommand('delete', false, null);
         } catch (e) {}
 
-        // Step 1b: If content is still not completely empty, reset DOM container to clean initial paragraph
-        if ((element.innerText || '').trim().length > 0) {
-          try {
-            element.innerHTML = '<p class="lyrics-paragraph"><br></p>';
-          } catch (e) {}
-        }
-
-        // Step 1c: Position caret cleanly inside the empty paragraph
         try {
           const p = element.querySelector('p') || element;
           const range = document.createRange();
           range.selectNodeContents(p);
           range.collapse(true);
           const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        } catch (e) {}
-
-        // Step 2: Insert text ONCE via native ClipboardEvent with DataTransfer (invokes Lexical's PASTE_COMMAND)
-        let pasteSucceeded = false;
-        try {
-          const dt = new DataTransfer();
-          dt.setData('text/plain', text);
-          const pasteEvent = new ClipboardEvent('paste', {
-            clipboardData: dt,
-            bubbles: true,
-            cancelable: true
-          });
-          element.dispatchEvent(pasteEvent);
-          const currentText = (element.innerText || '').trim();
-          if (currentText && currentText.length >= 5) {
-            pasteSucceeded = true;
+          if (sel) {
+            sel.removeAllRanges();
+            sel.addRange(range);
           }
-        } catch (pe) {}
-
-        // Step 3: Fallback ONLY if paste event failed to populate the editor
-        if (!pasteSucceeded) {
-          try {
-            document.execCommand('insertText', false, text);
-            const currentText = (element.innerText || '').trim();
-            if (currentText && currentText.length >= 5) {
-              pasteSucceeded = true;
-            }
-          } catch (e) {}
-        }
-
-        // Step 4: Fallback 2 ONLY if still completely empty: reconstruct Lexical paragraph nodes directly
-        if (!pasteSucceeded) {
-          const lines = text.split('\n');
-          const pNodes = lines.map(line => {
-            const escaped = line ? line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<br>';
-            return `<p class="lyrics-paragraph" dir="auto">${line ? `<span data-lexical-text="true">${escaped}</span>` : '<br>'}</p>`;
-          }).join('');
-          element.innerHTML = pNodes;
-        }
-
-        // Step 5: Deduplication Sanity Guard - strictly ensure no stacked/duplicated intro sections
-        const expectedIntros = (text.match(/\[Intro\]/gi) || []).length;
-        const actualIntros = (element.innerText.match(/\[Intro\]/gi) || []).length;
-        if (expectedIntros > 0 && actualIntros > expectedIntros) {
-          console.warn('[Suno Fusion] Detected duplicate insertion in editor, enforcing clean single-copy AST paragraphs');
-          const lines = text.split('\n');
-          const pNodes = lines.map(line => {
-            const escaped = line ? line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<br>';
-            return `<p class="lyrics-paragraph" dir="auto">${line ? `<span data-lexical-text="true">${escaped}</span>` : '<br>'}</p>`;
-          }).join('');
-          element.innerHTML = pNodes;
-        }
-
-        // Step 6: Dispatch single set of input/change events for React & Lexical listeners
-        element.dispatchEvent(new Event('input', { bubbles: true }));
-        element.dispatchEvent(new Event('change', { bubbles: true }));
-        try {
-          element.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertText', data: text }));
         } catch (e) {}
-        element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }));
-        element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+
+        if (isLexical) {
+          // Lexical Editor Path: Mutually exclusive single native ClipboardEvent paste transaction
+          try {
+            const dt = new DataTransfer();
+            dt.setData('text/plain', text);
+            const pasteEvent = new ClipboardEvent('paste', {
+              clipboardData: dt,
+              bubbles: true,
+              cancelable: true
+            });
+            element.dispatchEvent(pasteEvent);
+            console.log('[Suno Fusion:Lexical] Dispatched native ClipboardEvent paste transaction');
+          } catch (pe) {
+            console.warn('[Suno Fusion:Lexical] Failed to dispatch ClipboardEvent', pe);
+          }
+
+          // Dispatch only clean input and change events (no insertText InputEvent or keydown/keyup)
+          element.dispatchEvent(new Event('input', { bubbles: true }));
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+
+          // Idempotent deferred verification check after 80ms
+          setTimeout(() => {
+            if (((element.innerText || '').trim().length === 0)) {
+              console.warn('[Suno Fusion:Lexical] Paste unhandled by Lexical after 80ms, applying paragraph fallback');
+              try {
+                document.execCommand('selectAll', false, null);
+                document.execCommand('delete', false, null);
+              } catch (e) {}
+              const lines = text.split('\n');
+              const pNodes = lines.map(line => {
+                const escaped = line ? line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '<br>';
+                return `<p class="lyrics-paragraph" dir="auto">${line ? `<span data-lexical-text="true">${escaped}</span>` : '<br>'}</p>`;
+              }).join('');
+              element.innerHTML = pNodes;
+              element.dispatchEvent(new Event('input', { bubbles: true }));
+              element.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }, 80);
+        } else {
+          // Non-Lexical contenteditable targets (e.g. TopMediai)
+          try {
+            document.execCommand('selectAll', false, null);
+            document.execCommand('delete', false, null);
+            document.execCommand('insertText', false, text);
+          } catch (e) {}
+
+          if ((element.innerText || element.textContent || '').trim().length === 0) {
+            element.textContent = text;
+          }
+
+          element.dispatchEvent(new Event('input', { bubbles: true }));
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
 
         applyGlowFeedback(element);
         return true;
