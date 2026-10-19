@@ -1,5 +1,672 @@
 [
   {
+    "id": "the-cartographers-of-d",
+    "title": "The Meridian Erases Itself",
+    "bandName": "The Cartographers of Łódź",
+    "genreName": "Drift-Loom",
+    "category": "Pop & Vocal",
+    "ingredients": [
+      "INDIE POP",
+      "ETHEREAL, DREAMY & AIRY",
+      "Saxophone"
+    ],
+    "sunoStyleTag": "Drift-Loom (Indie Pop + Ethereal + Dreamy Airy + Saxophone), catch-and-release indie pop songwriting is grafted onto vast weightless ambient soundscapes where breathy pitch-shifted alto saxophone melodies weave through shimmering tape-saturated guitar chords warm sub-bass and a delicate hand-clapped 85 BPM shuffle rhythm.",
+    "fullPrompt": "Drift-Loom (Indie Pop + Ethereal + Dreamy Airy + Saxophone), catch-and-release indie pop songwriting is grafted onto vast weightless ambient soundscapes where breathy pitch-shifted alto saxophone melodies weave through shimmering tape-saturated guitar chords warm sub-bass and a delicate hand-clapped 85 BPM shuffle rhythm.",
+    "vibe": "Warm nostalgic fog, late-night train rides through misty post-industrial landscapes.",
+    "instruments": [
+      "Alto saxophone (played with a soft velvet mute)",
+      "modified Casio MT-40",
+      "tape-warped Fender Telecaster",
+      "vocal-looping pedals",
+      "and sub-octave bass synth."
+    ],
+    "forFansOf": "Cocteau Twins, The 1975 (at their most ambient), Beach House, Destroyer (Rubies-era)",
+    "bpm": 92,
+    "minBpm": 92,
+    "maxBpm": 92,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Alto saxophone figure locked in with modified Casio MT-40]\n[Verse 1]\n[Intimate Alto saxophone phrasing over a steady modified Casio MT-40 pocket]\n\n[Pre-Chorus]\n[Layered modified Casio MT-40 crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Alto saxophone and modified Casio MT-40 interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Alto saxophone and tape-warped Fender Telecaster call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Alto saxophone and modified Casio MT-40]\n[Outro]\n[Final sustained Alto saxophone and modified Casio MT-40 chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-19T00:03:31.847Z",
+    "formattedDate": "Oct 19, 2026 9:03 AM",
+    "shortDate": "Oct 19 9:03 AM",
+    "isNew": true
+  },
+  {
+    "id": "salt-lick-siren",
+    "title": "Five-Knuckle Fog-Count",
+    "bandName": "Salt-Lick Siren",
+    "genreName": "Brine-Spit",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "NU METAL & RAP METAL",
+      "TRIP HOP",
+      "TRIPPY, SURREAL & PSYCHEDELIC",
+      "Brass"
+    ],
+    "sunoStyleTag": "Brine-Spit (Nu Metal & Rap Metal + Trip Hop + Trippy Surreal & Psychedelic + Brass), heavy distorted down-tuned tuba and bass trombone riffs are crushed onto dark swung 75bpm trip-hop drum breaks, combining paranoid whispered rap verses, sudden explosive screamed hooks, and warbling ocean-reverb brass fanfare.",
+    "fullPrompt": "Brine-Spit (Nu Metal & Rap Metal + Trip Hop + Trippy Surreal & Psychedelic + Brass), heavy distorted down-tuned tuba and bass trombone riffs are crushed onto dark swung 75bpm trip-hop drum breaks, combining paranoid whispered rap verses, sudden explosive screamed hooks, and warbling ocean-reverb brass fanfare.",
+    "vibe": "Heavy, hallucinatory, claustrophobic, salt-soaked, crushing downtempo.",
+    "instruments": [
+      "Fuzzed Bass Trombone",
+      "Octave Tuba",
+      "Akai MPC2000XL",
+      "Mellotron",
+      "Fictional Band: Salt-Lick Siren",
+      "Debut Track: Five-Knuckle Fog-Count",
+      "Vibe: Heavy hallucinatory nautical rap-metal downtempo."
+    ],
+    "forFansOf": "Portishead, Downset, Wu-Tang Clan, Deftones, Earth.",
+    "bpm": 84,
+    "minBpm": 84,
+    "maxBpm": 84,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric Fuzzed Bass Trombone motif over a warm Octave Tuba bed]\n[Verse 1]\n[Stripped-back Octave Tuba rhythm leaving space around Fuzzed Bass Trombone accents]\n\n[Pre-Chorus]\n[Swelling Octave Tuba harmonics and tightening Akai MPC2000XL drive]\n\n[Chorus]\n[Wide ensemble hook led by Fuzzed Bass Trombone, Octave Tuba, and Akai MPC2000XL]\n\n[Verse 2]\n[Stripped-back Fuzzed Bass Trombone variation with subtle Akai MPC2000XL textures]\n\n[Drop]\n[Featured Fuzzed Bass Trombone lead showcase over Octave Tuba and Akai MPC2000XL rhythm section]\n[Outro]\n[Arrangement strips back to a lone Fuzzed Bass Trombone and warm Octave Tuba decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T23:03:27.166Z",
+    "formattedDate": "Oct 19, 2026 8:03 AM",
+    "shortDate": "Oct 19 8:03 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-dial-drifters",
+    "title": "Chronometric Drift",
+    "bandName": "The Dial Drifters",
+    "genreName": "Chronosynclasm",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "PUNK ROCK",
+      "DARK, SINISTER & GOTHIC",
+      "Ukulele",
+      "2010s ERA"
+    ],
+    "sunoStyleTag": "Chronosynclasm (PUNK ROCK + DARK, SINISTER & GOTHIC + Ukulele + 2010s ERA), raw, lo-fi punk ukulele chords and strumming are intensely distorted and compressed, driving drum machine beats provide a relentless, almost motorik rhythm, while deep, processed basslines and cold, industrial synth pads create a claustrophobic gothic atmosphere, all overlaid with vocals shifting between whispered lament and desperate, raw shouts, conveying a sense of existential dread and defiance.",
+    "fullPrompt": "Chronosynclasm (PUNK ROCK + DARK, SINISTER & GOTHIC + Ukulele + 2010s ERA), raw, lo-fi punk ukulele chords and strumming are intensely distorted and compressed, driving drum machine beats provide a relentless, almost motorik rhythm, while deep, processed basslines and cold, industrial synth pads create a claustrophobic gothic atmosphere, all overlaid with vocals shifting between whispered lament and desperate, raw shouts, conveying a sense of existential dread and defiance.",
+    "vibe": "Anxious, claustrophobic, defiant, melancholic, alienated, and desperately vital.",
+    "instruments": [
+      "Ukulele (often fed through aggressive distortion pedals)",
+      "cheap drum machines (like early Korg Electribes or battered Roland TR-626s)",
+      "heavily processed bass guitar (sometimes just a synth bass emulator)",
+      "and sparse",
+      "industrial-sounding synth pads or arpeggios that mimic the ship's internal mechanisms."
+    ],
+    "forFansOf": "early Xiu Xiu, The Birthday Party, The Soft Moon, TV on the Radio (circa Return to Cookie Mountain)",
+    "bpm": 120,
+    "minBpm": 100,
+    "maxBpm": 140,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Ukulele figure locked in with cheap drum machines]\n[Verse 1]\n[Intimate Ukulele phrasing over a steady cheap drum machines pocket]\n\n[Pre-Chorus]\n[Layered cheap drum machines crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Ukulele and cheap drum machines interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Ukulele and heavily processed bass guitar call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Ukulele and cheap drum machines]\n[Outro]\n[Final sustained Ukulele and cheap drum machines chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T22:03:43.140Z",
+    "formattedDate": "Oct 19, 2026 7:03 AM",
+    "shortDate": "Oct 19 7:03 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-flooded-film-reelers",
+    "title": "Sprocket Grins at the Riptide",
+    "bandName": "The Flooded Film Reelers",
+    "genreName": "Glitché-Coco",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "HARDCORE TECHNO / RAVE",
+      "ELECTRO SWING",
+      "VIBRANT, TROPICAL & SUNNY",
+      "Theremin"
+    ],
+    "sunoStyleTag": "Glitché-Coco (HARDCORE TECHNO / RAVE + ELECTRO SWING + VIBRANT, TROPICAL & SUNNY + Theremin), brutal 160+ BPM four-on-the-floor kick drums and syncopated breakbeats are hydro-compressed and glitch-woven with pitched-up, distorted big band horn sections and frantic vocal chops, all overlaid with liquid, shimmering Theremin melodies and aquatic metallic percussion, creating a disorienting, maximalist tropical rave energy with intentional digital artifacts and \"clean-to-corrupt\" sonic shifts.",
+    "fullPrompt": "Glitché-Coco (HARDCORE TECHNO / RAVE + ELECTRO SWING + VIBRANT, TROPICAL & SUNNY + Theremin), brutal 160+ BPM four-on-the-floor kick drums and syncopated breakbeats are hydro-compressed and glitch-woven with pitched-up, distorted big band horn sections and frantic vocal chops, all overlaid with liquid, shimmering Theremin melodies and aquatic metallic percussion, creating a disorienting, maximalist tropical rave energy with intentional digital artifacts and \"clean-to-corrupt\" sonic shifts.",
+    "vibe": "Euphoric, Manic, Disorienting, Saturated, Aquatically Joyful, Hyper-Real.",
+    "instruments": [
+      "Modified Theremin (often with haptic feedback gloves)",
+      "custom-built \"Aqua-Sequencers\" (water-cooled analog synths that warp timbre based on water pressure)",
+      "\"Hydro-Percussion Rigs\" (repurposed industrial fans and water pumps used for rhythmic metallic clang and whoosh sounds)",
+      "sampler workstations loaded with extensive libraries of big band horns",
+      "vocal chops from obscure 1930s propaganda films",
+      "and field recordings of tropical storms."
+    ],
+    "forFansOf": "Venetian Snares, Parov Stelar, Squarepusher, A. G. Cook",
+    "bpm": 175,
+    "minBpm": 160,
+    "maxBpm": 190,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Modified Theremin and custom-built \"Aqua-Sequencers\" establish the opening groove]\n[Verse 1]\n[Sparse Modified Theremin pulse with muted custom-built \"Aqua-Sequencers\" accompaniment]\n\n[Pre-Chorus]\n[Rising custom-built \"Aqua-Sequencers\" tension with \"Hydro-Percussion Rigs\" building momentum]\n\n[Chorus]\n[Full arrangement: soaring Modified Theremin lead over driving custom-built \"Aqua-Sequencers\" and \"Hydro-Percussion Rigs\"]\n\n[Verse 2]\n[Groove deepens: syncopated custom-built \"Aqua-Sequencers\" with Modified Theremin and \"Hydro-Percussion Rigs\" counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Modified Theremin and custom-built \"Aqua-Sequencers\" trading solo phrases]\n[Outro]\n[Gradual decompression as Modified Theremin and custom-built \"Aqua-Sequencers\" harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T21:04:01.274Z",
+    "formattedDate": "Oct 19, 2026 6:04 AM",
+    "shortDate": "Oct 19 6:04 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-seven-alarm-sampan",
+    "title": "Five Minutes Past the Morning Bell",
+    "bandName": "The Seven-Alarm Sampan",
+    "genreName": "Threshing-Tarantella",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "THRASH METAL",
+      "EUPHORIC, ENERGETIC & JOLLY",
+      "Mandolin"
+    ],
+    "sunoStyleTag": "Threshing-Tarantella (THRASH METAL + EUPHORIC, ENERGETIC & JOLLY + Mandolin), relentless 210 BPM double-kick thrash metal drum gallops and heavy palm-muted guitar riffs are wildly fused with euphoric major-key folk chord progressions and an ultra-fast amplified acoustic mandolin driving the lead melody through brilliant tremolo picking.",
+    "fullPrompt": "Threshing-Tarantella (THRASH METAL + EUPHORIC, ENERGETIC & JOLLY + Mandolin), relentless 210 BPM double-kick thrash metal drum gallops and heavy palm-muted guitar riffs are wildly fused with euphoric major-key folk chord progressions and an ultra-fast amplified acoustic mandolin driving the lead melody through brilliant tremolo picking.",
+    "vibe": "Unapologetically joyful headbanging, sunbursts over mist, river-spray adrenaline.",
+    "instruments": [
+      "Amplified Flat-Back Mandolin",
+      "Thrash Electric Guitars",
+      "Double-Kick Drum Kit",
+      "Accordion-Synthesizer",
+      "Fictional Band: The Seven-Alarm Sampan",
+      "Debut Track: Five Minutes Past the Morning Bell",
+      "Vibe: Unapologetically joyful headbanging",
+      "sunbursts over mist",
+      "river-spray adrenaline."
+    ],
+    "forFansOf": "Slayer, Punch Brothers, Korpiklaani, System of a Down",
+    "bpm": 220,
+    "minBpm": 220,
+    "maxBpm": 220,
+    "timeSig": "12/8",
+    "lyricSnippet": "[Intro]\n[Solo Amplified Flat-Back Mandolin riff introduces the main theme before Thrash Electric Guitars enters]\n[Verse 1]\n[Low-register Amplified Flat-Back Mandolin groove and restrained Thrash Electric Guitars chords]\n\n[Pre-Chorus]\n[Staccato Thrash Electric Guitars build and ascending Double-Kick Drum Kit fills]\n\n[Chorus]\n[High-energy Amplified Flat-Back Mandolin melody locked with Thrash Electric Guitars and Double-Kick Drum Kit]\n\n[Verse 2]\n[Walking Thrash Electric Guitars line beneath conversational Amplified Flat-Back Mandolin fills]\n\n[Drop]\n[Polyrhythmic Amplified Flat-Back Mandolin, Thrash Electric Guitars, and Double-Kick Drum Kit drop]\n[Outro]\n[Lingering Amplified Flat-Back Mandolin motif fading over soft Thrash Electric Guitars resonance]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T13:03:41.008Z",
+    "formattedDate": "Oct 18, 2026 10:03 PM",
+    "shortDate": "Oct 18 10:03 PM",
+    "isNew": true
+  },
+  {
+    "id": "mapmakers-of-the-meridian",
+    "title": "Meridian Lines Shift at Dawn",
+    "bandName": "Mapmakers of the Meridian",
+    "genreName": "Strata-Glide",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "DISCO",
+      "UPLIFTING / EPIC TRANCE",
+      "ETHEREAL, DREAMY & AIRY",
+      "Timpani",
+      "1990s ERA"
+    ],
+    "sunoStyleTag": "Strata-Glide (Disco + Uplifting / Epic Trance + Ethereal, Dreamy & Airy + Timpani + 1990s Era), lush 1970s disco basslines and sweeping orchestral string arrangements are unexpectedly grafted onto soaring 1990s epic trance detuned synth leads, driven by thunderous acoustic timpani rolls and sidechained ethereal vocal pads under pitch-warbled tape saturation.",
+    "fullPrompt": "Strata-Glide (Disco + Uplifting / Epic Trance + Ethereal, Dreamy & Airy + Timpani + 1990s Era), lush 1970s disco basslines and sweeping orchestral string arrangements are unexpectedly grafted onto soaring 1990s epic trance detuned synth leads, driven by thunderous acoustic timpani rolls and sidechained ethereal vocal pads under pitch-warbled tape saturation.",
+    "vibe": "Bittersweet euphoric floating club cinematic.",
+    "instruments": [
+      "- Acoustic Timpani: Tuned dynamically to the key of the track",
+      "providing dramatic orchestral rumbles and cinematic bass drops."
+    ],
+    "forFansOf": "Chic, Paul van Dyk, Cocteau Twins, Faithless",
+    "bpm": 136,
+    "minBpm": 136,
+    "maxBpm": 136,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[- Acoustic Timpani: Tuned dynamically to the key of the track and providing dramatic orchestral rumbles and cinematic bass drops. establish the opening groove]\n[Verse 1]\n[Sparse - Acoustic Timpani: Tuned dynamically to the key of the track pulse with muted providing dramatic orchestral rumbles and cinematic bass drops. accompaniment]\n\n[Pre-Chorus]\n[Rising providing dramatic orchestral rumbles and cinematic bass drops. tension with Percussion building momentum]\n\n[Chorus]\n[Full arrangement: soaring - Acoustic Timpani: Tuned dynamically to the key of the track lead over driving providing dramatic orchestral rumbles and cinematic bass drops. and Percussion]\n\n[Verse 2]\n[Groove deepens: syncopated providing dramatic orchestral rumbles and cinematic bass drops. with - Acoustic Timpani: Tuned dynamically to the key of the track and Percussion counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: - Acoustic Timpani: Tuned dynamically to the key of the track and providing dramatic orchestral rumbles and cinematic bass drops. trading solo phrases]\n[Outro]\n[Gradual decompression as - Acoustic Timpani: Tuned dynamically to the key of the track and providing dramatic orchestral rumbles and cinematic bass drops. harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T12:03:59.230Z",
+    "formattedDate": "Oct 18, 2026 9:03 PM",
+    "shortDate": "Oct 18 9:03 PM",
+    "isNew": true
+  },
+  {
+    "id": "orikalkum-clockwork",
+    "title": "Cast Iron Skillet Whirring Through Starlight",
+    "bandName": "Orikalkum Clockwork",
+    "genreName": "Astralschrot",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "POWER METAL",
+      "NEUROFUNK",
+      "ETHEREAL, DREAMY & AIRY",
+      "Baritone Saxophone"
+    ],
+    "sunoStyleTag": "Astralschrot (Power Metal + Neurofunk + Ethereal + Baritone Saxophone), high-speed 175 BPM power metal guitar gallops and soaring twin leads violently slam into squelching neurofunk reese sub-bass and tearing drum breaks, while an abrasive baritone saxophone delivers massive bassline riffs that instantly melt into floating dreamy ethereal reverb clouds and operatic vocal textures.",
+    "fullPrompt": "Astralschrot (Power Metal + Neurofunk + Ethereal + Baritone Saxophone), high-speed 175 BPM power metal guitar gallops and soaring twin leads violently slam into squelching neurofunk reese sub-bass and tearing drum breaks, while an abrasive baritone saxophone delivers massive bassline riffs that instantly melt into floating dreamy ethereal reverb clouds and operatic vocal textures.",
+    "vibe": "Glorious cosmic speed, crushing mechanical sub-bass, floaty space-goth euphoria.",
+    "instruments": [
+      "Meteoric Baritone Saxophone: An antique baritone horn fitted with meteoric iron keys and mechanical clockwork valves",
+      "delivering raspy sub-bass rasps and glass-shattering solos."
+    ],
+    "forFansOf": "DragonForce, Noisia, Cocteau Twins, Colin Stetson",
+    "bpm": 178,
+    "minBpm": 178,
+    "maxBpm": 178,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric Meteoric Baritone Saxophone: An antique baritone horn fitted with meteoric iron keys and mechanical clockwork valves motif over a warm delivering raspy sub-bass rasps and glass-shattering solos. bed]\n[Verse 1]\n[Stripped-back delivering raspy sub-bass rasps and glass-shattering solos. rhythm leaving space around Meteoric Baritone Saxophone: An antique baritone horn fitted with meteoric iron keys and mechanical clockwork valves accents]\n\n[Pre-Chorus]\n[Swelling delivering raspy sub-bass rasps and glass-shattering solos. harmonics and tightening Percussion drive]\n\n[Chorus]\n[Wide ensemble hook led by Meteoric Baritone Saxophone: An antique baritone horn fitted with meteoric iron keys and mechanical clockwork valves, delivering raspy sub-bass rasps and glass-shattering solos., and Percussion]\n\n[Verse 2]\n[Stripped-back Meteoric Baritone Saxophone: An antique baritone horn fitted with meteoric iron keys and mechanical clockwork valves variation with subtle Percussion textures]\n\n[Drop]\n[Featured Meteoric Baritone Saxophone: An antique baritone horn fitted with meteoric iron keys and mechanical clockwork valves lead showcase over delivering raspy sub-bass rasps and glass-shattering solos. and Percussion rhythm section]\n[Outro]\n[Arrangement strips back to a lone Meteoric Baritone Saxophone: An antique baritone horn fitted with meteoric iron keys and mechanical clockwork valves and warm delivering raspy sub-bass rasps and glass-shattering solos. decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T11:04:09.182Z",
+    "formattedDate": "Oct 18, 2026 8:04 PM",
+    "shortDate": "Oct 18 8:04 PM",
+    "isNew": true
+  },
+  {
+    "id": "corona-chrysalis",
+    "title": "Cocoon Swarms the Lathe",
+    "bandName": "Corona Chrysalis",
+    "genreName": "Umbral Rust",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "INDUSTRIAL ROCK / METAL",
+      "ETHEREAL, DREAMY & AIRY",
+      "Shaker"
+    ],
+    "sunoStyleTag": "Umbral Rust (INDUSTRIAL ROCK / METAL + ETHEREAL, DREAMY & AIRY + Shaker), heavy down-tuned industrial metal guitar riffs with crushing sub-bass ducking under floating angelic operatic vocals, while ultra-fast syncopated iron shakers drive a half-time drum beat through dense shimmer reverbs and microtonal synth pads.",
+    "fullPrompt": "Umbral Rust (INDUSTRIAL ROCK / METAL + ETHEREAL, DREAMY & AIRY + Shaker), heavy down-tuned industrial metal guitar riffs with crushing sub-bass ducking under floating angelic operatic vocals, while ultra-fast syncopated iron shakers drive a half-time drum beat through dense shimmer reverbs and microtonal synth pads.",
+    "vibe": "Desolate intoxicating celestial industrial-ethereal.",
+    "instruments": [
+      "Iron-filing Egg Shakers",
+      "Contact-Miked Steel Percussion",
+      "Heavily Down-Tuned Guitars (routed through shimmer reverbs)",
+      "Prophet-6 Polyphonic Synthesizer",
+      "Granular Vocal Processors."
+    ],
+    "forFansOf": "Nine Inch Nails, Cocteau Twins, Deftones, Dead Can Dance.",
+    "bpm": 92,
+    "minBpm": 92,
+    "maxBpm": 92,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Iron-filing Egg Shakers figure locked in with Contact-Miked Steel Percussion]\n[Verse 1]\n[Intimate Iron-filing Egg Shakers phrasing over a steady Contact-Miked Steel Percussion pocket]\n\n[Pre-Chorus]\n[Layered Contact-Miked Steel Percussion crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Iron-filing Egg Shakers and Contact-Miked Steel Percussion interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Iron-filing Egg Shakers and Heavily Down-Tuned Guitars call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Iron-filing Egg Shakers and Contact-Miked Steel Percussion]\n[Outro]\n[Final sustained Iron-filing Egg Shakers and Contact-Miked Steel Percussion chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T10:03:51.201Z",
+    "formattedDate": "Oct 18, 2026 7:03 PM",
+    "shortDate": "Oct 18 7:03 PM",
+    "isNew": true
+  },
+  {
+    "id": "vector-the-bell-buoy",
+    "title": "Black Flambeaux on the North Spit",
+    "bandName": "Vector & The Bell-Buoy",
+    "genreName": "Phantasmagoric Brass-Trance",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "GOA TRANCE & PSYTRANCE",
+      "HAUNTING, SPOOKY & GHOSTLY",
+      "Synth Brass"
+    ],
+    "sunoStyleTag": "Phantasmagoric Brass-Trance (GOA TRANCE & PSYTRANCE + HAUNTING SPOOKY GHOSTLY + Synth Brass), fast 145 BPM rolling psytrance basslines and squelching 303 acid glides are aggressively grafted to dark pitch-bent Prophet-5 synth brass fanfares, cavernous cathedral reverbs, gated foghorn stabs, and eerie ghostly choir textures.",
+    "fullPrompt": "Phantasmagoric Brass-Trance (GOA TRANCE & PSYTRANCE + HAUNTING SPOOKY GHOSTLY + Synth Brass), fast 145 BPM rolling psytrance basslines and squelching 303 acid glides are aggressively grafted to dark pitch-bent Prophet-5 synth brass fanfares, cavernous cathedral reverbs, gated foghorn stabs, and eerie ghostly choir textures.",
+    "vibe": "Cavernous, high-octane, spectral, relentless, electro-magnetic.",
+    "instruments": [
+      "& Synths"
+    ],
+    "forFansOf": "Astral Projection, Juno Reactor, The Infinity Project, Dark Nebula",
+    "bpm": 145,
+    "minBpm": 145,
+    "maxBpm": 145,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated & Synths figure locked in with Rhythm Section]\n[Verse 1]\n[Intimate & Synths phrasing over a steady Rhythm Section pocket]\n\n[Pre-Chorus]\n[Layered Rhythm Section crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic & Synths and Rhythm Section interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with & Synths and Percussion call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by & Synths and Rhythm Section]\n[Outro]\n[Final sustained & Synths and Rhythm Section chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T09:03:59.028Z",
+    "formattedDate": "Oct 18, 2026 6:03 PM",
+    "shortDate": "Oct 18 6:03 PM",
+    "isNew": true
+  },
+  {
+    "id": "khlong-engine-no-9",
+    "title": "Red-Buoy Diesel Engine Screams",
+    "bandName": "Khlong Engine No. 9",
+    "genreName": "Scow-Shriek",
+    "category": "Jazz & Blues",
+    "ingredients": [
+      "SOUL JAZZ / JAZZ-FUNK",
+      "REBEL, ANGRY & AGGRESSIVE",
+      "Saxophone"
+    ],
+    "sunoStyleTag": "Scow-Shriek (Soul Jazz / Jazz-Funk + Rebel Angry & Aggressive), overdriven alt-saxophone screeches and angry slap-bass riffs are violently grafted onto a raw 1970s jazz-funk pocket with distorted Fender Rhodes chords, saturated tape warmth, and aggressive syncopated drum breaks.",
+    "fullPrompt": "Scow-Shriek (Soul Jazz / Jazz-Funk + Rebel Angry & Aggressive), overdriven alt-saxophone screeches and angry slap-bass riffs are violently grafted onto a raw 1970s jazz-funk pocket with distorted Fender Rhodes chords, saturated tape warmth, and aggressive syncopated drum breaks.",
+    "vibe": "Swampy, furious, highly syncopated riverfront funk with a razor-sharp punk edge.",
+    "instruments": [
+      "Alto Saxophone with overdrive pedals and Fender Rhodes",
+      "Fictional Band: Khlong Engine No. 9",
+      "Debut Track: Red-Buoy Diesel Engine Screams",
+      "Vibe: Swampy furious riverfront jazz-funk with aggressive punk hostility."
+    ],
+    "forFansOf": "James Chance & The Contortions, The Comet Is Coming, Rip Rig + Panic, Sons of Kemet.",
+    "bpm": 122,
+    "minBpm": 122,
+    "maxBpm": 122,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Alto Saxophone with overdrive pedals and Fender Rhodes and Fictional Band: Khlong Engine No. 9 establish the opening groove]\n[Verse 1]\n[Sparse Alto Saxophone with overdrive pedals and Fender Rhodes pulse with muted Fictional Band: Khlong Engine No. 9 accompaniment]\n\n[Pre-Chorus]\n[Rising Fictional Band: Khlong Engine No. 9 tension with Debut Track: Red-Buoy Diesel Engine Screams building momentum]\n\n[Chorus]\n[Full arrangement: soaring Alto Saxophone with overdrive pedals and Fender Rhodes lead over driving Fictional Band: Khlong Engine No. 9 and Debut Track: Red-Buoy Diesel Engine Screams]\n\n[Verse 2]\n[Groove deepens: syncopated Fictional Band: Khlong Engine No. 9 with Alto Saxophone with overdrive pedals and Fender Rhodes and Debut Track: Red-Buoy Diesel Engine Screams counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Alto Saxophone with overdrive pedals and Fender Rhodes and Fictional Band: Khlong Engine No. 9 trading solo phrases]\n[Outro]\n[Gradual decompression as Alto Saxophone with overdrive pedals and Fender Rhodes and Fictional Band: Khlong Engine No. 9 harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T08:03:47.484Z",
+    "formattedDate": "Oct 18, 2026 5:03 PM",
+    "shortDate": "Oct 18 5:03 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-north-sea-line-workers-ensemble",
+    "title": "Signals Melt at Platform Four",
+    "bandName": "The North Sea Line-Workers Ensemble",
+    "genreName": "Silt-Line",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "ACID HOUSE",
+      "FUTURE BASS & FUTURE GARAGE",
+      "COZY, WARM & CHILL LO-FI",
+      "Piccolo"
+    ],
+    "sunoStyleTag": "Silt-Line (Acid House + Future Bass & Future Garage + Cozy Warm & Chill Lo-Fi + Piccolo), a liquid warm fusion where dynamic flutter-tongued piccolo woodwind melodies and pitch-shifted vocal chops fly over soft off-grid 2-step garage shuffle rhythms, grounded by submerged low-passed 303 acid house squelches and tape-saturated lo-fi vinyl crackle.",
+    "fullPrompt": "Silt-Line (Acid House + Future Bass & Future Garage + Cozy Warm & Chill Lo-Fi + Piccolo), a liquid warm fusion where dynamic flutter-tongued piccolo woodwind melodies and pitch-shifted vocal chops fly over soft off-grid 2-step garage shuffle rhythms, grounded by submerged low-passed 303 acid house squelches and tape-saturated lo-fi vinyl crackle.",
+    "vibe": "Sub-oceanic warmth, sleepy late-night train rides, hyper-emotional aquatic nostalgia.",
+    "instruments": [
+      "Piccolo",
+      "Roland TB-303",
+      "cassette tape decks",
+      "and pitch-shifted vocals",
+      "Fictional Band: The North Sea Line-Workers Ensemble",
+      "Debut Track: Signals Melt at Platform Four",
+      "Vibe: Sub-oceanic warmth",
+      "sleepy late-night train rides",
+      "hyper-emotional aquatic nostalgia."
+    ],
+    "forFansOf": "Burial, Ross From Friends, Flume, Djrum",
+    "bpm": 128,
+    "minBpm": 128,
+    "maxBpm": 128,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Piccolo and Roland TB-303 establish the opening groove]\n[Verse 1]\n[Sparse Piccolo pulse with muted Roland TB-303 accompaniment]\n\n[Pre-Chorus]\n[Rising Roland TB-303 tension with cassette tape decks building momentum]\n\n[Chorus]\n[Full arrangement: soaring Piccolo lead over driving Roland TB-303 and cassette tape decks]\n\n[Verse 2]\n[Groove deepens: syncopated Roland TB-303 with Piccolo and cassette tape decks counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Piccolo and Roland TB-303 trading solo phrases]\n[Outro]\n[Gradual decompression as Piccolo and Roland TB-303 harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T07:04:20.115Z",
+    "formattedDate": "Oct 18, 2026 4:04 PM",
+    "shortDate": "Oct 18 4:04 PM",
+    "isNew": true
+  },
+  {
+    "id": "las-cartas-de-svalbard",
+    "title": "Postage Stamp Bleeds into the Rising Tide",
+    "bandName": "Las Cartas de Svalbard",
+    "genreName": "Fjord-Tijuana Silt",
+    "category": "Jazz & Blues",
+    "ingredients": [
+      "NORDIC JAZZ",
+      "NORTEC",
+      "432Hz RELAXING MEDITATIVE STYLES",
+      "Lead Vocal",
+      "2000s ERA"
+    ],
+    "sunoStyleTag": "Fjord-Tijuana Silt (Nordic Jazz + Nortec + 432Hz Relaxing Meditative Styles + Lead Vocal + 2000s Era), airy melancholic Nordic jazz trumpet solos and soaring 2000s-style auto-tuned lead vocals are violently transplanted onto a bouncing Tijuana accordion and brass four-on-the-floor norteño beat, glued together by a deep sub-bass drone retuned to a hypnotic 432Hz frequency with bit-crushed Y2K digital production textures.",
+    "fullPrompt": "Fjord-Tijuana Silt (Nordic Jazz + Nortec + 432Hz Relaxing Meditative Styles + Lead Vocal + 2000s Era), airy melancholic Nordic jazz trumpet solos and soaring 2000s-style auto-tuned lead vocals are violently transplanted onto a bouncing Tijuana accordion and brass four-on-the-floor norteño beat, glued together by a deep sub-bass drone retuned to a hypnotic 432Hz frequency with bit-crushed Y2K digital production textures.",
+    "vibe": "Euphoric drowning, nostalgic oceanic speed, meditative panic, frozen sunset energy.",
+    "instruments": [
+      "- Nordic Pocket Trumpet: Wet with infinite space-delay",
+      "playing long",
+      "weeping melancholic lines."
+    ],
+    "forFansOf": "Jan Garbarek, Nortec Collective, Imogen Heap, Jon Hassell",
+    "bpm": 128,
+    "minBpm": 128,
+    "maxBpm": 128,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Solo - Nordic Pocket Trumpet: Wet with infinite space-delay riff introduces the main theme before playing long enters]\n[Verse 1]\n[Low-register - Nordic Pocket Trumpet: Wet with infinite space-delay groove and restrained playing long chords]\n\n[Pre-Chorus]\n[Staccato playing long build and ascending weeping melancholic lines. fills]\n\n[Chorus]\n[High-energy - Nordic Pocket Trumpet: Wet with infinite space-delay melody locked with playing long and weeping melancholic lines.]\n\n[Verse 2]\n[Walking playing long line beneath conversational - Nordic Pocket Trumpet: Wet with infinite space-delay fills]\n\n[Drop]\n[Polyrhythmic - Nordic Pocket Trumpet: Wet with infinite space-delay, playing long, and weeping melancholic lines. drop]\n[Outro]\n[Lingering - Nordic Pocket Trumpet: Wet with infinite space-delay motif fading over soft playing long resonance]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T06:04:03.596Z",
+    "formattedDate": "Oct 18, 2026 3:04 PM",
+    "shortDate": "Oct 18 3:04 PM",
+    "isNew": true
+  },
+  {
+    "id": "os-mutantes-do-v-cuo-the-mutants-of-the-vacuum",
+    "title": "Needle-Tipped Bows Hem the Airlock Cut",
+    "bandName": "Os Mutantes do Vácuo (The Mutants of the Vacuum)",
+    "genreName": "Cannibal-Fretwork",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "DANCE-PUNK & NU RAVE",
+      "TROPICALIA",
+      "REBEL, ANGRY & AGGRESSIVE",
+      "Viola"
+    ],
+    "sunoStyleTag": "Cannibal-Fretwork (Dance-Punk & Nu Rave + Tropicalia + Rebel, Angry & Aggressive + Viola), screeching amplified acoustic violas played with microtonal distortion clash violently with frantic 140 BPM four-on-the-floor dance-punk drums and aggressive Brazilian agogô samba polyrhythms, overdriven acid synth basslines, metallic hull-clanging percussion stabs, and furious pitch-shifted punk vocals drenched in strobe delay.",
+    "fullPrompt": "Cannibal-Fretwork (Dance-Punk & Nu Rave + Tropicalia + Rebel, Angry & Aggressive + Viola), screeching amplified acoustic violas played with microtonal distortion clash violently with frantic 140 BPM four-on-the-floor dance-punk drums and aggressive Brazilian agogô samba polyrhythms, overdriven acid synth basslines, metallic hull-clanging percussion stabs, and furious pitch-shifted punk vocals drenched in strobe delay.",
+    "vibe": "Violent industrial zero-gravity Tropicália rave.",
+    "instruments": [
+      "Amplified Serrated-Bow Viola and Vacuum-Tube Acid Synth",
+      "Fictional Band: Os Mutantes do Vácuo",
+      "Debut Track: Needle-Tipped Bows Hem the Airlock Cut",
+      "Vibe: Violent industrial zero-gravity Tropicália rave."
+    ],
+    "forFansOf": "Death Grips, Os Mutantes, LCD Soundsystem, The Rapture",
+    "bpm": 142,
+    "minBpm": 142,
+    "maxBpm": 142,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Solo Amplified Serrated-Bow Viola and Vacuum-Tube Acid Synth riff introduces the main theme before Fictional Band: Os Mutantes do Vácuo enters]\n[Verse 1]\n[Low-register Amplified Serrated-Bow Viola and Vacuum-Tube Acid Synth groove and restrained Fictional Band: Os Mutantes do Vácuo chords]\n\n[Pre-Chorus]\n[Staccato Fictional Band: Os Mutantes do Vácuo build and ascending Debut Track: Needle-Tipped Bows Hem the Airlock Cut fills]\n\n[Chorus]\n[High-energy Amplified Serrated-Bow Viola and Vacuum-Tube Acid Synth melody locked with Fictional Band: Os Mutantes do Vácuo and Debut Track: Needle-Tipped Bows Hem the Airlock Cut]\n\n[Verse 2]\n[Walking Fictional Band: Os Mutantes do Vácuo line beneath conversational Amplified Serrated-Bow Viola and Vacuum-Tube Acid Synth fills]\n\n[Drop]\n[Polyrhythmic Amplified Serrated-Bow Viola and Vacuum-Tube Acid Synth, Fictional Band: Os Mutantes do Vácuo, and Debut Track: Needle-Tipped Bows Hem the Airlock Cut drop]\n[Outro]\n[Lingering Amplified Serrated-Bow Viola and Vacuum-Tube Acid Synth motif fading over soft Fictional Band: Os Mutantes do Vácuo resonance]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T05:03:34.028Z",
+    "formattedDate": "Oct 18, 2026 2:03 PM",
+    "shortDate": "Oct 18 2:03 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-clockwork-tumbi-assembly",
+    "title": "Foghorn Whistle at Fog-Break",
+    "bandName": "The Clockwork Tumbi Assembly",
+    "genreName": "Chorna Chime",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "BHANGRA",
+      "EUPHORIC, ENERGETIC & JOLLY",
+      "Rhythm Acoustic Guitar"
+    ],
+    "sunoStyleTag": "Chorna Chime (Bhangra + Euphoric, Energetic & Jolly + Rhythm Acoustic Guitar), hyper-energetic open-tuned rhythm acoustic guitar rasgueado strums collide with thunderous Punjabi dhol chaal rhythms and ticking clockwork escapements, featuring uplifting Mixolydian acoustic chords, microtonal metallic chime accents, steam-whistle brass hooks, and joyous group vocal chants without electronic synths.",
+    "fullPrompt": "Chorna Chime (Bhangra + Euphoric, Energetic & Jolly + Rhythm Acoustic Guitar), hyper-energetic open-tuned rhythm acoustic guitar rasgueado strums collide with thunderous Punjabi dhol chaal rhythms and ticking clockwork escapements, featuring uplifting Mixolydian acoustic chords, microtonal metallic chime accents, steam-whistle brass hooks, and joyous group vocal chants without electronic synths.",
+    "vibe": "Joyous, rustic-futuristic, hyper-energetic, celestial-industrial, intoxicatingly euphoric.",
+    "instruments": [
+      "Rhythm Acoustic Guitar (modified with meteoric pickguards and internal clockwork dampeners)",
+      "Meteoric Dhol (fitted with nickel-iron tuning rings)",
+      "Escapement-Driven Harmonium",
+      "Tumbi with iron-alloy strings",
+      "Steam-Driven Brass Flutes."
+    ],
+    "forFansOf": "Asian Dub Foundation, Rodrigo y Gabriela, Punjabi MC, Gogol Bordello",
+    "bpm": 145,
+    "minBpm": 145,
+    "maxBpm": 145,
+    "timeSig": "12/8",
+    "lyricSnippet": "[Intro]\n[Rhythm Acoustic Guitar and Meteoric Dhol establish the opening groove]\n[Verse 1]\n[Sparse Rhythm Acoustic Guitar pulse with muted Meteoric Dhol accompaniment]\n\n[Pre-Chorus]\n[Rising Meteoric Dhol tension with Escapement-Driven Harmonium building momentum]\n\n[Chorus]\n[Full arrangement: soaring Rhythm Acoustic Guitar lead over driving Meteoric Dhol and Escapement-Driven Harmonium]\n\n[Verse 2]\n[Groove deepens: syncopated Meteoric Dhol with Rhythm Acoustic Guitar and Escapement-Driven Harmonium counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Rhythm Acoustic Guitar and Meteoric Dhol trading solo phrases]\n[Outro]\n[Gradual decompression as Rhythm Acoustic Guitar and Meteoric Dhol harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T04:03:23.677Z",
+    "formattedDate": "Oct 18, 2026 1:03 PM",
+    "shortDate": "Oct 18 1:03 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-brine-chorus",
+    "title": "Chrysalis of Rust",
+    "bandName": "The Brine Chorus",
+    "genreName": "Phantasm Drift",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "MINIMAL TECHNO",
+      "HAUNTING, SPOOKY & GHOSTLY",
+      "Double Bass",
+      "2020s ERA"
+    ],
+    "sunoStyleTag": "Phantasm Drift (MINIMAL TECHNO + HAUNTING, SPOOKY & GHOSTLY + Double Bass + 2020s ERA), waterlogged minimal techno pulses with subterranean dread, driven by heavily bowed and plucked detuned double bass melodies, complemented by hydro-acoustic percussion, custom vowel synth resonators, and layers of glitched vocal whispers creating a decaying sonic landscape with spectral reverbs.",
+    "fullPrompt": "Phantasm Drift (MINIMAL TECHNO + HAUNTING, SPOOKY & GHOSTLY + Double Bass + 2020s ERA), waterlogged minimal techno pulses with subterranean dread, driven by heavily bowed and plucked detuned double bass melodies, complemented by hydro-acoustic percussion, custom vowel synth resonators, and layers of glitched vocal whispers creating a decaying sonic landscape with spectral reverbs.",
+    "vibe": "Subterranean dread, decaying elegance, aqueous melancholy, industrial gothic, spectral dance macabre.",
+    "instruments": [
+      "Submerged double bass and custom-built hydro-percussion",
+      "Fictional Band: The Brine Chorus",
+      "Debut Track: Chrysalis of Rust",
+      "Vibe: Subterranean dread",
+      "decaying elegance",
+      "aqueous melancholy."
+    ],
+    "forFansOf": "Haxan Cloak, Arca, Andy Stott, Autechre (later works)",
+    "bpm": 100,
+    "minBpm": 90,
+    "maxBpm": 110,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric Submerged double bass and custom-built hydro-percussion motif over a warm Fictional Band: The Brine Chorus bed]\n[Verse 1]\n[Stripped-back Fictional Band: The Brine Chorus rhythm leaving space around Submerged double bass and custom-built hydro-percussion accents]\n\n[Pre-Chorus]\n[Swelling Fictional Band: The Brine Chorus harmonics and tightening Debut Track: Chrysalis of Rust drive]\n\n[Chorus]\n[Wide ensemble hook led by Submerged double bass and custom-built hydro-percussion, Fictional Band: The Brine Chorus, and Debut Track: Chrysalis of Rust]\n\n[Verse 2]\n[Stripped-back Submerged double bass and custom-built hydro-percussion variation with subtle Debut Track: Chrysalis of Rust textures]\n\n[Drop]\n[Featured Submerged double bass and custom-built hydro-percussion lead showcase over Fictional Band: The Brine Chorus and Debut Track: Chrysalis of Rust rhythm section]\n[Outro]\n[Arrangement strips back to a lone Submerged double bass and custom-built hydro-percussion and warm Fictional Band: The Brine Chorus decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T03:04:15.810Z",
+    "formattedDate": "Oct 18, 2026 12:04 PM",
+    "shortDate": "Oct 18 12:04 PM",
+    "isNew": true
+  },
+  {
+    "id": "low-end-monolith",
+    "title": "The Gear-Tooth Clock Stalls at Dawn",
+    "bandName": "Low-End Monolith",
+    "genreName": "Brass-Grit",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "NEUROFUNK",
+      "RAW, GRITTY & BRUTALIST",
+      "Tuba",
+      "1970s ERA"
+    ],
+    "sunoStyleTag": "Brass-Grit (Neurofunk + Raw, Gritty & Brutalist + Tuba + 1970s Era), frantic 174 BPM 1970s analog breakbeat drum patterns and dark suspense-thriller minor chords are jarringly fused with hyper-technical distorted acoustic tuba sub-basslines, overdriven tape saturation, and aggressive brass stabs.",
+    "fullPrompt": "Brass-Grit (Neurofunk + Raw, Gritty & Brutalist + Tuba + 1970s Era), frantic 174 BPM 1970s analog breakbeat drum patterns and dark suspense-thriller minor chords are jarringly fused with hyper-technical distorted acoustic tuba sub-basslines, overdriven tape saturation, and aggressive brass stabs.",
+    "vibe": ", 35mm photograph style.",
+    "instruments": [
+      "Valve-amplified acoustic tuba",
+      "1970s drum kits",
+      "Minimoog synthesizer",
+      "reel-to-reel tape decks",
+      "Fictional Band: Low-End Monolith",
+      "Debut Track: The Gear-Tooth Clock Stalls at Dawn",
+      "Vibe: Heavy",
+      "claustrophobic",
+      "retro-futuristic",
+      "mechanical."
+    ],
+    "forFansOf": "Noisia, Black Sun Empire, Lalo Schifrin, The Comet Is Coming",
+    "bpm": 176,
+    "minBpm": 176,
+    "maxBpm": 176,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Solo Valve-amplified acoustic tuba riff introduces the main theme before 1970s drum kits enters]\n[Verse 1]\n[Low-register Valve-amplified acoustic tuba groove and restrained 1970s drum kits chords]\n\n[Pre-Chorus]\n[Staccato 1970s drum kits build and ascending Minimoog synthesizer fills]\n\n[Chorus]\n[High-energy Valve-amplified acoustic tuba melody locked with 1970s drum kits and Minimoog synthesizer]\n\n[Verse 2]\n[Walking 1970s drum kits line beneath conversational Valve-amplified acoustic tuba fills]\n\n[Drop]\n[Polyrhythmic Valve-amplified acoustic tuba, 1970s drum kits, and Minimoog synthesizer drop]\n[Outro]\n[Lingering Valve-amplified acoustic tuba motif fading over soft 1970s drum kits resonance]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T02:04:18.910Z",
+    "formattedDate": "Oct 18, 2026 11:04 AM",
+    "shortDate": "Oct 18 11:04 AM",
+    "isNew": true
+  },
+  {
+    "id": "stross-the-fog-hulk",
+    "title": "Fog-Horn Devours The Breakwater",
+    "bandName": "Stross & The Fog-Hulk",
+    "genreName": "Rustguttul",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "ELECTRONIC BODY MUSIC (EBM)",
+      "RAW, GRITTY & BRUTALIST",
+      "Drone"
+    ],
+    "sunoStyleTag": "Rustguttul (ELECTRONIC BODY MUSIC (EBM) + RAW, GRITTY & BRUTALIST + Drone), rigid 112 BPM mechanical Electronic Body Music basslines and heavy sledgehammer metal-strikes are dragged violently into suffocating 40Hz sub-bass drones and warped tape-melt saturations, featuring brutalist throat-mic spoken vocals over microtonal pitch-shifting, crumbling tape-hiss, and extreme pressure-drop dynamic gates.",
+    "fullPrompt": "Rustguttul (ELECTRONIC BODY MUSIC (EBM) + RAW, GRITTY & BRUTALIST + Drone), rigid 112 BPM mechanical Electronic Body Music basslines and heavy sledgehammer metal-strikes are dragged violently into suffocating 40Hz sub-bass drones and warped tape-melt saturations, featuring brutalist throat-mic spoken vocals over microtonal pitch-shifting, crumbling tape-hiss, and extreme pressure-drop dynamic gates.",
+    "vibe": "Claustrophobic, iron-tasted, submerged, relentlessly rhythmic, brutally hypnotic.",
+    "instruments": [
+      "Rotary Sub-Drone Generator",
+      "Melted Korg MS-20",
+      "Corroded Magnetic Tape Loops",
+      "Steel-Beam Impact Triggers",
+      "Fictional Band: Stross & The Fog-Hulk",
+      "Debut Track: Fog-Horn Devours The Breakwater",
+      "Vibe: Claustrophobic",
+      "iron-tasted",
+      "submerged",
+      "relentlessly rhythmic",
+      "brutally hypnotic."
+    ],
+    "forFansOf": "Nitzer Ebb, Sunn O))), Deutsch Amerikanische Freundschaft (DAF), Author & Punisher",
+    "bpm": 116,
+    "minBpm": 116,
+    "maxBpm": 116,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Rotary Sub-Drone Generator and Melted Korg MS-20 establish the opening groove]\n[Verse 1]\n[Sparse Rotary Sub-Drone Generator pulse with muted Melted Korg MS-20 accompaniment]\n\n[Pre-Chorus]\n[Rising Melted Korg MS-20 tension with Corroded Magnetic Tape Loops building momentum]\n\n[Chorus]\n[Full arrangement: soaring Rotary Sub-Drone Generator lead over driving Melted Korg MS-20 and Corroded Magnetic Tape Loops]\n\n[Verse 2]\n[Groove deepens: syncopated Melted Korg MS-20 with Rotary Sub-Drone Generator and Corroded Magnetic Tape Loops counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Rotary Sub-Drone Generator and Melted Korg MS-20 trading solo phrases]\n[Outro]\n[Gradual decompression as Rotary Sub-Drone Generator and Melted Korg MS-20 harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-10-18T01:04:25.856Z",
+    "formattedDate": "Oct 18, 2026 10:04 AM",
+    "shortDate": "Oct 18 10:04 AM",
+    "isNew": true
+  },
+  {
     "id": "the-belcourt-ensemble",
     "title": "Sun Dog In The Pit",
     "bandName": "The Belcourt Ensemble",
@@ -4895,7 +5562,7 @@
     "createdAt": "2026-10-12T00:04:27.563Z",
     "formattedDate": "Oct 12, 2026 9:04 AM",
     "shortDate": "Oct 12 9:04 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-svalbard-stilt-company",
@@ -4937,7 +5604,7 @@
     "createdAt": "2026-10-11T23:05:09.011Z",
     "formattedDate": "Oct 12, 2026 8:05 AM",
     "shortDate": "Oct 12 8:05 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-svalbard-cassette-exchange",
@@ -4981,7 +5648,7 @@
     "createdAt": "2026-10-11T22:05:01.284Z",
     "formattedDate": "Oct 12, 2026 7:05 AM",
     "shortDate": "Oct 12 7:05 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-penumbra-post-horns",
@@ -5022,7 +5689,7 @@
     "createdAt": "2026-10-11T21:04:59.767Z",
     "formattedDate": "Oct 12, 2026 6:04 AM",
     "shortDate": "Oct 12 6:04 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-svalbard-stomata",
@@ -5059,7 +5726,7 @@
     "createdAt": "2026-10-11T20:04:58.719Z",
     "formattedDate": "Oct 12, 2026 5:04 AM",
     "shortDate": "Oct 12 5:04 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "do-a-celia-el-desfase",
@@ -5100,7 +5767,7 @@
     "createdAt": "2026-10-11T19:04:47.926Z",
     "formattedDate": "Oct 12, 2026 4:04 AM",
     "shortDate": "Oct 12 4:04 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-reykjanes-cable-club",
@@ -5142,7 +5809,7 @@
     "createdAt": "2026-10-11T18:05:24.510Z",
     "formattedDate": "Oct 12, 2026 3:05 AM",
     "shortDate": "Oct 12 3:05 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-cartographers-of-saint-voilier",
@@ -5184,7 +5851,7 @@
     "createdAt": "2026-10-11T17:05:30.409Z",
     "formattedDate": "Oct 12, 2026 2:05 AM",
     "shortDate": "Oct 12 2:05 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-sleeper-sadhus-of-sangra",
@@ -5226,7 +5893,7 @@
     "createdAt": "2026-10-11T16:05:03.090Z",
     "formattedDate": "Oct 12, 2026 1:05 AM",
     "shortDate": "Oct 12 1:05 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-sleeper-car-cadets",
@@ -5270,7 +5937,7 @@
     "createdAt": "2026-10-11T15:04:48.501Z",
     "formattedDate": "Oct 12, 2026 12:04 AM",
     "shortDate": "Oct 12 12:04 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-silt-rake-assembly",
@@ -5310,7 +5977,7 @@
     "createdAt": "2026-10-11T14:05:52.714Z",
     "formattedDate": "Oct 11, 2026 11:05 PM",
     "shortDate": "Oct 11 11:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-chrysalis-foundry",
@@ -5352,7 +6019,7 @@
     "createdAt": "2026-10-11T13:05:11.068Z",
     "formattedDate": "Oct 11, 2026 10:05 PM",
     "shortDate": "Oct 11 10:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "cicada-gantry",
@@ -5391,7 +6058,7 @@
     "createdAt": "2026-10-11T12:05:14.040Z",
     "formattedDate": "Oct 11, 2026 9:05 PM",
     "shortDate": "Oct 11 9:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "rond-point-valkyrie",
@@ -5426,7 +6093,7 @@
     "createdAt": "2026-10-11T11:04:00.315Z",
     "formattedDate": "Oct 11, 2026 8:04 PM",
     "shortDate": "Oct 11 8:04 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-oxalis-protocol",
@@ -5461,7 +6128,7 @@
     "createdAt": "2026-10-11T10:05:47.527Z",
     "formattedDate": "Oct 11, 2026 7:05 PM",
     "shortDate": "Oct 11 7:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-hadron-hibiscus-club",
@@ -5496,7 +6163,7 @@
     "createdAt": "2026-10-11T09:05:04.550Z",
     "formattedDate": "Oct 11, 2026 6:05 PM",
     "shortDate": "Oct 11 6:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-vard-fresnel-sound-system",
@@ -5531,7 +6198,7 @@
     "createdAt": "2026-10-11T08:05:14.022Z",
     "formattedDate": "Oct 11, 2026 5:05 PM",
     "shortDate": "Oct 11 5:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-heliotrope-switchmen",
@@ -5565,7 +6232,7 @@
     "createdAt": "2026-10-11T07:05:28.475Z",
     "formattedDate": "Oct 11, 2026 4:05 PM",
     "shortDate": "Oct 11 4:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-vitric-conservatory",
@@ -5607,7 +6274,7 @@
     "createdAt": "2026-10-11T06:04:22.526Z",
     "formattedDate": "Oct 11, 2026 3:04 PM",
     "shortDate": "Oct 11 3:04 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-basin-meridian",
@@ -5650,7 +6317,7 @@
     "createdAt": "2026-10-11T05:04:58.415Z",
     "formattedDate": "Oct 11, 2026 2:04 PM",
     "shortDate": "Oct 11 2:04 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-lantern-guild",
@@ -5689,7 +6356,7 @@
     "createdAt": "2026-10-11T04:05:22.087Z",
     "formattedDate": "Oct 11, 2026 1:05 PM",
     "shortDate": "Oct 11 1:05 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "kelp-register",
@@ -5729,7 +6396,7 @@
     "createdAt": "2026-10-11T03:04:33.009Z",
     "formattedDate": "Oct 11, 2026 12:04 PM",
     "shortDate": "Oct 11 12:04 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "kvalfjord-collider",
@@ -5769,7 +6436,7 @@
     "createdAt": "2026-10-11T02:05:30.883Z",
     "formattedDate": "Oct 11, 2026 11:05 AM",
     "shortDate": "Oct 11 11:05 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-deep-shaft-astrals",
@@ -5810,7 +6477,7 @@
     "createdAt": "2026-10-11T01:04:38.910Z",
     "formattedDate": "Oct 11, 2026 10:04 AM",
     "shortDate": "Oct 11 10:04 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "kino-marrow",
