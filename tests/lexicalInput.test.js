@@ -305,3 +305,17 @@ test('Non-Lexical contenteditable editor (TopMediai): uses execCommand(insertTex
   assert.equal(insertTextCalls.length, 1, 'Non-Lexical contenteditable editor should use execCommand insertText');
   assert.equal(insertTextCalls[0].value, text);
 });
+
+test("Clearance before insertion", async () => {
+  const { setInputValueReliably } = createDOMEnvironment();
+  const editor = new MockElement("div", { "contenteditable": "true", "data-lexical-editor": "true" }, ["lyrics-editor-content"]);
+  editor.innerText = "[Intro]\nOld discarded";
+  editor.addEventListener("paste", (e) => {
+    const t = e.clipboardData.getData("text/plain");
+    setTimeout(() => { editor.innerText = t; }, 10);
+  });
+  setInputValueReliably(editor, "[Intro]\nNew pristine");
+  await new Promise(r => setTimeout(r, 80));
+  assert.equal(editor.innerText, "[Intro]\nNew pristine");
+  assert.equal(editor.innerText.includes("Old"), false);
+});

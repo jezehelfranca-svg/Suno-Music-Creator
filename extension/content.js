@@ -47,12 +47,32 @@
                           (element.classList && element.classList.contains('lyrics-editor-content')) ||
                           !!(element.closest && element.closest('[data-lexical-editor]'));
 
-        // AST-Safe Clearance & Caret Prime
+        // AST-Safe Clearance & Caret Prime: Ensure element is 100% emptied before inserting new content
         element.focus();
         try {
           document.execCommand('selectAll', false, null);
           document.execCommand('delete', false, null);
         } catch (e) {}
+
+        // Full selection wipe across all child nodes if content still persists
+        try {
+          const sel = window.getSelection();
+          if (sel) {
+            sel.removeAllRanges();
+            const fullRange = document.createRange();
+            fullRange.selectNodeContents(element);
+            sel.addRange(fullRange);
+            document.execCommand('delete', false, null);
+          }
+        } catch (e) {}
+
+        // Lexical AST DOM reset: If text still remains after execCommand, strictly reset container to a single empty paragraph
+        if ((element.innerText || element.textContent || '').trim().length > 0) {
+          try {
+            element.innerHTML = '<p class="lyrics-paragraph"><br></p>';
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch (e) {}
+        }
 
         try {
           const p = element.querySelector('p') || element;
@@ -133,9 +153,12 @@
                      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set ||
                      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
 
+      // Ensure field is completely emptied before setting new text
       if (setter) {
+        setter.call(element, '');
         setter.call(element, text);
       } else {
+        element.value = '';
         element.value = text;
       }
 
