@@ -47,33 +47,31 @@
                           (element.classList && element.classList.contains('lyrics-editor-content')) ||
                           !!(element.closest && element.closest('[data-lexical-editor]'));
 
-        // AST-Safe Clearance & Caret Prime: Ensure element is 100% emptied before inserting new content
+        // Complete Pre-Fill Emptying: Ensure lyrics/input box is 100% emptied prior to filling
         element.focus();
         try {
-          document.execCommand('selectAll', false, null);
-          document.execCommand('delete', false, null);
-        } catch (e) {}
-
-        // Full selection wipe across all child nodes if content still persists
-        try {
+          // 1. Select the entire contents of the element and trigger native Backspace / Delete
           const sel = window.getSelection();
           if (sel) {
             sel.removeAllRanges();
-            const fullRange = document.createRange();
-            fullRange.selectNodeContents(element);
-            sel.addRange(fullRange);
-            document.execCommand('delete', false, null);
+            const selectAllRange = document.createRange();
+            selectAllRange.selectNodeContents(element);
+            sel.addRange(selectAllRange);
           }
+          document.execCommand('delete', false, null);
         } catch (e) {}
 
-        // Lexical AST DOM reset: If text still remains after execCommand, strictly reset container to a single empty paragraph
-        if ((element.innerText || element.textContent || '').trim().length > 0) {
-          try {
-            element.innerHTML = '<p class="lyrics-paragraph"><br></p>';
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-          } catch (e) {}
-        }
+        // 2. Dispatch BeforeInput / Keydown delete events to trigger Lexical Node deletion
+        try {
+          element.dispatchEvent(new InputEvent('beforeinput', { bubbles: true, cancelable: true, inputType: 'deleteContentBackward' }));
+        } catch (e) {}
 
+        // 3. Absolute DOM & AST reset: Clear innerHTML and reset to clean empty paragraph structure
+        element.innerHTML = '<p class="lyrics-paragraph"><br></p>';
+        element.dispatchEvent(new Event('input', { bubbles: true }));
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // 4. Reposition caret cleanly into the freshly emptied paragraph
         try {
           const p = element.querySelector('p') || element;
           const range = document.createRange();
