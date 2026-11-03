@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
 const args = process.argv.slice(2);
@@ -15,7 +16,9 @@ const skipWeb = args.includes('--skip-web');
 const dryRun = args.includes('--dry-run');
 const shouldOpenEdge = args.includes('--edge') || args.includes('--reload-edge') || args.includes('--open-edge');
 
-const ROOT_DIR = path.resolve('.');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, '..');
 const FICTIONAL_BANDS_DIR = path.resolve('D:/Applications/Fictional-Bands');
 const GENRE_FUSION_LAB_DIR = path.resolve('D:/Applications/Genre-Fusion-Lab');
 const EXTENSION_ZIP_ROOT = path.resolve('C:/Documents/suno-fusion-extension.zip');
@@ -64,7 +67,7 @@ async function run() {
 
   // Step 3: Validate Instruments Catalog
   logStep(3, 'Validating instruments catalog and genre taxonomy...');
-  const instPath = path.resolve('extension/data/instruments.json');
+  const instPath = path.resolve(ROOT_DIR, 'extension/data/instruments.json');
   if (!fs.existsSync(instPath)) {
     console.log('  Rebuilding instruments catalog...');
     execSync('npx tsx scripts/build-instruments-data.ts', { stdio: 'inherit', cwd: ROOT_DIR });
@@ -116,12 +119,12 @@ async function run() {
 
   // Step 8: Final Summary
   logStep(7, 'Sync Pipeline Complete!');
-  const creationsFile = path.resolve('src/data/creations.json');
+  const creationsFile = path.resolve(ROOT_DIR, 'src/data/creations.json');
   let totalCreations = 0;
   if (fs.existsSync(creationsFile)) {
     totalCreations = JSON.parse(fs.readFileSync(creationsFile, 'utf-8')).length;
   }
-  const zipFile = path.resolve('public/suno-fusion-extension.zip');
+  const zipFile = path.resolve(ROOT_DIR, 'public/suno-fusion-extension.zip');
   const zipSize = fs.existsSync(zipFile) ? (fs.statSync(zipFile).size / (1024 * 1024)).toFixed(2) : 0;
 
   console.log('-----------------------------------------------------');
