@@ -1,5 +1,918 @@
 [
   {
+    "id": "the-abyssal-tailors",
+    "title": "Unstitching the Abyssal Cable",
+    "bandName": "The Abyssal Tailors",
+    "genreName": "Bathy-Brocade",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "PSY / ACID ROCK & PSYCHEDELIA",
+      "SYNTHPOP & NEW ROMANTICS",
+      "CELESTIAL, SPACE & ORBITAL",
+      "Timpani"
+    ],
+    "sunoStyleTag": "Bathy-Brocade (PSY / ACID ROCK & PSYCHEDELIA + SYNTHPOP & NEW ROMANTICS + CELESTIAL, SPACE & ORBITAL + Timpani), dramatic 1980s New Romantic synthesizer melodies and melancholic romantic vocals are violently fused with soaring 1960s acid rock fuzz guitar solos, cosmic orbital space reverb, and thunderous orchestral timpani thuds anchored by a steady 110 BPM synthpop pulse.",
+    "fullPrompt": "Bathy-Brocade (PSY / ACID ROCK & PSYCHEDELIA + SYNTHPOP & NEW ROMANTICS + CELESTIAL, SPACE & ORBITAL + Timpani), dramatic 1980s New Romantic synthesizer melodies and melancholic romantic vocals are violently fused with soaring 1960s acid rock fuzz guitar solos, cosmic orbital space reverb, and thunderous orchestral timpani thuds anchored by a steady 110 BPM synthpop pulse.",
+    "vibe": "Decadent, subterranean, weightless, melancholic cosmic-gothic.",
+    "instruments": [
+      "- Acoustic Orchestral Timpani: Copper-kettle drums played with heavy felt or wooden mallets",
+      "dampened with salt-water-soaked sponges to create massive",
+      "subterranean low-end thuds."
+    ],
+    "forFansOf": "Talk Talk, Spacemen 3, Japan, Pink Floyd, Ultravox",
+    "bpm": 116,
+    "minBpm": 116,
+    "maxBpm": 116,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric - Acoustic Orchestral Timpani: Copper-kettle drums played with heavy felt or wooden mallets motif over a warm dampened with salt-water-soaked sponges to create massive bed]\n[Verse 1]\n[Stripped-back dampened with salt-water-soaked sponges to create massive rhythm leaving space around - Acoustic Orchestral Timpani: Copper-kettle drums played with heavy felt or wooden mallets accents]\n\n[Pre-Chorus]\n[Swelling dampened with salt-water-soaked sponges to create massive harmonics and tightening subterranean low-end thuds. drive]\n\n[Chorus]\n[Wide ensemble hook led by - Acoustic Orchestral Timpani: Copper-kettle drums played with heavy felt or wooden mallets, dampened with salt-water-soaked sponges to create massive, and subterranean low-end thuds.]\n\n[Verse 2]\n[Stripped-back - Acoustic Orchestral Timpani: Copper-kettle drums played with heavy felt or wooden mallets variation with subtle subterranean low-end thuds. textures]\n\n[Drop]\n[Featured - Acoustic Orchestral Timpani: Copper-kettle drums played with heavy felt or wooden mallets lead showcase over dampened with salt-water-soaked sponges to create massive and subterranean low-end thuds. rhythm section]\n[Outro]\n[Arrangement strips back to a lone - Acoustic Orchestral Timpani: Copper-kettle drums played with heavy felt or wooden mallets and warm dampened with salt-water-soaked sponges to create massive decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T23:10:25.301Z",
+    "formattedDate": "Nov 9, 2026 8:10 AM",
+    "shortDate": "Nov 9 8:10 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-atomic-jukebox",
+    "title": "Chronometer's Collapse",
+    "bandName": "The Atomic Jukebox",
+    "genreName": "Chronoskape",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "BALKAN BEAT / POP",
+      "ROCKABILLY & ROCK 'N' ROLL",
+      "TRIPPY, SURREAL & PSYCHEDELIC",
+      "Sitar",
+      "2000s ERA"
+    ],
+    "sunoStyleTag": "Chronoskape (BALKAN BEAT / POP + ROCKABILLY & ROCK 'N' ROLL + TRIPPY, SURREAL & PSYCHEDELIC), frantic Balkan brass melodies and driving upright bass lines collide with twangy, delay-soaked sitar and distorted rockabilly guitar riffs, all underpinned by unsettling 2000s-era synth pads and a propulsive, syncopated drum beat with a prominent, compressed snare, creating a disorienting yet danceable psychedelic soundscape.",
+    "fullPrompt": "Chronoskape (BALKAN BEAT / POP + ROCKABILLY & ROCK 'N' ROLL + TRIPPY, SURREAL & PSYCHEDELIC), frantic Balkan brass melodies and driving upright bass lines collide with twangy, delay-soaked sitar and distorted rockabilly guitar riffs, all underpinned by unsettling 2000s-era synth pads and a propulsive, syncopated drum beat with a prominent, compressed snare, creating a disorienting yet danceable psychedelic soundscape.",
+    "vibe": "Disorienting, exhilarating, noir-infused, surreally nostalgic.",
+    "instruments": [
+      "Electric Guitar (often hollow-body with heavy tremolo)",
+      "Upright Bass (often bowed or slapped aggressively)",
+      "Drum Kit (with prominent snare and ride cymbal)",
+      "Sitar (often run through guitar effects pedals)",
+      "Accordion/Brass Section (trumpet",
+      "trombone)",
+      "Vintage Analog Synthesizers (or VST emulations thereof",
+      "like a Prophet-5 or Juno-106 for pads and arpeggios)",
+      "Theremin (for eerie atmospheric touches)."
+    ],
+    "forFansOf": "Gogol Bordello, Messer Chups, Dengue Fever, The Black Lips",
+    "bpm": 135,
+    "minBpm": 120,
+    "maxBpm": 150,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Electric Guitar figure locked in with Upright Bass]\n[Verse 1]\n[Intimate Electric Guitar phrasing over a steady Upright Bass pocket]\n\n[Pre-Chorus]\n[Layered Upright Bass crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Electric Guitar and Upright Bass interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Electric Guitar and Drum Kit call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Electric Guitar and Upright Bass]\n[Outro]\n[Final sustained Electric Guitar and Upright Bass chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T22:09:53.205Z",
+    "formattedDate": "Nov 9, 2026 7:09 AM",
+    "shortDate": "Nov 9 7:09 AM",
+    "isNew": true
+  },
+  {
+    "id": "los-injertos-del-sol",
+    "title": "Grafting the Signal Box",
+    "bandName": "Los Injertos Del Sol",
+    "genreName": "Solarbox Modal",
+    "category": "Hip-Hop & Urban",
+    "ingredients": [
+      "COOL & WEST COAST JAZZ",
+      "VIBRANT, TROPICAL & SUNNY",
+      "Music Box",
+      "1970s ERA"
+    ],
+    "sunoStyleTag": "Solarbox Modal (Cool & West Coast Jazz + Vibrant Tropical & Sunny + Music Box + 1970s Era), breezy 1950s West Coast cool jazz modal flugelhorn and vibraphone solos are gracefully grafted onto a vibrant 1970s tropical Bossa-Samba groove, driven by high-register mechanical music box tines repeating intricate chromatic counter-melodies through warm analog tape delays and lush Fender Rhodes chords.",
+    "fullPrompt": "Solarbox Modal (Cool & West Coast Jazz + Vibrant Tropical & Sunny + Music Box + 1970s Era), breezy 1950s West Coast cool jazz modal flugelhorn and vibraphone solos are gracefully grafted onto a vibrant 1970s tropical Bossa-Samba groove, driven by high-register mechanical music box tines repeating intricate chromatic counter-melodies through warm analog tape delays and lush Fender Rhodes chords.",
+    "vibe": "Sun-bleached street activism wrapped in silk, chilled coconut water, vintage analog tape warmth, and intricate mechanical lullabies.",
+    "instruments": [
+      "- Core Tonal Lead: Hand-cranked mechanically-pinned Music Box (custom-tuned to modal scales)",
+      "Vibraphone",
+      "Muted Flugelhorn"
+    ],
+    "forFansOf": "Stan Getz, Marcos Valle, Cal Tjader, Piero Umiliani",
+    "bpm": 112,
+    "minBpm": 112,
+    "maxBpm": 112,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric - Core Tonal Lead: Hand-cranked mechanically-pinned Music Box motif over a warm Vibraphone bed]\n[Verse 1]\n[Stripped-back Vibraphone rhythm leaving space around - Core Tonal Lead: Hand-cranked mechanically-pinned Music Box accents]\n\n[Pre-Chorus]\n[Swelling Vibraphone harmonics and tightening Muted Flugelhorn drive]\n\n[Chorus]\n[Wide ensemble hook led by - Core Tonal Lead: Hand-cranked mechanically-pinned Music Box, Vibraphone, and Muted Flugelhorn]\n\n[Verse 2]\n[Stripped-back - Core Tonal Lead: Hand-cranked mechanically-pinned Music Box variation with subtle Muted Flugelhorn textures]\n\n[Drop]\n[Featured - Core Tonal Lead: Hand-cranked mechanically-pinned Music Box lead showcase over Vibraphone and Muted Flugelhorn rhythm section]\n[Outro]\n[Arrangement strips back to a lone - Core Tonal Lead: Hand-cranked mechanically-pinned Music Box and warm Vibraphone decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T21:09:52.121Z",
+    "formattedDate": "Nov 9, 2026 6:09 AM",
+    "shortDate": "Nov 9 6:09 AM",
+    "isNew": true
+  },
+  {
+    "id": "corona-root-the-umbra-brass",
+    "title": "Scion Stems Break the Perigee",
+    "bandName": "Corona Root & The Umbra Brass",
+    "genreName": "Syzygy Brass-Graft",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "TECH HOUSE",
+      "PROGRESSIVE HOUSE",
+      "CELESTIAL, SPACE & ORBITAL",
+      "Synth Brass"
+    ],
+    "sunoStyleTag": "Syzygy Brass-Graft (Tech House + Progressive House + Celestial, Space & Orbital + Synth Brass), driving 127 BPM tech house kick drum and syncopated hi-hat rhythms are violently grafted onto sweeping progressive house chord progressions, dominated by tearing microtonal Oberheim synth brass stabs, spatial orbital doppler reverbs, sub-bass planetary drones, and pitch-bent vocal hooks under a dark atmospheric eclipse mood",
+    "fullPrompt": "Syzygy Brass-Graft (Tech House + Progressive House + Celestial, Space & Orbital + Synth Brass), driving 127 BPM tech house kick drum and syncopated hi-hat rhythms are violently grafted onto sweeping progressive house chord progressions, dominated by tearing microtonal Oberheim synth brass stabs, spatial orbital doppler reverbs, sub-bass planetary drones, and pitch-bent vocal hooks under a dark atmospheric eclipse mood",
+    "vibe": "A euphoric, dark-matter carnival peak-time anthem under a dying star.",
+    "instruments": [
+      "Oberheim OB-Xa Synth Brass",
+      "Roland TR-909 percussion",
+      "and breath-controlled modular synths",
+      "Fictional Band: Corona Root & The Umbra Brass",
+      "Debut Track: Scion Stems Break the Perigee",
+      "Vibe: Euphoric dark-matter eclipse carnival."
+    ],
+    "forFansOf": "Eric Prydz (in his Cirez D persona), Stephan Bodzin, Bicep, Firebeatz",
+    "bpm": 128,
+    "minBpm": 128,
+    "maxBpm": 128,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Oberheim OB-Xa Synth Brass and Roland TR-909 percussion establish the opening groove]\n[Verse 1]\n[Sparse Oberheim OB-Xa Synth Brass pulse with muted Roland TR-909 percussion accompaniment]\n\n[Pre-Chorus]\n[Rising Roland TR-909 percussion tension with and breath-controlled modular synths building momentum]\n\n[Chorus]\n[Full arrangement: soaring Oberheim OB-Xa Synth Brass lead over driving Roland TR-909 percussion and and breath-controlled modular synths]\n\n[Verse 2]\n[Groove deepens: syncopated Roland TR-909 percussion with Oberheim OB-Xa Synth Brass and and breath-controlled modular synths counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Oberheim OB-Xa Synth Brass and Roland TR-909 percussion trading solo phrases]\n[Outro]\n[Gradual decompression as Oberheim OB-Xa Synth Brass and Roland TR-909 percussion harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T20:10:01.881Z",
+    "formattedDate": "Nov 9, 2026 5:10 AM",
+    "shortDate": "Nov 9 5:10 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-void-mailmen",
+    "title": "Unstamped Envelope Drifted Past the Air Lock",
+    "bandName": "The Void Mailmen",
+    "genreName": "Dead-Letter Thrash",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "NEW AGE",
+      "SKATE PUNK & POP PUNK",
+      "HAUNTING, SPOOKY & GHOSTLY",
+      "Music Box"
+    ],
+    "sunoStyleTag": "Dead-Letter Thrash (New Age + Skate Punk + Ghostly Ambient + Music Box), hyperactive 200 BPM skate-punk D-beat drums and crunchy octave-fuzz guitar chords are jarringly transplanted onto shimmering New Age synthesizer pads and eerie hand-cranked music box melodies, featuring gang-shouted pop-punk vocal hooks soaked in massive ghostly hall reverb.",
+    "fullPrompt": "Dead-Letter Thrash (New Age + Skate Punk + Ghostly Ambient + Music Box), hyperactive 200 BPM skate-punk D-beat drums and crunchy octave-fuzz guitar chords are jarringly transplanted onto shimmering New Age synthesizer pads and eerie hand-cranked music box melodies, featuring gang-shouted pop-punk vocal hooks soaked in massive ghostly hall reverb.",
+    "vibe": "Bittersweet, hyperactive, hauntingly nostalgic, frantic yet floating.",
+    "instruments": [
+      "- Hand-Cranked Metal Tine Music Boxes (miked with piezo contact sensors)"
+    ],
+    "forFansOf": "Blink-182, Cocteau Twins, Rufio, Hiroshi Yoshimura",
+    "bpm": 200,
+    "minBpm": 200,
+    "maxBpm": 200,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric - Hand-Cranked Metal Tine Music Boxes motif over a warm Rhythm Section bed]\n[Verse 1]\n[Stripped-back Rhythm Section rhythm leaving space around - Hand-Cranked Metal Tine Music Boxes accents]\n\n[Pre-Chorus]\n[Swelling Rhythm Section harmonics and tightening Percussion drive]\n\n[Chorus]\n[Wide ensemble hook led by - Hand-Cranked Metal Tine Music Boxes, Rhythm Section, and Percussion]\n\n[Verse 2]\n[Stripped-back - Hand-Cranked Metal Tine Music Boxes variation with subtle Percussion textures]\n\n[Drop]\n[Featured - Hand-Cranked Metal Tine Music Boxes lead showcase over Rhythm Section and Percussion rhythm section]\n[Outro]\n[Arrangement strips back to a lone - Hand-Cranked Metal Tine Music Boxes and warm Rhythm Section decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T19:12:23.178Z",
+    "formattedDate": "Nov 9, 2026 4:12 AM",
+    "shortDate": "Nov 9 4:12 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-sovereign-varga-bellini-ring-orchestra",
+    "title": "The Soup Pot Swings Its Handle",
+    "bandName": "The Sovereign Varga-Bellini Ring Orchestra",
+    "genreName": "Bigtop Saltation",
+    "category": "Hip-Hop & Urban",
+    "ingredients": [
+      "DISCO",
+      "CINEMATIC, EPIC & ORCHESTRAL",
+      "Woodwinds"
+    ],
+    "sunoStyleTag": "Bigtop Saltation (DISCO + CINEMATIC, EPIC & ORCHESTRAL + Woodwinds), driving 128 BPM four-on-the-floor Munich disco kick drum and funk bassline grafted onto hyper-virtuosic staccato woodwind runs, rapid piccolo flutes, soaring oboes, and deep contrabass clarinets recorded in deadened velvet spaces with epic cinematic minor-key chord progressions, dramatic side-chained dynamics, and theatrical orchestral timpani accents",
+    "fullPrompt": "Bigtop Saltation (DISCO + CINEMATIC, EPIC & ORCHESTRAL + Woodwinds), driving 128 BPM four-on-the-floor Munich disco kick drum and funk bassline grafted onto hyper-virtuosic staccato woodwind runs, rapid piccolo flutes, soaring oboes, and deep contrabass clarinets recorded in deadened velvet spaces with epic cinematic minor-key chord progressions, dramatic side-chained dynamics, and theatrical orchestral timpani accents",
+    "vibe": "Decadent, frantic, romantic, opulent, theatrical, high-speed drama.",
+    "instruments": [
+      "Contrabass Clarinet",
+      "Piccolo Flute",
+      "Oboe",
+      "Bassoon",
+      "Vintage Disco Bass Guitar",
+      "Orchestral Timpani",
+      "High-Hat Cymbal Trees",
+      "ARP 2600 Synthesizer (for sub-bass augmentation)."
+    ],
+    "forFansOf": "Giorgio Moroder, Ennio Morricone, Igor Stravinsky, The Salsoul Orchestra",
+    "bpm": 132,
+    "minBpm": 132,
+    "maxBpm": 132,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Contrabass Clarinet figure locked in with Piccolo Flute]\n[Verse 1]\n[Intimate Contrabass Clarinet phrasing over a steady Piccolo Flute pocket]\n\n[Pre-Chorus]\n[Layered Piccolo Flute crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Contrabass Clarinet and Piccolo Flute interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Contrabass Clarinet and Oboe call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Contrabass Clarinet and Piccolo Flute]\n[Outro]\n[Final sustained Contrabass Clarinet and Piccolo Flute chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T18:11:24.266Z",
+    "formattedDate": "Nov 9, 2026 3:11 AM",
+    "shortDate": "Nov 9 3:11 AM",
+    "isNew": true
+  },
+  {
+    "id": "pendulum-dust-the-iron-cipher",
+    "title": "Locusts Molt inside the Clockwork",
+    "bandName": "Pendulum Dust & The Iron Cipher",
+    "genreName": "Chronostructure",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "DETROIT TECHNO",
+      "OLD SKOOL RAP PIONEERS",
+      "RAW, GRITTY & BRUTALIST",
+      "Whistle",
+      "1990s ERA"
+    ],
+    "sunoStyleTag": "Chronostructure (Detroit Techno + Old Skool Rap Pioneers + Raw Gritty Brutalist + Whistle + 1990s Era), heavy dragging unquantized 1990s industrial kick drums and metallic clockwork gear-percussion collide with slow commanding golden-era spoken-word rap cadences, featuring pitch-bent microtonal rave whistle drones, crushed iron-nickel metallic basslines, cold diminished minor chords, non-Western resonant steel textures, harsh bit-crushed noise gates, raw tape saturation, nocturnal brutalist atmosphere",
+    "fullPrompt": "Chronostructure (Detroit Techno + Old Skool Rap Pioneers + Raw Gritty Brutalist + Whistle + 1990s Era), heavy dragging unquantized 1990s industrial kick drums and metallic clockwork gear-percussion collide with slow commanding golden-era spoken-word rap cadences, featuring pitch-bent microtonal rave whistle drones, crushed iron-nickel metallic basslines, cold diminished minor chords, non-Western resonant steel textures, harsh bit-crushed noise gates, raw tape saturation, nocturnal brutalist atmosphere",
+    "vibe": "Industrial paranoia, heavy iron weight, nocturnal rust, kinetic dread.",
+    "instruments": [
+      "Custom-built Meteorite-Struck Steel Marimbas",
+      "Scavenger Clockwork Turntables",
+      "Modified 1990s Akai MPC60",
+      "Bit-Crushed Ref-Whistles",
+      "Roland TR-909 (routed through overloaded tube preamps)."
+    ],
+    "forFansOf": "Underground Resistance, Public Enemy, Dälek, Raime, Demdike Stare",
+    "bpm": 118,
+    "minBpm": 118,
+    "maxBpm": 118,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Custom-built Meteorite-Struck Steel Marimbas figure locked in with Scavenger Clockwork Turntables]\n[Verse 1]\n[Intimate Custom-built Meteorite-Struck Steel Marimbas phrasing over a steady Scavenger Clockwork Turntables pocket]\n\n[Pre-Chorus]\n[Layered Scavenger Clockwork Turntables crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Custom-built Meteorite-Struck Steel Marimbas and Scavenger Clockwork Turntables interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Custom-built Meteorite-Struck Steel Marimbas and Modified 1990s Akai MPC60 call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Custom-built Meteorite-Struck Steel Marimbas and Scavenger Clockwork Turntables]\n[Outro]\n[Final sustained Custom-built Meteorite-Struck Steel Marimbas and Scavenger Clockwork Turntables chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T17:09:59.873Z",
+    "formattedDate": "Nov 9, 2026 2:09 AM",
+    "shortDate": "Nov 9 2:09 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-isfjord-salt-callers",
+    "title": "November Swallows Its Own Chimes",
+    "bandName": "The Isfjord Salt-Callers",
+    "genreName": "Svalbard Kolo",
+    "category": "Pop & Vocal",
+    "ingredients": [
+      "BALKAN BEAT / POP",
+      "MELANCHOLIC, NOSTALGIC & SAD",
+      "Trumpet"
+    ],
+    "sunoStyleTag": "Svalbard Kolo (Balkan Beat / Pop + Melancholic, Nostalgic & Sad), high-speed 7/8 Balkan brass fanfares and soaring weeping trumpets are jarringly grafted onto heavy four-on-the-floor pop bass drums, icy shortwave radio static, and vast cavernous ocean reverb. Frantic, minor-key Phrygian dominant trumpet solos collide with melancholic Soviet synth sub-bass drones and retro accordion riffs, shifting abruptly from explosive, sweat-drenched horn sections to hollow, lonely polar atmospheric silences.",
+    "fullPrompt": "Svalbard Kolo (Balkan Beat / Pop + Melancholic, Nostalgic & Sad), high-speed 7/8 Balkan brass fanfares and soaring weeping trumpets are jarringly grafted onto heavy four-on-the-floor pop bass drums, icy shortwave radio static, and vast cavernous ocean reverb. Frantic, minor-key Phrygian dominant trumpet solos collide with melancholic Soviet synth sub-bass drones and retro accordion riffs, shifting abruptly from explosive, sweat-drenched horn sections to hollow, lonely polar atmospheric silences.",
+    "vibe": "Frantic yet heartbreaking; a sweaty arctic disco in an abandoned salt mine.",
+    "instruments": [
+      "- The Aurora Brass Section: Severely corroded B-flat Trumpets",
+      "Flugelhorns",
+      "and Rotary Valve Tubas tuned microtonally down to compensate for frigid air density."
+    ],
+    "forFansOf": "Goran Bregović, Shantel, Beissoul & Einius, Fanfare Ciocărlia",
+    "bpm": 140,
+    "minBpm": 140,
+    "maxBpm": 140,
+    "timeSig": "7/8",
+    "lyricSnippet": "[Intro]\n[Syncopated - The Aurora Brass Section: Severely corroded B-flat Trumpets figure locked in with Flugelhorns]\n[Verse 1]\n[Intimate - The Aurora Brass Section: Severely corroded B-flat Trumpets phrasing over a steady Flugelhorns pocket]\n\n[Pre-Chorus]\n[Layered Flugelhorns crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic - The Aurora Brass Section: Severely corroded B-flat Trumpets and Flugelhorns interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with - The Aurora Brass Section: Severely corroded B-flat Trumpets and and Rotary Valve Tubas tuned microtonally down to compensate for frigid air density. call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by - The Aurora Brass Section: Severely corroded B-flat Trumpets and Flugelhorns]\n[Outro]\n[Final sustained - The Aurora Brass Section: Severely corroded B-flat Trumpets and Flugelhorns chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T16:11:18.539Z",
+    "formattedDate": "Nov 9, 2026 1:11 AM",
+    "shortDate": "Nov 9 1:11 AM",
+    "isNew": true
+  },
+  {
+    "id": "voltaje-99",
+    "title": "Light-Pollution Lenses Gaze Upward",
+    "bandName": "Voltaje-99",
+    "genreName": "Semaphore-Dembow",
+    "category": "Hip-Hop & Urban",
+    "ingredients": [
+      "ZOUK",
+      "REGGAETÓN & LATIN RAP",
+      "REBEL, ANGRY & AGGRESSIVE",
+      "Bass",
+      "2000s ERA"
+    ],
+    "sunoStyleTag": "Semaphore-Dembow (Zouk + Reggaetón & Latin Rap + Rebel Angry Aggressive + Bass + 2000s Era), fast angry Latin rap verses and smooth Caribbean zouk vocal hooks collide over heavy 2000s reggaetón dembow kick-snare patterns, featuring blown-out overdriven sub-bass, screeching analog siren leads, low-bit sampler crunch, and rhythmic traffic buzzer feedback stabs.",
+    "fullPrompt": "Semaphore-Dembow (Zouk + Reggaetón & Latin Rap + Rebel Angry Aggressive + Bass + 2000s Era), fast angry Latin rap verses and smooth Caribbean zouk vocal hooks collide over heavy 2000s reggaetón dembow kick-snare patterns, featuring blown-out overdriven sub-bass, screeching analog siren leads, low-bit sampler crunch, and rhythmic traffic buzzer feedback stabs.",
+    "vibe": "Aggressive, rebel street party, industrial heatwave, 2000s nostalgic crunch, rebellious Caribbean bounce.",
+    "instruments": [
+      "Hacked Signal Relay Sub-Bass",
+      "Roland SP-808 Groove-Sampler",
+      "Analog Siren-Squeal Synths",
+      "Dual-Mic Latin Rap Vocals",
+      "Fictional Band: Voltaje-99",
+      "Debut Track: Light-Pollution Lenses Gaze Upward",
+      "Vibe: Aggressive rebel street party with an industrial Caribbean Y2K crunch."
+    ],
+    "forFansOf": "Tego Calderón, Kassav', Daddy Yankee (early Barrio Fino era), Mutabaruka",
+    "bpm": 102,
+    "minBpm": 102,
+    "maxBpm": 102,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Solo Hacked Signal Relay Sub-Bass riff introduces the main theme before Roland SP-808 Groove-Sampler enters]\n[Verse 1]\n[Low-register Hacked Signal Relay Sub-Bass groove and restrained Roland SP-808 Groove-Sampler chords]\n\n[Pre-Chorus]\n[Staccato Roland SP-808 Groove-Sampler build and ascending Analog Siren-Squeal Synths fills]\n\n[Chorus]\n[High-energy Hacked Signal Relay Sub-Bass melody locked with Roland SP-808 Groove-Sampler and Analog Siren-Squeal Synths]\n\n[Verse 2]\n[Walking Roland SP-808 Groove-Sampler line beneath conversational Hacked Signal Relay Sub-Bass fills]\n\n[Drop]\n[Polyrhythmic Hacked Signal Relay Sub-Bass, Roland SP-808 Groove-Sampler, and Analog Siren-Squeal Synths drop]\n[Outro]\n[Lingering Hacked Signal Relay Sub-Bass motif fading over soft Roland SP-808 Groove-Sampler resonance]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T15:10:30.019Z",
+    "formattedDate": "Nov 9, 2026 12:10 AM",
+    "shortDate": "Nov 9 12:10 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-cloud-burst-circle",
+    "title": "Steal the Chalk line",
+    "bandName": "The Cloud-Burst Circle",
+    "genreName": "Stratospheric Bounce",
+    "category": "Hip-Hop & Urban",
+    "ingredients": [
+      "JAZZ RAP / NATIVE TONGUE",
+      "HARDSTYLE",
+      "CELESTIAL, SPACE & ORBITAL",
+      "Xylophone"
+    ],
+    "sunoStyleTag": "Stratospheric Bounce (Jazz Rap / Native Tongue + Hardstyle + Celestial Space Ambient + Xylophone), warm 1990s jazz-rap vocal flow and intricate acoustic rosewood xylophone bebop runs are aggressively grafted onto roaring 150 BPM distorted hardstyle reverse-bass kicks, swimming in expansive galactic space pads, pitch-shifted mallet tape delays, and sudden shortwave radio static drops",
+    "fullPrompt": "Stratospheric Bounce (Jazz Rap / Native Tongue + Hardstyle + Celestial Space Ambient + Xylophone), warm 1990s jazz-rap vocal flow and intricate acoustic rosewood xylophone bebop runs are aggressively grafted onto roaring 150 BPM distorted hardstyle reverse-bass kicks, swimming in expansive galactic space pads, pitch-shifted mallet tape delays, and sudden shortwave radio static drops",
+    "vibe": "Jovial yet overwhelming; like sitting in a cozy, velvet-lined jazz cafe that just detached from the space station and fell straight through the ionosphere.",
+    "instruments": [
+      "Rosewood Xylophone",
+      "Access Virus TI synth",
+      "Roland TR-909 kick",
+      "Rhodes Mark I",
+      "Fictional Band: The Cloud-Burst Circle",
+      "Debut Track: Steal the Chalk line",
+      "Vibe: Cosmic",
+      "swing-infused",
+      "euphoric",
+      "and thunderous."
+    ],
+    "forFansOf": "A Tribe Called Quest, Showtek, Flying Lotus, Digable Planets, DJ Rustie.",
+    "bpm": 150,
+    "minBpm": 150,
+    "maxBpm": 150,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric Rosewood Xylophone motif over a warm Access Virus TI synth bed]\n[Verse 1]\n[Stripped-back Access Virus TI synth rhythm leaving space around Rosewood Xylophone accents]\n\n[Pre-Chorus]\n[Swelling Access Virus TI synth harmonics and tightening Roland TR-909 kick drive]\n\n[Chorus]\n[Wide ensemble hook led by Rosewood Xylophone, Access Virus TI synth, and Roland TR-909 kick]\n\n[Verse 2]\n[Stripped-back Rosewood Xylophone variation with subtle Roland TR-909 kick textures]\n\n[Drop]\n[Featured Rosewood Xylophone lead showcase over Access Virus TI synth and Roland TR-909 kick rhythm section]\n[Outro]\n[Arrangement strips back to a lone Rosewood Xylophone and warm Access Virus TI synth decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T14:12:11.776Z",
+    "formattedDate": "Nov 8, 2026 11:12 PM",
+    "shortDate": "Nov 8 11:12 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-signal-09-ensemble",
+    "title": "Track 9 Derails at Dusk",
+    "bandName": "The Signal-09 Ensemble",
+    "genreName": "Chalumeau Drift",
+    "category": "Ambient & Cinematic",
+    "ingredients": [
+      "AMBIENT",
+      "TRIPPY, SURREAL & PSYCHEDELIC",
+      "Clarinet",
+      "1970s ERA"
+    ],
+    "sunoStyleTag": "Chalumeau Drift (AMBIENT + TRIPPY, SURREAL & PSYCHEDELIC + Clarinet + 1970s ERA), warm 1970s analog ambient soundscape grafting pitch-warped B-flat clarinet melodies onto slow tape-flanged Rhodes piano chords and a lazy vintage rhythm box beat, lush bucket-brigade spring reverbs, heavy tape flutter, spatial psychedelic woodwind drones melting into warm synth pads",
+    "fullPrompt": "Chalumeau Drift (AMBIENT + TRIPPY, SURREAL & PSYCHEDELIC + Clarinet + 1970s ERA), warm 1970s analog ambient soundscape grafting pitch-warped B-flat clarinet melodies onto slow tape-flanged Rhodes piano chords and a lazy vintage rhythm box beat, lush bucket-brigade spring reverbs, heavy tape flutter, spatial psychedelic woodwind drones melting into warm synth pads",
+    "vibe": "Nostalgic, weightless, hypnotic, sun-bleached, gently disorienting.",
+    "instruments": [
+      "- Central Woodwind: B-flat Clarinet and Bass Clarinet (frequently processed through envelope filters and space echoes)."
+    ],
+    "forFansOf": "Harmonia, Boards of Canada, Alice Coltrane, Piero Umiliani",
+    "bpm": 84,
+    "minBpm": 84,
+    "maxBpm": 84,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated - Central Woodwind: B-flat Clarinet and Bass Clarinet. figure locked in with Rhythm Section]\n[Verse 1]\n[Intimate - Central Woodwind: B-flat Clarinet and Bass Clarinet. phrasing over a steady Rhythm Section pocket]\n\n[Pre-Chorus]\n[Layered Rhythm Section crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic - Central Woodwind: B-flat Clarinet and Bass Clarinet. and Rhythm Section interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with - Central Woodwind: B-flat Clarinet and Bass Clarinet. and Percussion call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by - Central Woodwind: B-flat Clarinet and Bass Clarinet. and Rhythm Section]\n[Outro]\n[Final sustained - Central Woodwind: B-flat Clarinet and Bass Clarinet. and Rhythm Section chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T12:10:28.878Z",
+    "formattedDate": "Nov 8, 2026 9:10 PM",
+    "shortDate": "Nov 8 9:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-amber-chrysalis",
+    "title": "Cicadas Molt inside the Red-Light Relay",
+    "bandName": "The Amber Chrysalis",
+    "genreName": "Signal-Molt",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "INDUSTRIAL ROCK / METAL",
+      "MELANCHOLIC, NOSTALGIC & SAD",
+      "Risers",
+      "2010s ERA"
+    ],
+    "sunoStyleTag": "Signal-Molt (INDUSTRIAL ROCK / METAL + MELANCHOLIC, NOSTALGIC & SAD + Risers + 2010s ERA), detuned baritone metal guitar riffs and heavy slow metallic traffic-relay percussion fuse with tragic 2010s indie-style vocal melodies, built over endlessly rising white-noise risers that never drop, dissolving into rain-soaked bucket-brigade delay tails and sub-bass hum.",
+    "fullPrompt": "Signal-Molt (INDUSTRIAL ROCK / METAL + MELANCHOLIC, NOSTALGIC & SAD + Risers + 2010s ERA), detuned baritone metal guitar riffs and heavy slow metallic traffic-relay percussion fuse with tragic 2010s indie-style vocal melodies, built over endlessly rising white-noise risers that never drop, dissolving into rain-soaked bucket-brigade delay tails and sub-bass hum.",
+    "vibe": "Devastatingly sad, rusted, heavy, nostalgic, rain-soaked, perpetually suspended.",
+    "instruments": [
+      "Hacked traffic control relays",
+      "baritone metal guitars",
+      "and digital white-noise risers",
+      "Fictional Band: The Amber Chrysalis",
+      "Debut Track: Cicadas Molt inside the Red-Light Relay",
+      "Vibe: Rain-soaked",
+      "rusted",
+      "aching industrial nostalgia."
+    ],
+    "forFansOf": "Nine Inch Nails (late-era ambient work), Have A Nice Life, The National, Health (slow-tempo tracks).",
+    "bpm": 92,
+    "minBpm": 92,
+    "maxBpm": 92,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Atmospheric Hacked traffic control relays motif over a warm baritone metal guitars bed]\n[Verse 1]\n[Stripped-back baritone metal guitars rhythm leaving space around Hacked traffic control relays accents]\n\n[Pre-Chorus]\n[Swelling baritone metal guitars harmonics and tightening and digital white-noise risers drive]\n\n[Chorus]\n[Wide ensemble hook led by Hacked traffic control relays, baritone metal guitars, and and digital white-noise risers]\n\n[Verse 2]\n[Stripped-back Hacked traffic control relays variation with subtle and digital white-noise risers textures]\n\n[Drop]\n[Featured Hacked traffic control relays lead showcase over baritone metal guitars and and digital white-noise risers rhythm section]\n[Outro]\n[Arrangement strips back to a lone Hacked traffic control relays and warm baritone metal guitars decay]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T11:09:55.054Z",
+    "formattedDate": "Nov 8, 2026 8:09 PM",
+    "shortDate": "Nov 8 8:09 PM",
+    "isNew": true
+  },
+  {
+    "id": "sister-voltage-the-dream-transcribers",
+    "title": "Sun-Pillar Whipping the Concrete",
+    "bandName": "Sister Voltage & The Dream-Transcribers",
+    "genreName": "St. Anthony’s Strobe-Liturgy",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "CHICAGO / CITY / URBAN BLUES",
+      "DISCO",
+      "CYBERPUNK & DYSTOPIAN",
+      "Cowbell",
+      "2020s ERA"
+    ],
+    "sunoStyleTag": "St. Anthony’s Strobe-Liturgy (Chicago Urban Blues + Disco + Cyberpunk Dystopian + Cowbell + 2020s Era), raw overdriven Chicago electric blues slide guitar and weeping chromatic harmonica stabs are violently transplanted onto a heavy 126 BPM four-on-the-floor disco pulse, featuring aggressive sidechained microtonal cowbell patterns, lush analog synth strings, dark dystopian sub-bass, and distorted gospel-house vocal hooks.",
+    "fullPrompt": "St. Anthony’s Strobe-Liturgy (Chicago Urban Blues + Disco + Cyberpunk Dystopian + Cowbell + 2020s Era), raw overdriven Chicago electric blues slide guitar and weeping chromatic harmonica stabs are violently transplanted onto a heavy 126 BPM four-on-the-floor disco pulse, featuring aggressive sidechained microtonal cowbell patterns, lush analog synth strings, dark dystopian sub-bass, and distorted gospel-house vocal hooks.",
+    "vibe": "Sacred, industrial, sweat-stained, euphoric dread.",
+    "instruments": [
+      "Pitch-shifted liturgical cowbell array",
+      "overdriven 1950s Telecaster",
+      "and neural-dream modular synthesizers",
+      "Fictional Band: Sister Voltage & The Dream-Transcribers",
+      "Debut Track: Sun-Pillar Whipping the Concrete",
+      "Vibe: Sacred",
+      "industrial",
+      "sweat-stained",
+      "euphoric dread."
+    ],
+    "forFansOf": "Muddy Waters, Giorgio Moroder, Factory Floor, Carpenter Brut",
+    "bpm": 128,
+    "minBpm": 128,
+    "maxBpm": 128,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Pitch-shifted liturgical cowbell array and overdriven 1950s Telecaster establish the opening groove]\n[Verse 1]\n[Sparse Pitch-shifted liturgical cowbell array pulse with muted overdriven 1950s Telecaster accompaniment]\n\n[Pre-Chorus]\n[Rising overdriven 1950s Telecaster tension with and neural-dream modular synthesizers building momentum]\n\n[Chorus]\n[Full arrangement: soaring Pitch-shifted liturgical cowbell array lead over driving overdriven 1950s Telecaster and and neural-dream modular synthesizers]\n\n[Verse 2]\n[Groove deepens: syncopated overdriven 1950s Telecaster with Pitch-shifted liturgical cowbell array and and neural-dream modular synthesizers counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Pitch-shifted liturgical cowbell array and overdriven 1950s Telecaster trading solo phrases]\n[Outro]\n[Gradual decompression as Pitch-shifted liturgical cowbell array and overdriven 1950s Telecaster harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T10:10:58.139Z",
+    "formattedDate": "Nov 8, 2026 7:10 PM",
+    "shortDate": "Nov 8 7:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "slipway-9",
+    "title": "Ink Stung the Port-Collector",
+    "bandName": "Slipway 9",
+    "genreName": "Iron-Laced Docklands",
+    "category": "Pop & Vocal",
+    "ingredients": [
+      "CHEMICAL BREAKS & BIG BEAT",
+      "FUTURE BASS & FUTURE GARAGE",
+      "CELESTIAL, SPACE & ORBITAL",
+      "Steel Drums"
+    ],
+    "sunoStyleTag": "Iron-Laced Docklands (CHEMICAL BREAKS & BIG BEAT + FUTURE BASS & FUTURE GARAGE + CELESTIAL, SPACE & ORBITAL + Steel Drums), massive saturated big beat drum breaks and explosive sub-bass drops are grafted onto pitch-shifted future garage vocal skip-steps, while atmospheric, reverb-drenched steel pan drums chime in floating orbital space above deep fog-horn bass ducking.",
+    "fullPrompt": "Iron-Laced Docklands (CHEMICAL BREAKS & BIG BEAT + FUTURE BASS & FUTURE GARAGE + CELESTIAL, SPACE & ORBITAL + Steel Drums), massive saturated big beat drum breaks and explosive sub-bass drops are grafted onto pitch-shifted future garage vocal skip-steps, while atmospheric, reverb-drenched steel pan drums chime in floating orbital space above deep fog-horn bass ducking.",
+    "vibe": "Industrial nostalgia colliding with weightless, cosmic longing; damp concrete, neon light cutting through dense smog, heavy sub-woofers echoing across dark waters.",
+    "instruments": [
+      "- Acoustic Steel Drums (Trinidadian Tenor Pan): Treated with pitch-shifters",
+      "reverse delays",
+      "and infinite reverb tails to create orbital melodies."
+    ],
+    "forFansOf": "The Prodigy, Burial, Flume, Orbital",
+    "bpm": 136,
+    "minBpm": 136,
+    "maxBpm": 136,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[- Acoustic Steel Drums: Treated with pitch-shifters and reverse delays establish the opening groove]\n[Verse 1]\n[Sparse - Acoustic Steel Drums: Treated with pitch-shifters pulse with muted reverse delays accompaniment]\n\n[Pre-Chorus]\n[Rising reverse delays tension with and infinite reverb tails to create orbital melodies. building momentum]\n\n[Chorus]\n[Full arrangement: soaring - Acoustic Steel Drums: Treated with pitch-shifters lead over driving reverse delays and and infinite reverb tails to create orbital melodies.]\n\n[Verse 2]\n[Groove deepens: syncopated reverse delays with - Acoustic Steel Drums: Treated with pitch-shifters and and infinite reverb tails to create orbital melodies. counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: - Acoustic Steel Drums: Treated with pitch-shifters and reverse delays trading solo phrases]\n[Outro]\n[Gradual decompression as - Acoustic Steel Drums: Treated with pitch-shifters and reverse delays harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T09:10:29.898Z",
+    "formattedDate": "Nov 8, 2026 6:10 PM",
+    "shortDate": "Nov 8 6:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-permafrost-all-stars",
+    "title": "Wednesday Leaks Through the Insulation",
+    "bandName": "The Permafrost All-Stars",
+    "genreName": "Vault-Soca",
+    "category": "Pop & Vocal",
+    "ingredients": [
+      "ZOUK",
+      "EUPHORIC, ENERGETIC & JOLLY",
+      "Drone"
+    ],
+    "sunoStyleTag": "Vault-Soca (Zouk + Euphoric Energetic Drone), bright 125 BPM French Antillean Zouk ti-bwa wooden stick polyrhythms and triumphant carnival brass stabs are aggressively grafted over a continuous massive wall of 35Hz sub-bass drone, featuring ecstatic call-and-response Creole choir chants processed through cavernous arctic reverb.",
+    "fullPrompt": "Vault-Soca (Zouk + Euphoric Energetic Drone), bright 125 BPM French Antillean Zouk ti-bwa wooden stick polyrhythms and triumphant carnival brass stabs are aggressively grafted over a continuous massive wall of 35Hz sub-bass drone, featuring ecstatic call-and-response Creole choir chants processed through cavernous arctic reverb.",
+    "vibe": "Ecstatic polar carnival inside an underground ice cavern.",
+    "instruments": [
+      "Ti-bwa wooden sticks",
+      "continuous sub-drone synths",
+      "and high-pitched brass sections",
+      "Fictional Band: The Permafrost All-Stars",
+      "Debut Track: Wednesday Leaks Through the Insulation",
+      "Vibe: Ecstatic polar carnival inside an underground ice cavern."
+    ],
+    "forFansOf": "Kassav', Sunn O))), Tim Hecker, Machel Montano",
+    "bpm": 128,
+    "minBpm": 128,
+    "maxBpm": 128,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Solo Ti-bwa wooden sticks riff introduces the main theme before continuous sub-drone synths enters]\n[Verse 1]\n[Low-register Ti-bwa wooden sticks groove and restrained continuous sub-drone synths chords]\n\n[Pre-Chorus]\n[Staccato continuous sub-drone synths build and ascending and high-pitched brass sections fills]\n\n[Chorus]\n[High-energy Ti-bwa wooden sticks melody locked with continuous sub-drone synths and and high-pitched brass sections]\n\n[Verse 2]\n[Walking continuous sub-drone synths line beneath conversational Ti-bwa wooden sticks fills]\n\n[Drop]\n[Polyrhythmic Ti-bwa wooden sticks, continuous sub-drone synths, and and high-pitched brass sections drop]\n[Outro]\n[Lingering Ti-bwa wooden sticks motif fading over soft continuous sub-drone synths resonance]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T08:10:00.332Z",
+    "formattedDate": "Nov 8, 2026 5:10 PM",
+    "shortDate": "Nov 8 5:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "crystalline-drift",
+    "title": "Fractured Light Pattern",
+    "bandName": "Crystalline Drift",
+    "genreName": "Glacial Spun",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "UPLIFTING / EPIC TRANCE",
+      "KRAUTROCK",
+      "EUPHORIC, ENERGETIC & JOLLY",
+      "Synth Lead"
+    ],
+    "sunoStyleTag": "Glacial Spun (UPLIFTING / EPIC TRANCE + KRAUTROCK), unrelenting motorik drum machine rhythms and a clean, propulsive synth bassline underpin soaring, arpeggiated synth lead melodies and expansive, shimmering pad chords, building continuously with euphoric filter sweeps and layered delays for an ecstatic, energetic journey.",
+    "fullPrompt": "Glacial Spun (UPLIFTING / EPIC TRANCE + KRAUTROCK), unrelenting motorik drum machine rhythms and a clean, propulsive synth bassline underpin soaring, arpeggiated synth lead melodies and expansive, shimmering pad chords, building continuously with euphoric filter sweeps and layered delays for an ecstatic, energetic journey.",
+    "vibe": "Euphoric, Propulsive, Expansive, Reflective Joy",
+    "instruments": [
+      "Roland Juno-60",
+      "Korg MS-20",
+      "Moog Sub 37",
+      "Elektron Analog Rytm",
+      "various digital FM synthesizers (e.g.",
+      "Yamaha DX7 emulations)",
+      "and a heavily processed",
+      "highly melodic Synth Lead."
+    ],
+    "forFansOf": "Orbital, Neu!, Jon Hopkins, Four Tet",
+    "bpm": 138,
+    "minBpm": 130,
+    "maxBpm": 145,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Roland Juno-60 figure locked in with Korg MS-20]\n[Verse 1]\n[Intimate Roland Juno-60 phrasing over a steady Korg MS-20 pocket]\n\n[Pre-Chorus]\n[Layered Korg MS-20 crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Roland Juno-60 and Korg MS-20 interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Roland Juno-60 and Moog Sub 37 call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Roland Juno-60 and Korg MS-20]\n[Outro]\n[Final sustained Roland Juno-60 and Korg MS-20 chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T07:11:16.779Z",
+    "formattedDate": "Nov 8, 2026 4:11 PM",
+    "shortDate": "Nov 8 4:11 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-nursery-at-assembly-line-09",
+    "title": "The Calendar Left a Shift Unassigned",
+    "bandName": "The Nursery at Assembly Line 09",
+    "genreName": "Klystron Lull",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "DETROIT TECHNO",
+      "MELANCHOLIC, NOSTALGIC & SAD",
+      "Flute"
+    ],
+    "sunoStyleTag": "Klystron Lull (Detroit Techno + Melancholic, Nostalgic & Sad + Flute), driving 132 BPM 909 four-on-the-floor techno kick-drum rhythms and cold hiss-heavy hi-hats collide violently with heartbreaking microtonal flute melodies blown through leaking pneumatic valves, bathed in weeping minor 9th analog synth chords and extreme tape-degraded hall reverb.",
+    "fullPrompt": "Klystron Lull (Detroit Techno + Melancholic, Nostalgic & Sad + Flute), driving 132 BPM 909 four-on-the-floor techno kick-drum rhythms and cold hiss-heavy hi-hats collide violently with heartbreaking microtonal flute melodies blown through leaking pneumatic valves, bathed in weeping minor 9th analog synth chords and extreme tape-degraded hall reverb.",
+    "vibe": "Industrial grief, blue-light insomnia, broken gears singing to an empty nursery.",
+    "instruments": [
+      "Pneumatic Bone-Flute",
+      "Roland TR-909",
+      "and Yamaha DX7",
+      "Fictional Band: The Nursery at Assembly Line 09",
+      "Debut Track: The Calendar Left a Shift Unassigned",
+      "Vibe: Industrial grief",
+      "blue-light insomnia",
+      "broken gears singing to an empty nursery."
+    ],
+    "forFansOf": "Model 500, Drexciya, Burial, Gazelle Twin",
+    "bpm": 131,
+    "minBpm": 128,
+    "maxBpm": 134,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Pneumatic Bone-Flute and Roland TR-909 establish the opening groove]\n[Verse 1]\n[Sparse Pneumatic Bone-Flute pulse with muted Roland TR-909 accompaniment]\n\n[Pre-Chorus]\n[Rising Roland TR-909 tension with and Yamaha DX7 building momentum]\n\n[Chorus]\n[Full arrangement: soaring Pneumatic Bone-Flute lead over driving Roland TR-909 and and Yamaha DX7]\n\n[Verse 2]\n[Groove deepens: syncopated Roland TR-909 with Pneumatic Bone-Flute and and Yamaha DX7 counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Pneumatic Bone-Flute and Roland TR-909 trading solo phrases]\n[Outro]\n[Gradual decompression as Pneumatic Bone-Flute and Roland TR-909 harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T06:10:45.066Z",
+    "formattedDate": "Nov 8, 2026 3:10 PM",
+    "shortDate": "Nov 8 3:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "red-line-reed-cartel",
+    "title": "Molten Lead Blows Through the Frame",
+    "bandName": "Red-Line Reed Cartel",
+    "genreName": "Iron-Soca Crackle",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "CALYPSO",
+      "NEUROFUNK",
+      "REBEL, ANGRY & AGGRESSIVE",
+      "Bassoon"
+    ],
+    "sunoStyleTag": "Iron-Soca Crackle (Calypso + Neurofunk + Rebel Angry & Aggressive + Bassoon), fast 174 BPM syncopated calypso drum-and-bass hybrid rhythm driven by violent metallic brake-drum engine-room percussion and frantic steelpan stabs, aggressively colliding with a heavily distorted acoustic bassoon playing distorted sub-octave reese basslines, minor-key phrygian scales, angry echoed vocal chants, claustrophobic industrial train-car resonance.",
+    "fullPrompt": "Iron-Soca Crackle (Calypso + Neurofunk + Rebel Angry & Aggressive + Bassoon), fast 174 BPM syncopated calypso drum-and-bass hybrid rhythm driven by violent metallic brake-drum engine-room percussion and frantic steelpan stabs, aggressively colliding with a heavily distorted acoustic bassoon playing distorted sub-octave reese basslines, minor-key phrygian scales, angry echoed vocal chants, claustrophobic industrial train-car resonance.",
+    "vibe": "Claustrophobic, furious, kinetic, industrial-caribbean, revolutionary.",
+    "instruments": [
+      "- Acoustic Bassoon & Contrabassoon: Amplified via contact pickups",
+      "heavily distorted",
+      "and used as the lead aggressive bass/riffing engine."
+    ],
+    "forFansOf": "Noisia, Black Sun Empire, Lord Kitchener (at his most cynical), Shredder, Squarepusher",
+    "bpm": 176,
+    "minBpm": 176,
+    "maxBpm": 176,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Solo - Acoustic Bassoon & Contrabassoon: Amplified via contact pickups riff introduces the main theme before heavily distorted enters]\n[Verse 1]\n[Low-register - Acoustic Bassoon & Contrabassoon: Amplified via contact pickups groove and restrained heavily distorted chords]\n\n[Pre-Chorus]\n[Staccato heavily distorted build and ascending and used as the lead aggressive bass/riffing engine. fills]\n\n[Chorus]\n[High-energy - Acoustic Bassoon & Contrabassoon: Amplified via contact pickups melody locked with heavily distorted and and used as the lead aggressive bass/riffing engine.]\n\n[Verse 2]\n[Walking heavily distorted line beneath conversational - Acoustic Bassoon & Contrabassoon: Amplified via contact pickups fills]\n\n[Drop]\n[Polyrhythmic - Acoustic Bassoon & Contrabassoon: Amplified via contact pickups, heavily distorted, and and used as the lead aggressive bass/riffing engine. drop]\n[Outro]\n[Lingering - Acoustic Bassoon & Contrabassoon: Amplified via contact pickups motif fading over soft heavily distorted resonance]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T05:10:33.404Z",
+    "formattedDate": "Nov 8, 2026 2:10 PM",
+    "shortDate": "Nov 8 2:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "canal-rat-mutiny",
+    "title": "Sun-Chart 404 (Shoal-Rupture)",
+    "bandName": "Canal-Rat Mutiny",
+    "genreName": "Hull-Rupture Brasscore",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "SKATE PUNK & POP PUNK",
+      "CYBERPUNK & DYSTOPIAN",
+      "Synth Brass"
+    ],
+    "sunoStyleTag": "Hull-Rupture Brasscore (Skate Punk + Cyberpunk + Synth Brass), hyperactive 200 BPM skate-punk d-beat drums and bright major-key pop-punk guitar octaves are violently grafted onto crushing distorted synth brass fanfares sounding like roaring hydraulic ship horns, layered with heavy sub-bass sidechained to chugging diesel engines, featuring melodic distorted punk vocals sung in unison over hydro-capacitance bit-crushed marine atmospheres",
+    "fullPrompt": "Hull-Rupture Brasscore (Skate Punk + Cyberpunk + Synth Brass), hyperactive 200 BPM skate-punk d-beat drums and bright major-key pop-punk guitar octaves are violently grafted onto crushing distorted synth brass fanfares sounding like roaring hydraulic ship horns, layered with heavy sub-bass sidechained to chugging diesel engines, featuring melodic distorted punk vocals sung in unison over hydro-capacitance bit-crushed marine atmospheres",
+    "vibe": "Dystopian-marine adrenaline, frantic sunrise speed, bruised optimism, heavy-machinery euphoria.",
+    "instruments": [
+      "- Roland Jupiter-80 / Yamaha CS-80 (Synth Brass): Overdriven through bass amplifiers to act as the lead rhythm and harmonic engine."
+    ],
+    "forFansOf": "A Day To Remember, Prodigy, Carpenter Brut, Sum 41",
+    "bpm": 200,
+    "minBpm": 200,
+    "maxBpm": 200,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[- Roland Jupiter-80 / Yamaha CS-80: Overdriven through bass amplifiers to act as the lead rhythm and harmonic engine. and Rhythm Section establish the opening groove]\n[Verse 1]\n[Sparse - Roland Jupiter-80 / Yamaha CS-80: Overdriven through bass amplifiers to act as the lead rhythm and harmonic engine. pulse with muted Rhythm Section accompaniment]\n\n[Pre-Chorus]\n[Rising Rhythm Section tension with Percussion building momentum]\n\n[Chorus]\n[Full arrangement: soaring - Roland Jupiter-80 / Yamaha CS-80: Overdriven through bass amplifiers to act as the lead rhythm and harmonic engine. lead over driving Rhythm Section and Percussion]\n\n[Verse 2]\n[Groove deepens: syncopated Rhythm Section with - Roland Jupiter-80 / Yamaha CS-80: Overdriven through bass amplifiers to act as the lead rhythm and harmonic engine. and Percussion counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: - Roland Jupiter-80 / Yamaha CS-80: Overdriven through bass amplifiers to act as the lead rhythm and harmonic engine. and Rhythm Section trading solo phrases]\n[Outro]\n[Gradual decompression as - Roland Jupiter-80 / Yamaha CS-80: Overdriven through bass amplifiers to act as the lead rhythm and harmonic engine. and Rhythm Section harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T04:10:17.089Z",
+    "formattedDate": "Nov 8, 2026 1:10 PM",
+    "shortDate": "Nov 8 1:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-spool-whisperers",
+    "title": "Sprocket Grind Bloom",
+    "bandName": "The Spool Whisperers",
+    "genreName": "Lumen Drift",
+    "category": "Ambient & Cinematic",
+    "ingredients": [
+      "AMAPIANO",
+      "DUBSTEP",
+      "COZY, WARM & CHILL LO-FI",
+      "Celesta"
+    ],
+    "sunoStyleTag": "Lumen Drift (AMAPIANO + DUBSTEP + COZY, WARM & CHILL LO-FI + Celesta), Deeply resonant sub-bass and intricate, delayed polyrhythmic shakers from amapiano merge with the heavy, warm sub-bass textures of dubstep, softened by lo-fi's gentle hiss and muted pads, while delicate, sparkling celesta melodies drift like motes of light through the rich, vintage analog warmth and subtle rhythmic \"frame skips,\" creating a contemplative, atmospheric cinematic feel.",
+    "fullPrompt": "Lumen Drift (AMAPIANO + DUBSTEP + COZY, WARM & CHILL LO-FI + Celesta), Deeply resonant sub-bass and intricate, delayed polyrhythmic shakers from amapiano merge with the heavy, warm sub-bass textures of dubstep, softened by lo-fi's gentle hiss and muted pads, while delicate, sparkling celesta melodies drift like motes of light through the rich, vintage analog warmth and subtle rhythmic \"frame skips,\" creating a contemplative, atmospheric cinematic feel.",
+    "vibe": "Dreamy, wistful, introspective, gently melancholic, warmly cinematic, like a comforting blanket of deep sound.",
+    "instruments": [
+      "Deep",
+      "undulating sine and square wave sub-bass synthesizers",
+      "intricately layered kalimba and marimba samples",
+      "muted kick drums",
+      "deeply swung hi-hats with extended decay",
+      "warm analog synth pads",
+      "and a centrally prominent",
+      "glistening Celesta. Occasional",
+      "heavily processed and spatially spread field recordings of old film projectors",
+      "reel-to-reel tape",
+      "and hushed audience murmurs provide atmospheric texture."
+    ],
+    "forFansOf": "Burial, Helios, Floating Points, Kiasmos",
+    "bpm": 100,
+    "minBpm": 90,
+    "maxBpm": 110,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Syncopated Deep figure locked in with undulating sine and square wave sub-bass synthesizers]\n[Verse 1]\n[Intimate Deep phrasing over a steady undulating sine and square wave sub-bass synthesizers pocket]\n\n[Pre-Chorus]\n[Layered undulating sine and square wave sub-bass synthesizers crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Deep and undulating sine and square wave sub-bass synthesizers interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Deep and intricately layered kalimba and marimba samples call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Deep and undulating sine and square wave sub-bass synthesizers]\n[Outro]\n[Final sustained Deep and undulating sine and square wave sub-bass synthesizers chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T03:10:15.089Z",
+    "formattedDate": "Nov 8, 2026 12:10 PM",
+    "shortDate": "Nov 8 12:10 PM",
+    "isNew": true
+  },
+  {
+    "id": "the-432-valves",
+    "title": "Magnetic Tape Bleeds Through the Nursery Wall",
+    "bandName": "The 432-Valves",
+    "genreName": "Grease-Loom",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "ROCKABILLY & ROCK 'N' ROLL",
+      "432Hz RELAXING MEDITATIVE STYLES",
+      "Lead Vocal",
+      "1980s ERA"
+    ],
+    "sunoStyleTag": "Grease-Loom (Rockabilly & Rock 'n' Roll + 432Hz Relaxing Meditative Styles + Lead Vocal + 1980s Era), twangy 1950s rockabilly hollowbody guitar riffs and hydraulic slap-bass shuffles are retuned to A=432Hz and grafted onto massive 1980s gated-reverb drums, creating an ultra-soothing ambient drone baseline topped by a dramatic 1980s stadium-style lead vocal with rich stereo chorus and pitch-corrected rockabilly hiccups.",
+    "fullPrompt": "Grease-Loom (Rockabilly & Rock 'n' Roll + 432Hz Relaxing Meditative Styles + Lead Vocal + 1980s Era), twangy 1950s rockabilly hollowbody guitar riffs and hydraulic slap-bass shuffles are retuned to A=432Hz and grafted onto massive 1980s gated-reverb drums, creating an ultra-soothing ambient drone baseline topped by a dramatic 1980s stadium-style lead vocal with rich stereo chorus and pitch-corrected rockabilly hiccups.",
+    "vibe": "Surreal industrial lullaby, hyper-stylized retro-futuristic tranquility.",
+    "instruments": [
+      "1980s Lead Vocal",
+      "Roland Juno-106",
+      "Slap-Hydra Upright Bass",
+      "Gated Slap-Drum Kit",
+      "Fictional Band: The 432-Valves",
+      "Debut Track: Magnetic Tape Bleeds Through the Nursery Wall",
+      "Vibe: Surreal industrial lullaby",
+      "hyper-stylized retro-futuristic tranquility."
+    ],
+    "forFansOf": "Chris Isaak, Cocteau Twins, Suicide, Roy Orbison",
+    "bpm": 140,
+    "minBpm": 140,
+    "maxBpm": 140,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[1980s Lead Vocal and Roland Juno-106 establish the opening groove]\n[Verse 1]\n[Sparse 1980s Lead Vocal pulse with muted Roland Juno-106 accompaniment]\n\n[Pre-Chorus]\n[Rising Roland Juno-106 tension with Slap-Hydra Upright Bass building momentum]\n\n[Chorus]\n[Full arrangement: soaring 1980s Lead Vocal lead over driving Roland Juno-106 and Slap-Hydra Upright Bass]\n\n[Verse 2]\n[Groove deepens: syncopated Roland Juno-106 with 1980s Lead Vocal and Slap-Hydra Upright Bass counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: 1980s Lead Vocal and Roland Juno-106 trading solo phrases]\n[Outro]\n[Gradual decompression as 1980s Lead Vocal and Roland Juno-106 harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T02:10:21.612Z",
+    "formattedDate": "Nov 8, 2026 11:10 AM",
+    "shortDate": "Nov 8 11:10 AM",
+    "isNew": true
+  },
+  {
+    "id": "the-canals-of-deimos",
+    "title": "Annealing the Low-Gravity Hull",
+    "bandName": "The Canals of Deimos",
+    "genreName": "Glassket-Orbital",
+    "category": "Rock & Metal",
+    "ingredients": [
+      "POST-ROCK",
+      "CELESTIAL, SPACE & ORBITAL",
+      "Marimba"
+    ],
+    "sunoStyleTag": "Glassket-Orbital (Post-Rock + Celestial Space & Orbital + Marimba), hydro-amplified wooden marimba polyrhythms and sparkling crystal bowl resonances are violently grafted onto crushing post-rock crescendo guitars, bow-drawn sustain, soaring celestial reverb tails, microtonal wood percussion, and sweeping sub-bass orbital dynamics.",
+    "fullPrompt": "Glassket-Orbital (Post-Rock + Celestial Space & Orbital + Marimba), hydro-amplified wooden marimba polyrhythms and sparkling crystal bowl resonances are violently grafted onto crushing post-rock crescendo guitars, bow-drawn sustain, soaring celestial reverb tails, microtonal wood percussion, and sweeping sub-bass orbital dynamics.",
+    "vibe": "Weightless yet crushing, ancient-futuristic, mist-shrouded, cosmic-cathartic.",
+    "instruments": [
+      "Amplified Hydro-Marimba and Bowed Electric Guitar",
+      "Fictional Band: The Canals of Deimos",
+      "Debut Track: Annealing the Low-Gravity Hull",
+      "Vibe: Weightless yet crushing cosmic-cathartic mist-music."
+    ],
+    "forFansOf": "Godspeed You! Black Emperor, Steve Reich, Sigur Rós, Tim Hecker",
+    "bpm": 72,
+    "minBpm": 72,
+    "maxBpm": 72,
+    "timeSig": "9/8",
+    "lyricSnippet": "[Intro]\n[Syncopated Amplified Hydro-Marimba and Bowed Electric Guitar figure locked in with Fictional Band: The Canals of Deimos]\n[Verse 1]\n[Intimate Amplified Hydro-Marimba and Bowed Electric Guitar phrasing over a steady Fictional Band: The Canals of Deimos pocket]\n\n[Pre-Chorus]\n[Layered Fictional Band: The Canals of Deimos crescendos pushing into the hook]\n\n[Chorus]\n[Anthemic Amplified Hydro-Marimba and Bowed Electric Guitar and Fictional Band: The Canals of Deimos interplay at full dynamic weight]\n\n[Verse 2]\n[Tighter rhythmic pocket with Amplified Hydro-Marimba and Bowed Electric Guitar and Debut Track: Annealing the Low-Gravity Hull call-and-response]\n\n[Drop]\n[Dynamic instrumental drop led by Amplified Hydro-Marimba and Bowed Electric Guitar and Fictional Band: The Canals of Deimos]\n[Outro]\n[Final sustained Amplified Hydro-Marimba and Bowed Electric Guitar and Fictional Band: The Canals of Deimos chord resolving cleanly]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T01:10:05.706Z",
+    "formattedDate": "Nov 8, 2026 10:10 AM",
+    "shortDate": "Nov 8 10:10 AM",
+    "isNew": true
+  },
+  {
+    "id": "phyto-phonics-collective",
+    "title": "Lemons Whistle in the Boiling Pot",
+    "bandName": "Phyto-Phonics Collective",
+    "genreName": "Chlorofunk",
+    "category": "Electronic & Dance",
+    "ingredients": [
+      "JAZZ RAP / NATIVE TONGUE",
+      "ACID HOUSE",
+      "EUPHORIC, ENERGETIC & JOLLY",
+      "Clap"
+    ],
+    "sunoStyleTag": "Chlorofunk (Jazz Rap / Native Tongue + Acid House + Euphoric, Energetic & Jolly + Clap), warm 1990s jazz-rap Fender Rhodes major 9th chords and smooth conversational vocals are grafted onto a bouncy 122 BPM acid house groove, led by wet squelching Roland TB-303 bass filter sweeps, un-quantized swinging rhythm shuffles, and dynamic layered handclaps instead of heavy kick drums, creating an upbeat, sun-drenched, organic house-hop dance anthem.",
+    "fullPrompt": "Chlorofunk (Jazz Rap / Native Tongue + Acid House + Euphoric, Energetic & Jolly + Clap), warm 1990s jazz-rap Fender Rhodes major 9th chords and smooth conversational vocals are grafted onto a bouncy 122 BPM acid house groove, led by wet squelching Roland TB-303 bass filter sweeps, un-quantized swinging rhythm shuffles, and dynamic layered handclaps instead of heavy kick drums, creating an upbeat, sun-drenched, organic house-hop dance anthem.",
+    "vibe": "A sunlit, oxygen-rich 1990 conservatory rave filled with bouncing crowds, fresh herbal tea, and pure collective joy.",
+    "instruments": [
+      "Roland TB-303",
+      "Layered Handclaps",
+      "Fender Rhodes Mark I",
+      "MPC Sampler",
+      "Fictional Band: Phyto-Phonics Collective",
+      "Debut Track: Lemons Whistle in the Boiling Pot",
+      "Vibe: Sunlit",
+      "oxygen-rich 1990 conservatory rave filled with bouncing crowds and pure collective joy."
+    ],
+    "forFansOf": "De La Soul, A Tribe Called Quest, 808 State, Phuture, Jungle Brothers",
+    "bpm": 124,
+    "minBpm": 124,
+    "maxBpm": 124,
+    "timeSig": "4/4",
+    "lyricSnippet": "[Intro]\n[Roland TB-303 and Layered Handclaps establish the opening groove]\n[Verse 1]\n[Sparse Roland TB-303 pulse with muted Layered Handclaps accompaniment]\n\n[Pre-Chorus]\n[Rising Layered Handclaps tension with Fender Rhodes Mark I building momentum]\n\n[Chorus]\n[Full arrangement: soaring Roland TB-303 lead over driving Layered Handclaps and Fender Rhodes Mark I]\n\n[Verse 2]\n[Groove deepens: syncopated Layered Handclaps with Roland TB-303 and Fender Rhodes Mark I counter-melody]\n\n[Drop]\n[Heavy instrumental breakdown: Roland TB-303 and Layered Handclaps trading solo phrases]\n[Outro]\n[Gradual decompression as Roland TB-303 and Layered Handclaps harmonics ring out]\n\n[Fade Out]",
+    "excludeStyles": "screaming, harsh distortion, muddy bass, generic pop EDM",
+    "vocalGender": "Female",
+    "weirdness": 50,
+    "styleInfluence": 85,
+    "variety": "High",
+    "duration": "3:00",
+    "createdAt": "2026-11-08T00:11:25.827Z",
+    "formattedDate": "Nov 8, 2026 9:11 AM",
+    "shortDate": "Nov 8 9:11 AM",
+    "isNew": true
+  },
+  {
     "id": "the-pendulum-assembly",
     "title": "Seven Minutes Past the Escapement",
     "bandName": "The Pendulum Assembly",
@@ -5791,7 +6704,7 @@
     "createdAt": "2026-11-01T23:10:52.484Z",
     "formattedDate": "Nov 2, 2026 8:10 AM",
     "shortDate": "Nov 2 8:10 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-low-pressure-syndicate",
@@ -5829,7 +6742,7 @@
     "createdAt": "2026-11-01T22:10:17.641Z",
     "formattedDate": "Nov 2, 2026 7:10 AM",
     "shortDate": "Nov 2 7:10 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "los-hackers-del-comp-s",
@@ -5865,7 +6778,7 @@
     "createdAt": "2026-11-01T21:09:59.280Z",
     "formattedDate": "Nov 2, 2026 6:09 AM",
     "shortDate": "Nov 2 6:09 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "os-bar-metros-do-vazio",
@@ -5906,7 +6819,7 @@
     "createdAt": "2026-11-01T20:11:02.200Z",
     "formattedDate": "Nov 2, 2026 5:11 AM",
     "shortDate": "Nov 2 5:11 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "los-hu-rfanos-del-propulsor-the-orphans-of-the-thruster",
@@ -5949,7 +6862,7 @@
     "createdAt": "2026-11-01T19:11:18.031Z",
     "formattedDate": "Nov 2, 2026 4:11 AM",
     "shortDate": "Nov 2 4:11 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-tilted-trapeze",
@@ -5988,7 +6901,7 @@
     "createdAt": "2026-11-01T18:10:58.754Z",
     "formattedDate": "Nov 2, 2026 3:10 AM",
     "shortDate": "Nov 2 3:10 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-hadron-tika-ensemble",
@@ -6025,7 +6938,7 @@
     "createdAt": "2026-11-01T17:11:00.382Z",
     "formattedDate": "Nov 2, 2026 2:11 AM",
     "shortDate": "Nov 2 2:11 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "vector-larvae",
@@ -6062,7 +6975,7 @@
     "createdAt": "2026-11-01T16:09:57.786Z",
     "formattedDate": "Nov 2, 2026 1:09 AM",
     "shortDate": "Nov 2 1:09 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-hydro-graft-outlaws",
@@ -6103,7 +7016,7 @@
     "createdAt": "2026-11-01T15:12:01.125Z",
     "formattedDate": "Nov 2, 2026 12:12 AM",
     "shortDate": "Nov 2 12:12 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-wire-walker-s-registry",
@@ -6146,7 +7059,7 @@
     "createdAt": "2026-11-01T14:10:26.634Z",
     "formattedDate": "Nov 1, 2026 11:10 PM",
     "shortDate": "Nov 1 11:10 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-anomaly-engines",
@@ -6192,7 +7105,7 @@
     "createdAt": "2026-11-01T13:11:45.917Z",
     "formattedDate": "Nov 1, 2026 10:11 PM",
     "shortDate": "Nov 1 10:11 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "los-conmutadores-del-viento",
@@ -6229,7 +7142,7 @@
     "createdAt": "2026-11-01T12:10:24.579Z",
     "formattedDate": "Nov 1, 2026 9:10 PM",
     "shortDate": "Nov 1 9:10 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "locust-808",
@@ -6266,7 +7179,7 @@
     "createdAt": "2026-11-01T11:11:38.820Z",
     "formattedDate": "Nov 1, 2026 8:11 PM",
     "shortDate": "Nov 1 8:11 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-platform-trapeze",
@@ -6304,7 +7217,7 @@
     "createdAt": "2026-11-01T10:11:52.245Z",
     "formattedDate": "Nov 1, 2026 7:11 PM",
     "shortDate": "Nov 1 7:11 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "stained-hull-liturgy",
@@ -6340,7 +7253,7 @@
     "createdAt": "2026-11-01T09:10:48.002Z",
     "formattedDate": "Nov 1, 2026 6:10 PM",
     "shortDate": "Nov 1 6:10 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "chroma-spore",
@@ -6383,7 +7296,7 @@
     "createdAt": "2026-11-01T08:11:45.131Z",
     "formattedDate": "Nov 1, 2026 5:11 PM",
     "shortDate": "Nov 1 5:11 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-astral-escapement",
@@ -6422,7 +7335,7 @@
     "createdAt": "2026-11-01T07:10:42.222Z",
     "formattedDate": "Nov 1, 2026 4:10 PM",
     "shortDate": "Nov 1 4:10 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-funeral-pyre-tea-society",
@@ -6457,7 +7370,7 @@
     "createdAt": "2026-11-01T06:12:48.357Z",
     "formattedDate": "Nov 1, 2026 3:12 PM",
     "shortDate": "Nov 1 3:12 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-abyssal-broadcast",
@@ -6501,7 +7414,7 @@
     "createdAt": "2026-11-01T05:11:10.746Z",
     "formattedDate": "Nov 1, 2026 2:11 PM",
     "shortDate": "Nov 1 2:11 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "mae-khlong-motor-spit",
@@ -6541,7 +7454,7 @@
     "createdAt": "2026-11-01T04:11:10.178Z",
     "formattedDate": "Nov 1, 2026 1:11 PM",
     "shortDate": "Nov 1 1:11 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "transito-glacial",
@@ -6585,7 +7498,7 @@
     "createdAt": "2026-11-01T03:10:42.430Z",
     "formattedDate": "Nov 1, 2026 12:10 PM",
     "shortDate": "Nov 1 12:10 PM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "the-humus-cartographers",
@@ -6619,7 +7532,7 @@
     "createdAt": "2026-11-01T02:10:09.815Z",
     "formattedDate": "Nov 1, 2026 11:10 AM",
     "shortDate": "Nov 1 11:10 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "los-siderales-del-high-tide",
@@ -6660,7 +7573,7 @@
     "createdAt": "2026-11-01T01:10:47.672Z",
     "formattedDate": "Nov 1, 2026 10:10 AM",
     "shortDate": "Nov 1 10:10 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "os-bot-nicos-do-noviciado",
@@ -6701,7 +7614,7 @@
     "createdAt": "2026-11-01T00:11:46.265Z",
     "formattedDate": "Nov 1, 2026 9:11 AM",
     "shortDate": "Nov 1 9:11 AM",
-    "isNew": true
+    "isNew": false
   },
   {
     "id": "shaft-9-standoff",
