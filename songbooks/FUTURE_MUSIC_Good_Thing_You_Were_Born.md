@@ -5,12 +5,20 @@ Prepared 15 November 2026 (KST).
 ## Claude review handoff
 Review this complete birthday song for FUTURE_MUSIC. Assess emotional specificity, ordinary diction, cliché risk, natural stress and breath, chorus memorability, verse/bridge progression, and whether the arrangement supports a birthday gift. Preserve the relationship-neutral premise and distinguish the written production plan from the generated performances. Give concrete line edits with reasons; do not invent recipient details. If audio cannot be accessed, state that and review only the supplied text.
 
-### Final Suno recordings
-- **Preferred — Take A (about 4:20):** https://suno.com/song/255148d3-5e7e-4b10-9374-72f93195f93d
-- **Alternative — Take B (about 4:20):** https://suno.com/song/9d3e4ab7-6885-4d17-b903-7a44a95c5215
+### Current recordings after ten Claude-guided rounds
+- **Finished-song candidate — Round 10B (about 3:55):** https://suno.com/song/c4edd13c-ea2c-4b24-a513-b6ac6ceabd9f
+- **Latest comparison — Round 10A (about 3:55):** https://suno.com/song/056e7cd8-3116-4363-a946-221e6a9f23e1
+- **Exploratory zither-like texture — Round 5B (about 3:55; instrument identity and ending disputed):** https://suno.com/song/53de09ff-0fab-48e5-9994-8453f075451d
 
-Both links point to the revised renders. The earlier takes retained later in this document are superseded drafts. The complete lyrics, style prompt, arrangement, source provenance, and previous review findings follow.
+**10 rounds / 20 takes are complete. The full gayageum–haegeum–daegeum identity remains unverified.** Round 10B is selected for its reported clear birthday hook and complete ending, not for an achieved Korean fusion. Guitar-like accompaniment and extended instrumental passages persist.
 
+[Full twenty-take comparison and exact generation prompts](./FUTURE_MUSIC_Good_Thing_You_Were_Born_ITERATIONS.md).
+[Claude's original review](./FUTURE_MUSIC_Good_Thing_You_Were_Born_REVIEW.md).
+
+### Applied revisions
+The intro is instrumental; the pre-chorus now uses “Nobody's in a hurry.” Korean instruments lead the style prompt and arrangement tags; guitar/pad directions were removed and guitar exclusions tested. The bridge opener is retained because Claude's proposed debt/obligation wording changes the emotional tone. The chorus, verse 2 scene, callback, and concise record-player ending are preserved.
+
+The directions below describe the intended composition. They are not a transcription of the selected generated recording. Earlier audio links and findings later in this file are historical.
 
 A birthday tribute for someone whose presence makes a small gathering better. English; relationship-neutral. The record, cake, and gathering are an imagined scene, not claims about a real recipient. No name, age, gender, family role, or romantic relationship was supplied.
 
@@ -27,7 +35,7 @@ The profile calls its genre **Lacquer-Vector**: city pop, jazz-funk, modern brok
 - Proposed lead: close, restrained English vocal, conversational verses and a sustained title hook. No singer imitation. Transpose for the performer.
 - Groove chassis: city pop/jazz-funk. Keystone: interlocking sixteenth-note bass, gayageum, and janggu-inspired accents.
 - Rhodes leaves upper-register space for breathy daegeum. Muted gayageum supplies rhythmic responses; haegeum carries short answering slides rather than crowding the voice.
-- Verses narrow and dry; choruses widen with guitar and soft stacked harmonies. Lift comes from texture and space.
+- Verses narrow and dry; choruses widen through Korean instrumental responses and soft stacked harmonies. Lift comes from texture and space.
 - Short room/plate reverb, gentle tape color, clear centered vocal and controlled bass.
 - Proposed five-note title cell: D4–F#4–E4–F#4–A4 for “Good thing you were born.” Start “Good” as an eighth-note pickup, emphasize “thing,” sustain “born.” This is a composition sketch, not a transcription of generated audio.
 
@@ -36,10 +44,10 @@ These bars describe the composition plan, not verified timestamps of either gene
 
 | Section | Bars | Musical change |
 |---|---:|---|
-| Intro | 4 | Rhodes and muted gayageum; short vocal invitation |
+| Intro | 4 | Exposed gayageum motif; no spoken intro |
 | Verse 1 | 16 | Dry rim, fretless bass, close lead; party scene |
 | Pre-chorus | 4 | Suspended harmony, daegeum breath |
-| Chorus | 12 | Wider guitar and harmonies; hold the title line |
+| Chorus | 12 | Korean instrumental answers and wider harmonies; hold the title line |
 | Verse 2 | 16 | Janggu ghost accents, haegeum answers; candle and chosen song |
 | Chorus | 12 | Repeat recognizable hook |
 | Bridge | 8 | Strip drums; person’s private wishes take precedence |
@@ -65,15 +73,13 @@ In the notation below, “&” is an eighth-note offbeat; “a” is the last si
 | Snare/rim | Stable 2 and 4 | Stable 2 and 4; soft handclap layer |
 | Bass | Root on 1, short chord tone 2&, passing note 3&, optional approach 4a | Root 1, fifth 2&, chord tone 3&, optional anticipation 4& |
 | Space | Release bass before snare; omit approaches under dense words | Leave beat 2 and start of 4 clear; omit anticipation beneath held hook |
-| Gayageum/percussion | Short answers in vocal gaps, quiet 3+3+2 accents | Preserve interlock; longer ringing responses and wider guitar |
+| Gayageum/percussion | Short answers in vocal gaps, quiet 3+3+2 accents | Preserve interlock; longer ringing responses and wider harmonies |
 
 ## Complete lyrics — Suno Custom LYRICS
 ```text
-[Intro - Rhodes and muted gayageum, four bars]
-Somebody count us in.
-We haven't sung to you.
+[Instrumental Intro - four bars only, solo gayageum motif, no spoken words]
 
-[Verse 1 - close vocal, dry rim and fretless bass]
+[Verse 1 - muted gayageum ostinato, dry rim, close vocal]
 You choose a record from the stack
 And set it by the birthday cake.
 Someone tries to count us in;
@@ -83,13 +89,13 @@ One candle leans above the cream.
 The needle settles in its groove;
 Your foot is tapping underneath.
 
-[Pre-Chorus - suspended chords, daegeum breath]
+[Pre-Chorus - daegeum breathy answer, suspended Rhodes]
 No big speech tonight.
 No perfect thing to say.
-There's room for you beside me.
+Nobody's in a hurry.
 Let the next song play.
 
-[Chorus - wide guitar, soft harmonies, let the hook breathe]
+[Chorus - haegeum answers in vocal gaps, wide harmonies]
 Good thing you were born.
 This room is better with you here.
 Happy birthday, take your time.
@@ -99,7 +105,7 @@ Choose the song and we'll all sing.
 Good thing you were born.
 That's what we came here to say.
 
-[Verse 2 - janggu ghost accents, short haegeum answers]
+[Verse 2 - muted gayageum ostinato, janggu accents]
 You draw a breath; the room goes still.
 One little flame won't quit.
 You lean in close and try again.
@@ -109,7 +115,7 @@ You take the corner, icing first.
 Then ask us for a different song.
 We know the chorus, not the verse.
 
-[Chorus - warm harmonies, keep the lead clear]
+[Chorus - gayageum ostinato, warm harmonies, clear lead]
 Good thing you were born.
 This room is better with you here.
 Happy birthday, take your time.
@@ -125,9 +131,9 @@ There's more of you than what we see.
 Keep any wish you want to keep;
 It doesn't have to be for us.
 
-[Instrumental - four bars, haegeum answered by Rhodes and gayageum]
+[Instrumental - four bars only, gayageum solo, haegeum answers]
 
-[Final Chorus - full gentle lift, no key change]
+[Final Chorus - haegeum answers, gayageum groove, gentle lift]
 Good thing you were born.
 This room is better with you here.
 Happy birthday, take your time.
@@ -141,7 +147,7 @@ That's what we came here to say.
 You name the song. We turn it up.
 Good thing you were born.
 
-[Outro - sing both lines completely, then let Rhodes resolve]
+[Outro - complete both lines, gayageum closing response]
 You say, "Again, from the start."
 I put it on.
 
@@ -150,10 +156,10 @@ I put it on.
 
 ## Suno Custom STYLE
 ```text
-Warm city pop, jazz-funk and modern broken beat with Korean acoustic timbres; relaxed 100 BPM, 4/4, gently swung sixteenths and subtle janggu-inspired 3+3+2 ghost accents. Fender Rhodes plays spacious major-7, minor-9 and dominant-13 voicings; melodic fretless bass glides through passing notes beneath a dry Linn-style kick, rim-snare and light shaker. Gayageum drives crisp muted ostinatos and ringing chord responses; expressive haegeum answers the vocal in short portamento phrases, while breathy daegeum opens the upper register. Close, restrained English lead, conversational verses, clear uplifting birthday hook, soft stacked harmonies in choruses. Intimate intro and verses; widening pre-chorus, full but unhurried chorus, stripped bridge, four-bar haegeum/Rhodes exchange, joyful final chorus, gentle resolved outro. Clean chorus guitar, warm Juno pads, light tape saturation, short plate reverb, natural wooden attacks. No EDM drop or oversized drums.
+GAYAGEUM-LED GUGAK FUNK, 100 BPM, 4/4. Exposed close-miked Korean gayageum plucked zither: bright woody attack, resonant silk-like strings, pitch bends pressed after each pluck, damped syncopated sixteenths. Four bars of solo gayageum introduce its recurring five-note motif; bass and tight rim drums enter beneath it. Haegeum adds thin bowed sliding two-note answers only in choruses; daegeum adds short breathy bamboo-flute replies in the pre-chorus. Sparse fretless bass and light janggu; rich city-pop chord movement voiced on the zither itself. Warm English birthday singing, clear sustained title hook, soft stacked chorus harmonies. Intimate verse, widened chorus, stripped bridge, four-bar gayageum solo, complete final phrase, short natural decay.
 ```
 
-Generation settings used: V6, Max Mode on, Custom lyrics. Revised render uses a 260-second soft duration target and no hard duration cap. Musical directions are targets; generated pitch, timbres, structure, and wording require audio verification.
+Current candidate settings: V6 Wild, Custom lyrics, Max Mode off, 235-second soft duration target, duration guidance on and no hard duration cap. Negative style: acoustic guitar, electric guitar, bossa nova, synth pads, spoken intro, long instrumental interludes. Exact settings and all earlier rounds appear in the iteration log. Musical directions are targets, not verified performances.
 
 ## Suno Simple seed
 ```text
@@ -187,7 +193,7 @@ These are independent creative reviews using the Elephant/Goldfish separation of
 
 Observable checks: specific birthday scene; no invented recipient biography; verse 2 advances time; bridge changes the argument; recurring verbal and proposed melodic hook; short breath-friendly final tag; fusion defined through interlocking rhythm.
 
-## Audio render and verification
+## Historical audio renders before the ten-round revision
 Initial pair: generated, then superseded because audio review reported an abbreviated ending and possible word substitutions.
 - Initial take 1: https://suno.com/song/1e96c5c1-0925-49f5-9367-02c2af8217f8
 - Initial take 2: https://suno.com/song/78d427e2-d21f-4c78-87ad-0bfba07fe899
@@ -200,7 +206,7 @@ Final audio review results are recorded below when available. Authored key/tempo
 
 Moises status: connected project inspected. The birthday song was not imported or processed there; no Moises stem separation, pitch correction, or mastering was performed.
 
-### Final audio checks
+### Historical audio checks
 Automated audio listening reported the following; exact instrument identities and a word-perfect transcript are not independently established.
 
 | Take | Reported file duration | First full chorus, approximate | Detected pulse/key | Result |
@@ -210,5 +216,5 @@ Automated audio listening reported the following; exact instrument identities an
 
 Both final takes sing the closing line as **“I put it on”**. The final lyric sheet adopts that complete phrase; the submitted render text originally ended “I put it on again.” Take B’s transcription raised an uncertain “verse/vers” ending, not a confirmed audible error.
 
-**Preferred take: A**, for the earlier chorus and the review reporting no clear major lyric substitutions. Both are finished generated demos, with guitar/bass/light percussion more obvious to the listening analysis than the requested Korean timbres. The proposed D-major score remains a separate composition blueprint; detected audio is E-flat major. No further generations were made after this check.
+**Earlier preference before Claude's review: take A**, for the earlier chorus and the review reporting no clear major lyric substitutions. Both are finished generated demos, with guitar/bass/light percussion more obvious to the listening analysis than the requested Korean timbres. The proposed D-major score remains a separate composition blueprint; detected audio is E-flat major. These findings describe the earlier recordings; the subsequent ten rounds and current candidate are documented at the top of this file.
 
