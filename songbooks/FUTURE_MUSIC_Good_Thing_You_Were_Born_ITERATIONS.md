@@ -2,7 +2,7 @@
 
 Artist: FUTURE_MUSIC. Date: 15 November 2026 (KST).
 
-**Status: IN PROGRESS — 3/10 rounds reviewed.** Each round generates two takes. This audit will be updated after round 10.
+**Status: IN PROGRESS — 5/10 rounds reviewed.** Each round generates two takes. This audit will be updated after round 10.
 
 Goal: clearly audible gayageum, haegeum and daegeum within a warm birthday city-pop/jazz-funk song, intelligible English hook, and a complete natural ending. Listening judgments below come from Suno's automated audio reviewer, not human certification of instrument identity.
 
@@ -16,6 +16,11 @@ Accepted Claude revisions: instrumental intro removes the duplicate count-in; pr
 | 2B | v6 | 234.76s | [Listen](https://suno.com/song/08200e0d-607b-4b7b-a900-1bfbea86221c) | partial | true |
 | 3A | v6 | 234.76s | [Listen](https://suno.com/song/2772ac62-7eed-4c51-9ec3-01fe9f76b85d) | absent | true |
 | 3B | v6 | 234.8s | [Listen](https://suno.com/song/76b21327-188f-4d04-a3c5-5b57397ae5f2) | absent | false |
+
+| 4A | v6-wild | 234.68s | [Listen](https://suno.com/song/ccaa57e2-28fd-465d-b82a-401660fbdde8) | absent | false |
+| 4B | v6-wild | 234.56s | [Listen](https://suno.com/song/cbcbc87c-0cc1-4019-b1b8-ae7acf140c5c) | uncertain | true |
+| 5A | v6-wild | 234.76s | [Listen](https://suno.com/song/10fb2ebf-3be0-489f-9306-e05a3f9cecbd) | absent | uncertain |
+| 5B | v6-wild | 234.84s | [Listen](https://suno.com/song/53de09ff-0fab-48e5-9994-8453f075451d) | partial | true |
 
 ## Per-round evidence
 
@@ -93,4 +98,54 @@ The track is guitar-led acoustic pop/jazz rather than Korean acoustic city-pop: 
 
 ```json
 {"korean_timbres":"absent","heard":["acoustic guitar","bass","light drums/percussion","lead vocal"],"vocal_clear":true,"hook_clear":true,"complete_ending":false,"severe_defect":false,"first_chorus_s":58.8,"bpm":95.9,"key":"A# major","main_gap":"Noticeable but not excessive instrumental interludes; the final lyric is cut short."}
+```
+
+### Round 4 — Controlled model change: V6 Wild, same R03 prompt and lyrics
+
+Style:
+
+```text
+GAYAGEUM + HAEGEUM + DAEGEUM contemporary gugak jazz-funk. Dry amplified twelve-string gayageum is the lead rhythm instrument: exposed woody zither plucks, muted syncopated sixteenths, audible string bends. Thin nasal two-string bowed haegeum plays sliding two-note responses; transverse bamboo daegeum flute gives airy breath-noise answers. Keep the traditional ensemble clearly separated in the mix. Restrained city-pop harmony beneath these instruments; fretless bass, tight funk rim/snare and light janggu, 100 BPM in 4/4. Sparse low Rhodes only on phrase endings. Warm English lead sings the supplied birthday lyrics plainly, with spacious held title hooks and soft backing harmonies. Four-bar solo-gayageum opening, first chorus under one minute; direct chorus-to-verse transitions; four-bar gayageum/haegeum solo; complete sung closing line, short resolved ending.
+```
+
+Exclusions: acoustic guitar, electric guitar, bossa nova, synth pads, spoken intro, long instrumental interludes
+
+**Take A** — https://suno.com/song/ccaa57e2-28fd-465d-b82a-401660fbdde8
+
+The track is polished, clear English jazz-pop, but the requested Korean timbres are absent; I hear conventional guitar, bass, keys, brass, and drums. “Good thing you were born” is an unmistakable hook, the phrasing sounds natural, and there is no spoken count-in before the verse. No severe defect stands out, though the lyrics/alignment indicate the final “I put it on” may be clipped or incomplete, so I can’t certify a complete, natural ending. Instrumental passages are lengthy, especially before the last chorus. First chorus begins at about 1:02; tempo is about 98 BPM, in G minor.
+
+```json
+{"korean_timbres":"absent","heard":["clean electric guitar","bass","keys","brass","drums"],"vocal_clear":true,"hook_clear":true,"complete_ending":false,"severe_defect":false,"first_chorus_s":62.4,"bpm":97.9,"key":"G minor","main_gap":"Extended instrumental passage before final chorus (about 2:28–2:48)."}
+
+**Take B** — https://suno.com/song/cbcbc87c-0cc1-4019-b1b8-ae7acf140c5c
+
+The vocal is clear and the “Good thing you were born” hook is intelligible. No spoken count-in or severe artifact is reported; the ending completes “I put it on” and resolves softly. The instrumental break around 2:12–2:33 does not sound excessive. The Korean acoustic timbres remain uncertain: descriptions conflict, and the break is also described as electric guitar. First chorus is about 0:44. Tempo measures 97.9 BPM and key D minor. Natural English stress is broadly reported, though not independently settled.
+
+```json
+{"korean_timbres":"uncertain","heard":["plucked string/guitar-like accompaniment","bowed-string-like fills","flute-like ornament","electric guitar described in instrumental break"],"vocal_clear":true,"hook_clear":true,"complete_ending":true,"severe_defect":false,"first_chorus_s":44,"bpm":97.9,"key":"D minor","main_gap":"instrumental break around 2:12–2:33; not excessive"}
+```
+
+### Round 5 — Remove Rhodes; gayageum owns harmony and rhythm, other timbres enter sequentially
+
+Style:
+
+```text
+GAYAGEUM-LED GUGAK FUNK, 100 BPM, 4/4. Exposed close-miked Korean gayageum plucked zither: bright woody attack, resonant silk-like strings, pitch bends pressed after each pluck, damped syncopated sixteenths. Four bars of solo gayageum introduce its recurring five-note motif; bass and tight rim drums enter beneath it. Haegeum adds thin bowed sliding two-note answers only in choruses; daegeum adds short breathy bamboo-flute replies in the pre-chorus. Sparse fretless bass and light janggu; rich city-pop chord movement voiced on the zither itself. Warm English birthday singing, clear sustained title hook, soft stacked chorus harmonies. Intimate verse, widened chorus, stripped bridge, four-bar gayageum solo, complete final phrase, short natural decay.
+```
+
+Exclusions: acoustic guitar, electric guitar, bossa nova, synth pads, spoken intro, long instrumental interludes
+
+**Take A** — https://suno.com/song/10fb2ebf-3be0-489f-9306-e05a3f9cecbd
+
+The track is warm guitar-led pop with bass and drums, not clearly Korean acoustic city-pop/jazz-funk: I hear no convincing woody zither, bowed sliding strings, or breathy bamboo-flute timbres. The vocal is clear, the “Good thing you were born” hook stands out, and the English phrasing sounds natural; there is no spoken count-in before the verse. The first chorus begins around 0:51. There are long instrumental stretches, especially before the final chorus, but no obvious severe glitch. The ending lyric is partly unclear: I can verify “I put it,” but not the complete “I put it on,” so the full ending and its resolution are uncertain. The track is about 100 BPM in C major.
+
+```json
+{"korean_timbres":"absent","heard":["guitar","bass","drums"],"vocal_clear":true,"hook_clear":true,"complete_ending":null,"severe_defect":false,"first_chorus_s":51,"bpm":100,"key":"C major","main_gap":"Long instrumental break before final chorus"}
+```
+
+**Take B** — https://suno.com/song/53de09ff-0fab-48e5-9994-8453f075451d
+
+The birthday hook is clear, the English is intelligible with natural stress, and there’s no spoken count-in or severe vocal defect. A woody, ornamented zither-like plucked timbre is audible; I don’t hear a distinct bowed sliding string or breathy bamboo flute, so the Korean timbres are partial rather than a full palette. The final “I put it on” completes and the track resolves naturally. The first chorus begins at 0:44; the instrumental break around 1:58–2:28 is fairly long. Tempo is about 98 BPM in 4/4, and the measured key is G major.
+```json
+{"korean_timbres":"partial","heard":["woody, ornamented zither-like plucks","acoustic guitar","bass","drums"],"vocal_clear":true,"hook_clear":true,"complete_ending":true,"severe_defect":false,"first_chorus_s":44,"bpm":98.4,"key":"G major","main_gap":"instrumental break around 1:58–2:28 (about 30 seconds)"}
 ```
