@@ -15,7 +15,9 @@
     "sync:fast": "node scripts/sync-and-build.js --skip-web",
     "sync:pull": "node scripts/sync-and-build.js --pull",
     "build:ext": "node scripts/build-extension.js",
-    "sync:edge": "node scripts/sync-and-build.js --edge"
+    "sync:edge": "node scripts/sync-and-build.js --edge",
+    "test": "tsx --test tests/*.test.ts tests/*.test.js",
+    "test:pipeline": "python3 -m unittest discover -s pipeline/scripts/stem_prep/tests -t pipeline/scripts/stem_prep && python3 -m unittest discover -s pipeline/scripts/fl_studio/tests -t pipeline/scripts/fl_studio"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
