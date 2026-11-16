@@ -310,7 +310,7 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
           lo,
           hi,
           bitrate,
-          variations,
+          { ...variations, instrumental: isInstrumental },
           Math.random,
           selectedInstruments.length > 0 ? selectedInstruments : undefined
         );

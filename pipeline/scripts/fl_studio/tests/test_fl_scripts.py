@@ -1,7 +1,7 @@
 """Unit tests for the FL Studio piano-roll scripts.
 
-NOTE: these run against tests/flpianoroll.py, a minimal fake of FL Studio's
-`flpianoroll` module. They prove the scripts' logic (mapping, gating, scaling,
+NOTE: these run against tests/flpianoroll.py, a strict fake of FL Studio's
+`flpianoroll` module built from the documented API. They prove the scripts' logic (mapping, gating, scaling,
 timing maths) only, not real FL Studio behaviour -- always sanity-check a
 script inside FL's piano roll after changing it.
 """
@@ -37,26 +37,36 @@ MODES = {"auto": 0, "gm": 1, "pitched": 2}
 
 
 def run(module, **overrides):
-    flp.ScriptDialog.overrides = dict(overrides)
+    """Build the dialog, check every override names a real control, apply."""
+    flp._set_inputs(overrides)
     form = module.createDialog()
-    module.apply(form)
+    unknown = set(overrides) - set(flp._inputs(form))
+    if unknown:
+        raise KeyError("test overrides name no dialog control: %r" % sorted(unknown))
+    if form.Execute():
+        flp.score._begin_run()
+        module.apply(form)
     return form
+
+
+def notes():
+    return flp._all_notes()
 
 
 def set_notes(specs, ppq=96, tsnum=4, tsden=4):
     """specs: iterable of (number, time, length, velocity[, pan, fcut])."""
-    flp.score.reset(ppq=ppq, tsnum=tsnum, tsden=tsden)
+    flp._reset(ppq=ppq, tsnum=tsnum, tsden=tsden)
     for s in specs:
-        n = flp.Note(number=s[0], time=s[1], length=s[2], velocity=s[3])
+        n = flp._make_note(number=s[0], time=s[1], length=s[2], velocity=s[3])
         if len(s) > 4:
             n.pan = s[4]
         if len(s) > 5:
             n.fcut = s[5]
-        flp.score.addNote(n)
+        flp._add(n)
 
 
 def pitches():
-    return [n.number for n in flp.score.notes]
+    return [n.number for n in notes()]
 
 
 # Inputs that survive the default gates
@@ -79,19 +89,18 @@ CLEAN_QUIET_GATE = {"Min Note Length (Ticks @96 PPQ)": 1, "Min Velocity Gate": 0
 class Base(unittest.TestCase):
     def setUp(self):
         random.seed(1234)
-        flp.ScriptDialog.overrides = {}
-        flp.score.reset()
+        flp._reset()
 
 
 class TestDialogs(Base):
     def test_titles_match_contract(self):
-        self.assertEqual(FPC.createDialog().title, "FPC Drum Mapper & Humanizer")
-        self.assertEqual(GROOVE.createDialog().title, "Groove Humanizer")
-        self.assertEqual(CLEANER.createDialog().title, "Stem MIDI Cleaner & Pad Mapper")
+        self.assertEqual(flp._title(FPC.createDialog()), "FPC Drum Mapper & Humanizer")
+        self.assertEqual(flp._title(GROOVE.createDialog()), "Groove Humanizer")
+        self.assertEqual(flp._title(CLEANER.createDialog()), "Stem MIDI Cleaner & Pad Mapper")
 
     def test_input_mode_combo_options(self):
         for mod in (FPC, CLEANER):
-            inp = mod.createDialog().inputs["Input Mode"]
+            inp = flp._inputs(mod.createDialog())["Input Mode"]
             self.assertEqual(inp["options"], ["Auto", "GM drums (pass-through)",
                                               "Pitched transcription (band map)"])
 
@@ -178,7 +187,7 @@ class TestGating(Base):
     def test_cleaner_removes_consecutive_gated_notes_without_skipping(self):
         set_notes(self.SPECS)
         run(CLEANER, **{"Min Note Length (Ticks @96 PPQ)": 10, "Min Velocity Gate": 0.18})
-        self.assertEqual([n.time for n in flp.score.notes], self.KEPT_TIMES)
+        self.assertEqual([n.time for n in notes()], self.KEPT_TIMES)
 
     def test_fpc_removes_consecutive_gated_notes_without_skipping(self):
         set_notes(self.SPECS)
@@ -191,7 +200,7 @@ class TestGating(Base):
     def test_gate_length_scales_with_ppq(self):
         set_notes([(36, 0, 90, 0.9), (36, 960, 100, 0.9)], ppq=960)
         run(CLEANER, **{"Min Note Length (Ticks @96 PPQ)": 10})
-        self.assertEqual([n.length for n in flp.score.notes], [100])
+        self.assertEqual([n.length for n in notes()], [100])
 
 
 class TestTiming(Base):
@@ -199,9 +208,9 @@ class TestTiming(Base):
         random.seed(99)
         base = [(60, 0, 24, 0.7), (62, 50, 24, 0.7), (64, 130, 24, 0.7), (60, 200, 24, 0.7)]
         set_notes([(p, t * factor, l * factor, v) for p, t, l, v in base], ppq=ppq)
-        orig = [n.time for n in flp.score.notes]
+        orig = [n.time for n in notes()]
         run(GROOVE, **{"Timing Jitter (Ticks @96 PPQ)": 12})
-        return [n.time - o for n, o in zip(flp.score.notes, orig)]
+        return [n.time - o for n, o in zip(notes(), orig)]
 
     def test_groove_shifts_scale_with_ppq(self):
         s96 = self._groove_shifts(96, 1)
@@ -214,9 +223,9 @@ class TestTiming(Base):
         random.seed(7)
         base = [(42, 24, 12, 0.6), (40, 96, 12, 0.8), (42, 168, 12, 0.6), (36, 200, 12, 0.9)]
         set_notes([(p, t * factor, l * factor, v) for p, t, l, v in base], ppq=ppq)
-        orig = [n.time for n in flp.score.notes]
+        orig = [n.time for n in notes()]
         run(FPC, **FPC_QUIET_GATE)
-        return [n.time - o for n, o in zip(flp.score.notes, orig)]
+        return [n.time - o for n, o in zip(notes(), orig)]
 
     def test_fpc_shifts_scale_with_ppq(self):
         s96 = self._fpc_shifts(96, 1)
@@ -229,23 +238,23 @@ class TestTiming(Base):
             random.seed(seed)
             set_notes([(60, 0, 24, 0.8), (64, 1, 24, 0.8), (67, 2, 24, 0.8), (72, 3, 24, 0.8)])
             run(GROOVE, **{"Timing Jitter (Ticks @96 PPQ)": 24})
-            self.assertTrue(all(n.time >= 0 for n in flp.score.notes))
+            self.assertTrue(all(n.time >= 0 for n in notes()))
             set_notes([(42, 0, 24, 0.8), (38, 1, 24, 0.8), (36, 2, 24, 0.8)])
             run(FPC, **{"Timing Pocket Jitter (Ticks @96 PPQ)": 20,
                         "Snare Lay-Back (Ticks @96 PPQ)": -8}, **FPC_QUIET_GATE)
-            self.assertTrue(all(n.time >= 0 for n in flp.score.notes))
-            self.assertTrue(all(isinstance(n.time, int) for n in flp.score.notes))
+            self.assertTrue(all(n.time >= 0 for n in notes()))
+            self.assertTrue(all(isinstance(n.time, int) for n in notes()))
 
     def test_velocities_clamped(self):
         for seed in range(20):
             random.seed(seed)
             set_notes([(60, i * 24, 24, v) for i, v in enumerate((0.0, 0.05, 0.5, 1.0, 1.0))])
             run(GROOVE, **{"Velocity Spread": 0.25})
-            self.assertTrue(all(0.10 <= n.velocity <= 0.98 for n in flp.score.notes))
+            self.assertTrue(all(0.10 <= n.velocity <= 0.98 for n in notes()))
             set_notes([(p, i * 24, 24, v) for i, (p, v) in
                        enumerate(((36, 1.0), (40, 1.0), (42, 0.02), (46, 1.0), (49, 1.0)))])
             run(FPC, **{"FPC Layer Cycling Spread": 0.30}, **FPC_QUIET_GATE)
-            self.assertTrue(all(0.15 <= n.velocity <= 0.98 for n in flp.score.notes))
+            self.assertTrue(all(0.15 <= n.velocity <= 0.98 for n in notes()))
 
 
 class TestGroove(Base):
@@ -258,7 +267,7 @@ class TestGroove(Base):
         set_notes([(67, 2, 48, 0.7), (60, 0, 48, 0.7), (64, 1, 48, 0.7), (72, 10, 48, 0.7)])
         run(GROOVE, **dict(self.STILL, **{"Chord Strum (Ticks @96 PPQ)": 16,
                                           "Pull Backbeat (Laid-Back Feel)": False}))
-        by_pitch = {n.number: n.time for n in flp.score.notes}
+        by_pitch = {n.number: n.time for n in notes()}
         self.assertEqual(by_pitch[60], 0)
         self.assertEqual(by_pitch[64], 1 + 6)
         self.assertEqual(by_pitch[67], 2 + 12)
@@ -268,7 +277,7 @@ class TestGroove(Base):
         set_notes([(60 + i, 0, 480, 0.7) for i in range(6)], ppq=960)
         run(GROOVE, **dict(self.STILL, **{"Chord Strum (Ticks @96 PPQ)": 16,
                                           "Pull Backbeat (Laid-Back Feel)": False}))
-        times = [n.time for n in flp.score.notes]
+        times = [n.time for n in notes()]
         self.assertEqual(max(times) - min(times), 960 // 8)
 
     def test_backbeat_only_moves_on_beat_onsets(self):
@@ -276,20 +285,20 @@ class TestGroove(Base):
                    (60, 192, 24, 0.7), (60, 290, 24, 0.7), (60, 312, 24, 0.7)])
         run(GROOVE, **dict(self.STILL, **{"Pull Backbeat (Laid-Back Feel)": True,
                                           "Backbeat Pull (Ticks @96 PPQ)": 3}))
-        self.assertEqual([n.time for n in flp.score.notes], [0, 99, 120, 192, 293, 312])
+        self.assertEqual([n.time for n in notes()], [0, 99, 120, 192, 293, 312])
 
     def test_backbeat_respects_time_signature(self):
         # In 3/4, tick 288 is the downbeat of bar 2 (no pull); 96 is beat 2.
         set_notes([(60, 96, 24, 0.7), (60, 288, 24, 0.7)], tsnum=3, tsden=4)
         run(GROOVE, **dict(self.STILL, **{"Pull Backbeat (Laid-Back Feel)": True}))
-        self.assertEqual([n.time for n in flp.score.notes], [99, 288])
+        self.assertEqual([n.time for n in notes()], [99, 288])
 
     def test_length_jitter_never_inflates_short_notes(self):
         for seed in range(20):
             random.seed(seed)
             set_notes([(60, i * 48, 3, 0.7) for i in range(4)] + [(60, 400, 100, 0.7)])
             run(GROOVE)
-            lengths = [n.length for n in flp.score.notes]
+            lengths = [n.length for n in notes()]
             self.assertTrue(all(2 <= l <= 4 for l in lengths[:4]), lengths)
             self.assertTrue(80 <= lengths[4] <= 125)
 
@@ -300,7 +309,7 @@ class TestRelativeFilterPan(Base):
             random.seed(seed)
             set_notes([(42, 0, 24, 0.7, 0.9, 0.2), (42, 48, 24, 0.7, 0.1, 0.85)])
             run(FPC, **FPC_QUIET_GATE)
-            a, b = flp.score.notes
+            a, b = notes()
             self.assertLessEqual(abs(a.fcut - 0.2), 0.15)
             self.assertLessEqual(abs(a.pan - 0.9), 0.06)
             self.assertLessEqual(abs(b.fcut - 0.85), 0.15)
@@ -309,7 +318,7 @@ class TestRelativeFilterPan(Base):
     def test_pan_untouched_for_kick(self):
         set_notes([(36, 0, 24, 0.9, 0.3, 0.5)])
         run(FPC, **FPC_QUIET_GATE)
-        self.assertEqual(flp.score.notes[0].pan, 0.3)
+        self.assertEqual(notes()[0].pan, 0.3)
 
 
 if __name__ == "__main__":

@@ -33,6 +33,7 @@ import os
 import queue
 import shlex
 import shutil
+import signal
 import subprocess
 import sys
 import threading
@@ -126,7 +127,10 @@ _PREP_FILTERS: Dict[str, Dict[str, Optional[str]]] = {
 # Drum trigger chains: isolate a band, level it with dynaudnorm so the gate
 # threshold behaves the same on quiet and loud mixes, then gate out bleed.
 # The result is meant for audio-to-MIDI / trigger plugins, not for listening.
-_TRIGGER_NORMALIZE = "dynaudnorm=f=500:g=31:p=0.95:m=20"
+# b=1 (alternative boundary mode): by default dynaudnorm fades its gain to 1.0
+# over the first/last half-window (~7.5 s at f=500:g=31), so quiet hits in an
+# intro or outro (or a whole short stem) were never levelled and got gated out.
+_TRIGGER_NORMALIZE = "dynaudnorm=f=500:g=31:p=0.95:m=20:b=1"
 _TRIGGER_GATE = "agate=threshold={thr}:ratio=20:attack=0.5:release={rel}:range=0.001"
 TRIGGER_BANDS: Tuple[Tuple[str, str, float, int], ...] = (
     # (name, band filter, gate threshold (linear, post-normalize), release ms)
@@ -368,10 +372,13 @@ class TrackResult:
     # Source folder changed while we were processing: leave it pending so a
     # later settled pass picks up the new/updated stems.
     sources_changed: bool = False
+    # Shutdown was requested mid-track; the rest is redone on the next run.
+    interrupted: bool = False
 
     @property
     def success(self) -> bool:
-        return not self.failed and not self.sources_changed and (bool(self.ok) or self.dry_run)
+        return (not self.failed and not self.sources_changed and not self.interrupted
+                and (bool(self.ok) or self.dry_run))
 
 
 def _tail(text: str, lines: int = 15) -> str:
@@ -466,15 +473,28 @@ class StemPrepper:
                 jobs.extend(build_trigger_cmds(wav, triggers_out, self.ffmpeg))
 
             for dest, cmd in jobs:
+                if self.stop_event.is_set():
+                    result.interrupted = True
+                    break
                 err = self._run(cmd, dest)
                 if err is None:
                     result.ok.append(dest)
                     if not self.dry_run:
                         log.info("[%s]   ok   %s (%s)", track, dest.name, kind)
+                elif self.stop_event.is_set():
+                    # ffmpeg was most likely killed by the same Ctrl+C.
+                    result.interrupted = True
+                    break
                 else:
                     result.failed.append((dest, err))
                     log.error("[%s]   FAIL %s from %s\n%s", track, dest.name, wav.name, err)
+            if result.interrupted:
+                break
 
+        if result.interrupted:
+            log.warning("[%s] stopped before finishing; not marking done (it is redone on the next run)",
+                        track)
+            return result
         if self.dry_run:
             return result
 
@@ -520,6 +540,7 @@ class StemPrepper:
         with self._lock:
             if track in self._last_attempt and self._last_attempt[track] == folder_snapshot(track_dir):
                 return None  # previous attempt failed and nothing changed since
+        log.debug("[%s] waiting for folder to settle (%.1fs)", track, self.settle_secs)
         if not wait_until_stable(
             track_dir, self.settle_secs, self.settle_timeout,
             sleep=self.stop_event.wait, should_stop=self.stop_event.is_set,
@@ -621,7 +642,13 @@ def _make_watchdog_handler(stems_root: Path, work: TrackQueue):
             self._submit(event.src_path)
 
         def on_moved(self, event):
+            # Both ends: a stem renamed/moved out of a track folder changes it too.
+            self._submit(event.src_path)
             self._submit(event.dest_path)
+
+        def on_deleted(self, event):
+            # e.g. a corrupt stem removed after a failed pass: retry without it.
+            self._submit(event.src_path)
 
         def on_modified(self, event):
             if not event.is_directory:
@@ -630,23 +657,32 @@ def _make_watchdog_handler(stems_root: Path, work: TrackQueue):
     return _Handler()
 
 
+def _raise_keyboard_interrupt(signum, frame):  # pragma: no cover - signal handler
+    raise KeyboardInterrupt
+
+
 def run_watch(prepper: StemPrepper, poll_interval: float, use_watchdog: bool = True) -> int:
     paths = prepper.paths
     work = TrackQueue(prepper.handle_track)
-    work.start()
-    for t in pending_tracks(paths):  # startup scan
-        work.submit(t)
-
     observer = None
-    if use_watchdog and HAVE_WATCHDOG:
-        observer = Observer()
-        observer.schedule(_make_watchdog_handler(paths.stems, work), str(paths.stems), recursive=True)
-        observer.start()
-        log.info("watching %s (watchdog)", paths.stems)
-    else:
-        log.info("watching %s (polling every %.1fs; install watchdog for event-based watching)",
-                 paths.stems, poll_interval)
+    # Treat SIGTERM (service stop, `kill`) like Ctrl+C so shutdown is graceful.
+    prev_term = None
+    if hasattr(signal, "SIGTERM") and threading.current_thread() is threading.main_thread():
+        prev_term = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
     try:
+        work.start()
+        if use_watchdog and HAVE_WATCHDOG:
+            # Start watching before the startup scan so a folder created in
+            # between is not missed; duplicates are de-duplicated by the queue.
+            observer = Observer()
+            observer.schedule(_make_watchdog_handler(paths.stems, work), str(paths.stems), recursive=True)
+            observer.start()
+            log.info("watching %s (watchdog)", paths.stems)
+        else:
+            log.info("watching %s (polling every %.1fs; install watchdog for event-based watching)",
+                     paths.stems, poll_interval)
+        for t in pending_tracks(paths):  # startup scan
+            work.submit(t)
         while True:
             time.sleep(poll_interval)
             if observer is None:
@@ -660,6 +696,8 @@ def run_watch(prepper: StemPrepper, poll_interval: float, use_watchdog: bool = T
             observer.stop()
             observer.join()
         work.stop(timeout=30)
+        if prev_term is not None:
+            signal.signal(signal.SIGTERM, prev_term)
     return 0
 
 
@@ -694,10 +732,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[Sequence[str]] = None, runner: Runner = subprocess.run) -> int:
     args = build_arg_parser().parse_args(argv)
     logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
+        level=logging.INFO,
         format="%(asctime)s %(levelname)-5s %(message)s",
         datefmt="%H:%M:%S",
     )
+    # -v only raises our own logger: a DEBUG root logger makes watchdog log
+    # every raw inotify event (several lines per file read or written).
+    log.setLevel(logging.DEBUG if args.verbose else logging.NOTSET)
     if args.poll_interval <= 0:
         log.error("--poll-interval must be > 0")
         return 2
@@ -733,7 +774,11 @@ def main(argv: Optional[Sequence[str]] = None, runner: Runner = subprocess.run) 
     )
     if args.watch:
         return run_watch(prepper, args.poll_interval)
-    return prepper.run_once()
+    try:
+        return prepper.run_once()
+    except KeyboardInterrupt:
+        log.warning("interrupted; unfinished tracks are redone on the next run")
+        return 130
 
 
 if __name__ == "__main__":

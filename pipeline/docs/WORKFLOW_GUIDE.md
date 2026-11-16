@@ -89,7 +89,7 @@ The EQ frequencies and amounts below are **starting points** — sweep and adjus
 
 ## 5. FL Studio piano-roll scripts
 
-Install: copy the `.pyscript` files from `pipeline/scripts/fl_studio/` to `Documents/Image-Line/FL Studio/Settings/Piano roll scripts/`. Run from the Piano Roll **Tools > Scripting** menu; `Alt+Y` re-opens the last-used script.
+Install: copy the `.pyscript` files from `pipeline/scripts/fl_studio/` to `Documents/Image-Line/FL Studio/Settings/Piano roll scripts/`. Run from the scripts list in the Piano Roll **Tools** menu; **Run last script again** (`Ctrl+Alt+Y`) repeats the last-used script.
 
 | File | Dialog title | What it does |
 | :--- | :--- | :--- |

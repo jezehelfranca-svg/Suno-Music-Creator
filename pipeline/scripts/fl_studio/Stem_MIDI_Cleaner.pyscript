@@ -81,8 +81,8 @@ def createDialog():
     form.AddInputKnobInt("Min Note Length (Ticks @96 PPQ)", 12, 1, 48)
     form.AddInputKnob("Min Velocity Gate", 0.18, 0.01, 0.50)
     form.AddInputCheckbox("Remap Drum Pitches to Pads", False)
-    form.AddInputCombo("Input Mode", ",".join(INPUT_MODES), MODE_AUTO)
-    form.AddInputCombo("Target Pads", ",".join(TARGET_SETS), TARGET_GM)
+    form.AddInputCombo("Input Mode", list(INPUT_MODES), MODE_AUTO)
+    form.AddInputCombo("Target Pads", list(TARGET_SETS), TARGET_GM)
     return form
 
 
@@ -119,8 +119,8 @@ def apply(form):
     min_len_ref = form.GetInputValue("Min Note Length (Ticks @96 PPQ)")
     min_vel = form.GetInputValue("Min Velocity Gate")
     do_remap = form.GetInputValue("Remap Drum Pitches to Pads")
-    mode = int(form.GetInputValue("Input Mode"))
-    target = int(form.GetInputValue("Target Pads"))
+    mode = int(round(form.GetInputValue("Input Mode")))  # combo -> option index
+    target = int(round(form.GetInputValue("Target Pads")))
 
     ppq = flp.score.PPQ
     min_len = min_len_ref * ppq / REF_PPQ

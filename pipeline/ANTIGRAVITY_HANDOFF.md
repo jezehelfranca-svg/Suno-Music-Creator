@@ -33,7 +33,7 @@ STEPS
 5. Install FL Studio piano-roll scripts
    - Copy these from pipeline/scripts/fl_studio/ into the FL scripts folder (create it if missing; overwrite older copies):
      FPC_Drum_Mapper_Humanizer.pyscript, Groove_Humanize.pyscript, Stem_MIDI_Cleaner.pyscript
-   - Remind me: in FL's Piano Roll open Tools > Scripting to find "FPC Drum Mapper & Humanizer", "Groove Humanizer" and "Stem MIDI Cleaner & Pad Mapper"; Alt+Y re-opens the last-used script.
+   - Remind me: in FL's Piano Roll open the scripts list in the Tools menu to find "FPC Drum Mapper & Humanizer", "Groove Humanizer" and "Stem MIDI Cleaner & Pad Mapper"; "Run last script again" (Ctrl+Alt+Y) repeats the last one.
 6. Run the tests
    - `python -m unittest discover -s pipeline/scripts/stem_prep/tests -t pipeline/scripts/stem_prep`
    - `python -m unittest discover -s pipeline/scripts/fl_studio/tests -t pipeline/scripts/fl_studio`

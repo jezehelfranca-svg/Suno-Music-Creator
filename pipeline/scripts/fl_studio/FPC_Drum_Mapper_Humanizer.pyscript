@@ -94,7 +94,7 @@ def createDialog():
     form.AddInputKnobInt("Ghost Gate Length (Ticks @96 PPQ)", 10, 1, 48)
     form.AddInputKnob("Ghost Gate Velocity", 0.16, 0.01, 0.45)
     form.AddInputCheckbox("Remap Pitches to FPC Factory Pads", True)
-    form.AddInputCombo("Input Mode", ",".join(INPUT_MODES), MODE_AUTO)
+    form.AddInputCombo("Input Mode", list(INPUT_MODES), MODE_AUTO)
     form.AddInputCheckbox("Split Dual Snares (D3 Ghost / E3 Main)", True)
     form.AddInputKnob("FPC Layer Cycling Spread", 0.14, 0.02, 0.30)
     form.AddInputKnobInt("Timing Pocket Jitter (Ticks @96 PPQ)", 5, 0, 20)
@@ -194,7 +194,7 @@ def apply(form):
     min_len_ref = form.GetInputValue("Ghost Gate Length (Ticks @96 PPQ)")
     min_vel = form.GetInputValue("Ghost Gate Velocity")
     do_remap = form.GetInputValue("Remap Pitches to FPC Factory Pads")
-    mode = int(form.GetInputValue("Input Mode"))
+    mode = int(round(form.GetInputValue("Input Mode")))  # combo -> option index
     dual_snare = form.GetInputValue("Split Dual Snares (D3 Ghost / E3 Main)")
     layer_spread = form.GetInputValue("FPC Layer Cycling Spread")
     jitter_ref = form.GetInputValue("Timing Pocket Jitter (Ticks @96 PPQ)")
@@ -211,6 +211,7 @@ def apply(form):
     jitter_std = jitter_ref * scale / 2.0
     layback = layback_ref * scale
     hat_push = 2 * scale
+    vel_floor = max(0.15, min_vel)
 
     notes = _snapshot()
     plan = []
@@ -253,7 +254,9 @@ def apply(form):
         prev_v = last_pad_vel.get(pad)
         if prev_v is not None and abs(target_vel - prev_v) < 0.07:
             target_vel += 0.08 if target_vel < 0.85 else -0.08
-        velocity = _clamp(target_vel, 0.15, 0.98)
+        # Floor at the ghost gate so a second run never deletes notes this
+        # run kept (the default gate 0.16 was above the old 0.15 floor).
+        velocity = _clamp(target_vel, vel_floor, 0.98)
         last_pad_vel[pad] = velocity
 
         # Micro-timing pocket

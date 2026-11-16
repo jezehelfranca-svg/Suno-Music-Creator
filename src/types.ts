@@ -47,6 +47,8 @@ export interface VariationOptions {
    * (for Moises / DAW re-production). Optional so older saved options keep working.
    */
   stemFriendly?: boolean;
+  /** Track is instrumental (Suno advanced setting); drops vocal-only stem-friendly phrases. */
+  instrumental?: boolean;
 }
 
 export type SunoPromptFormat = 'suno-tag' | 'full-prompt' | 'complete-bundle';

@@ -77,11 +77,11 @@ const WET_DESCRIPTOR_PATTERNS: RegExp[] = [
   new RegExp(`(?:\\b(?:an?|the|some)\\s+)?\\b(?:${WET_ADJ}[\\s-]+){0,3}reverbs?(?:[\\s-]+(?:tails?|drenched|soaked|heavy|wash(?:es)?))?\\b`, 'gi'),
   /\b(?:wash(?:ed|ing)?[\s-]+out|washy|(?:ambient|echo|delay)\s+wash(?:es)?)\b/gi,
   /\b(?:dub-style\s+)?(?:long\s+)?(?:delay|echo)\s+(?:throws|tails|washes)\b/gi,
-  /\bcavernous(?:\s+(?:space|room|hall|ambience|echo))?\b/gi
+  /(?:\b(?:an?|the|some)\s+)?\bcavernous(?:\s+(?:space|room|hall|ambience|echo))?\b/gi
 ];
 
 /** A wet phrase preceded by one of these (e.g. "minimal reverb", "rather than washing out") is kept. */
-const NEGATED_BEFORE = /\b(?:no|minimal|minimum|little|less|without|avoid(?:ing)?|rather than|instead of|not|dry)\s+(?:[\w’'-]+\s+)?$/i;
+const NEGATED_BEFORE = /\b(?:no|minimal|minimum|little|less|without|avoid(?:ing)?|rather than|instead of|not|dry)\s+(?:(?!(?:and|but|with|plus)\b)[\w’'-]+\s+){0,2}$/i;
 
 function tidyFragment(s: string): string {
   let out = s
@@ -187,7 +187,7 @@ export function generateSunoPrompt(
   if (opts.highlight) tail.push(`Highlight the interplay between ${groove.anchor} and ${groove.pulse}.`);
 
   const instrumental = selectedVocals.includes('no vocals');
-  const stemPhrases = stemFriendly ? stemFriendlyPhrases(instrumental) : [];
+  const stemPhrases = stemFriendly ? stemFriendlyPhrases(instrumental || opts.instrumental === true) : [];
   // Appended after the shuffle so the rng sequence is unchanged by the flag.
   const stemLine = stemFriendly ? [`Stem-friendly mix: ${stemPhrases.join(', ')}.`] : [];
   const body = [opening, ...shuffle(core, rng), ...tail, ...stemLine].join(' ');
