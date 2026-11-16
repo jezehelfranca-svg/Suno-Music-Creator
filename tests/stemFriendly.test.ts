@@ -177,3 +177,59 @@ test('stripWetDescriptors: protected terms survive', () => {
     'Keep lush reverb pad wide, drums'
   );
 });
+
+test('on: instrumental vocal pick drops close-mic vocal from tag and full prompt (deterministic)', () => {
+  const p = generateSunoPrompt(['Grunge', 'Ambient'], '4/4', 70, 90, '320', { ...ALL, stemFriendly: true }, () => 0);
+  assert.ok(p);
+  assert.match(p.sunoStyleTag, /(^|, )instrumental, /);
+  assert.doesNotMatch(p.sunoStyleTag, /close-mic vocal/);
+  assert.ok(p.sunoStyleTag.endsWith('dry studio tracking, minimal reverb, tight transients, clear instrument separation'), p.sunoStyleTag);
+  assert.ok(p.fullPrompt.endsWith('Stem-friendly mix: dry studio tracking, minimal reverb, tight transients, clear instrument separation.'), p.fullPrompt);
+});
+
+test('on: user instrument names containing wet words survive everywhere', () => {
+  const inst = ['Spring Reverb Guitar', 'Clav C Basic Reverb 2'];
+  for (const seed of [1, 7, 42]) {
+    const off = generateSunoPrompt(['Grunge', 'Ambient'], '4/4', 70, 90, '320', ALL, mulberry32(seed), inst);
+    const on = generateSunoPrompt(['Grunge', 'Ambient'], '4/4', 70, 90, '320', { ...ALL, stemFriendly: true }, mulberry32(seed), inst);
+    assert.ok(off && on);
+    assert.deepEqual(on.selectedInstruments, inst);
+    for (const name of inst) {
+      const count = (s: string) => s.split(name).length - 1;
+      assert.ok(count(on.sunoStyleTag) >= 1, `${name} missing from tag`);
+      assert.equal(count(on.sunoStyleTag), count(off.sunoStyleTag), `${name} count changed in tag`);
+      assert.equal(count(on.fullPrompt), count(off.fullPrompt), `${name} count changed in full prompt`);
+    }
+  }
+  assert.equal(stripWetDescriptors('Spring Reverb Guitar and lush reverb', ['Spring Reverb Guitar']), 'Spring Reverb Guitar');
+  // Unprotected, the same words are treated as a wet descriptor.
+  assert.equal(stripWetDescriptors('Spring Reverb Guitar'), 'Guitar');
+});
+
+test('stripWetDescriptors: negated phrases are kept, case-insensitively, alongside stripped ones', () => {
+  for (const text of ['no reverb', 'No Reverb', 'dry reverb', 'without any lush reverb', 'no reverb, tight kick', 'avoid washed-out guitars']) {
+    assert.equal(stripWetDescriptors(text), text);
+  }
+  assert.equal(stripWetDescriptors('minimal reverb and a cavernous hall'), 'minimal reverb');
+  assert.match(stripWetDescriptors('no reverb on vocals, lush reverb on pads'), /^no reverb on vocals/);
+  assert.doesNotMatch(stripWetDescriptors('no reverb on vocals, lush reverb on pads'), /lush/);
+});
+
+test('stripWetDescriptors: negation may sit up to two words before the wet phrase', () => {
+  assert.equal(stripWetDescriptors('not too much reverb'), 'not too much reverb');
+  assert.equal(stripWetDescriptors('very little lush reverb'), 'very little lush reverb');
+});
+
+test('on: instrumental option drops close-mic vocal without changing the rest', () => {
+  const on = generateSunoPrompt(['Grunge', 'Ambient'], '4/4', 70, 90, '320', { ...ALL, stemFriendly: true }, mulberry32(3));
+  const inst = generateSunoPrompt(['Grunge', 'Ambient'], '4/4', 70, 90, '320', { ...ALL, stemFriendly: true, instrumental: true }, mulberry32(3));
+  const offInst = generateSunoPrompt(['Grunge', 'Ambient'], '4/4', 70, 90, '320', { ...ALL, instrumental: true }, mulberry32(3));
+  const off = generateSunoPrompt(['Grunge', 'Ambient'], '4/4', 70, 90, '320', ALL, mulberry32(3));
+  assert.ok(on && inst && offInst && off);
+  assert.doesNotMatch(inst.sunoStyleTag, /close-mic vocal/);
+  assert.doesNotMatch(inst.fullPrompt, /close-mic vocal/);
+  assert.equal(inst.sunoStyleTag, on.sunoStyleTag.replace(', close-mic vocal', ''));
+  // No effect when stem-friendly is off.
+  assert.equal(offInst.sunoStyleTag, off.sunoStyleTag);
+  assert.equal(offInst.fullPrompt, off.fullPrompt);
+});
