@@ -1,0 +1,1 @@
+watchdog>=3.0  # optional: event-based --watch; without it stem_prep.py polls
