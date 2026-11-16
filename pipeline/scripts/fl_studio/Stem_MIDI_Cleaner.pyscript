@@ -1,0 +1,154 @@
+"""Stem MIDI Cleaner & Pad Mapper -- FL Studio piano-roll script.
+
+Deletes short/quiet ghost notes that audio-to-MIDI transcription of separated
+stems tends to produce, and optionally maps drum MIDI to pads.
+
+Install: copy to Documents/Image-Line/FL Studio/Settings/Piano roll scripts/
+
+Design notes
+* Standalone on purpose: the drum categorisation block below is duplicated
+  (identically) in FPC_Drum_Mapper_Humanizer.pyscript; the unit tests check
+  both scripts agree on kick/snare/hat categorisation.
+* The length knob is in "ticks @96 PPQ" and scales with the project PPQ.
+* Notes already on GM drum numbers keep their identity; only non-GM / pitched
+  transcription output is band-mapped. Re-running keeps pad assignment.
+* Gated notes are deleted in descending index order after all decisions are
+  made, so no note is skipped.
+"""
+import flpianoroll as flp
+
+REF_PPQ = 96.0
+
+# --- Shared drum categorisation (keep identical in FPC_Drum_Mapper_Humanizer)
+INPUT_MODES = ("Auto", "GM drums (pass-through)", "Pitched transcription (band map)")
+MODE_AUTO = 0
+MODE_GM = 1
+MODE_PITCHED = 2
+
+GM_CATEGORY = {
+    35: "kick", 36: "kick",
+    37: "snare", 38: "snare", 39: "snare", 40: "snare",
+    41: "tom", 43: "tom", 45: "tom", 47: "tom", 48: "tom", 50: "tom",
+    42: "hat", 44: "hat", 46: "hat", 54: "hat",
+    49: "cymbal", 51: "cymbal", 52: "cymbal", 53: "cymbal",
+    55: "cymbal", 57: "cymbal", 59: "cymbal",
+    56: "perc", 58: "perc",
+}
+# Pad numbers this family of scripts writes. In "Pitched transcription" mode
+# a note already on one of these is treated as mapped (keeps re-runs stable).
+MAPPED_PADS = (36, 37, 38, 39, 40, 42, 44, 46, 49, 51)
+# GM numbers outside the FPC factory kit, folded to the closest pad.
+GM_TO_PAD = {35: 36, 52: 49, 55: 49, 57: 49, 53: 51, 59: 51, 54: 42}
+
+KICK_BAND_TOP = 45     # band map: pitch <= 45 -> kick
+SNARE_BAND_TOP = 62    # band map: 46..62 -> snare
+CYMBAL_BAND_LOW = 70   # band map: >= 70 and long -> cymbal, else hat
+CYMBAL_MIN_BEATS = 0.9  # "long" = at least this many quarter notes
+
+
+def classify_drum(pitch, length, ppq, mode):
+    """Return (category, source); source is 'gm', 'band' or None (untouched)."""
+    if mode == MODE_PITCHED:
+        use_gm = pitch in MAPPED_PADS
+    else:
+        use_gm = pitch in GM_CATEGORY
+    if use_gm:
+        return GM_CATEGORY[pitch], "gm"
+    if mode == MODE_GM:
+        return None, None
+    if pitch <= KICK_BAND_TOP:
+        return "kick", "band"
+    if pitch <= SNARE_BAND_TOP:
+        return "snare", "band"
+    if pitch >= CYMBAL_BAND_LOW and length >= CYMBAL_MIN_BEATS * ppq:
+        return "cymbal", "band"
+    return "hat", "band"
+# ---------------------------------------------------------------------------
+
+TARGET_SETS = ("GM / FPC pads", "3 pads (Kick 36 / Snare 38 / Hat 42)")
+TARGET_GM = 0
+TARGET_3PAD = 1
+THREE_PAD = {"kick": 36, "snare": 38, "tom": 38, "hat": 42, "cymbal": 42, "perc": 42}
+
+
+def createDialog():
+    form = flp.ScriptDialog(
+        "Stem MIDI Cleaner & Pad Mapper",
+        "Deletes short/quiet ghost notes left by audio-to-MIDI transcription of separated "
+        "stems, and optionally maps drum MIDI to GM/FPC pads or a 3-pad kick/snare/hat layout. "
+        "Tick values are at 96 PPQ and scale to the project PPQ."
+    )
+    form.AddInputKnobInt("Min Note Length (Ticks @96 PPQ)", 12, 1, 48)
+    form.AddInputKnob("Min Velocity Gate", 0.18, 0.01, 0.50)
+    form.AddInputCheckbox("Remap Drum Pitches to Pads", False)
+    form.AddInputCombo("Input Mode", ",".join(INPUT_MODES), MODE_AUTO)
+    form.AddInputCombo("Target Pads", ",".join(TARGET_SETS), TARGET_GM)
+    return form
+
+
+def _time_signature():
+    try:
+        num = int(getattr(flp.score, "tsnum", 4) or 4)
+        den = int(getattr(flp.score, "tsden", 4) or 4)
+    except (TypeError, ValueError):
+        return 4, 4
+    if num <= 0 or den <= 0:
+        return 4, 4
+    return num, den
+
+
+def target_pad(category, source, pitch, length, is_bar_start, ppq, target):
+    if category is None:
+        return pitch
+    if target == TARGET_3PAD:
+        return THREE_PAD.get(category, pitch)
+    if source == "gm":
+        return GM_TO_PAD.get(pitch, pitch)
+    if category == "kick":
+        return 36
+    if category == "snare":
+        return 38
+    if category == "cymbal":
+        return 49 if is_bar_start else 51
+    if category == "hat":
+        return 46 if length >= 0.65 * ppq else 42
+    return pitch
+
+
+def apply(form):
+    min_len_ref = form.GetInputValue("Min Note Length (Ticks @96 PPQ)")
+    min_vel = form.GetInputValue("Min Velocity Gate")
+    do_remap = form.GetInputValue("Remap Drum Pitches to Pads")
+    mode = int(form.GetInputValue("Input Mode"))
+    target = int(form.GetInputValue("Target Pads"))
+
+    ppq = flp.score.PPQ
+    min_len = min_len_ref * ppq / REF_PPQ
+    tsnum, tsden = _time_signature()
+    bar_ticks = ppq * 4.0 / tsden * tsnum
+    half_step = ppq * 4.0 / tsden / 8.0
+
+    # Phase 1: decide everything from an unmodified snapshot.
+    to_delete = []
+    new_pitch = {}
+    for i in range(flp.score.noteCount):
+        n = flp.score.getNote(i)
+        if n.length < min_len or n.velocity < min_vel:
+            to_delete.append(i)
+            continue
+        if do_remap:
+            pos = n.time % bar_ticks
+            is_bar_start = pos < half_step or (bar_ticks - pos) < half_step
+            category, source = classify_drum(n.number, n.length, ppq, mode)
+            pad = target_pad(category, source, n.number, n.length, is_bar_start, ppq, target)
+            if pad != n.number:
+                new_pitch[i] = pad
+
+    # Phase 2: pitch edits (indices still valid: nothing deleted yet).
+    refs = {i: flp.score.getNote(i) for i in new_pitch}
+    for i, pad in new_pitch.items():
+        refs[i].number = pad
+
+    # Phase 3: delete from the end so earlier indices stay valid.
+    for i in sorted(to_delete, reverse=True):
+        flp.score.deleteNote(i)

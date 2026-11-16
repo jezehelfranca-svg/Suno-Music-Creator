@@ -1,0 +1,152 @@
+"""Groove Humanizer -- FL Studio piano-roll script.
+
+Applies Gaussian timing drift, chord strum offsets, a laid-back backbeat and
+velocity/length variation to the notes in the piano roll.
+
+Install: copy to Documents/Image-Line/FL Studio/Settings/Piano roll scripts/
+
+Design notes
+* Tick-valued knobs are in "ticks @96 PPQ" and scale by PPQ/96.
+* Notes starting within PPQ/48 of the first note of a group form a chord;
+  a chord shares one timing offset, is strummed low-to-high, and the total
+  strum is capped at PPQ/8.
+* The backbeat pull only moves notes whose onset is on/near beats 2 and 4
+  (the odd beats of the bar, using the score time signature when exposed).
+* Length variation never shortens a note below 80% of its original length.
+* All values are computed from a snapshot before any note is edited.
+"""
+import flpianoroll as flp
+import random
+
+REF_PPQ = 96.0
+CHORD_TOLERANCE_PPQ_DIV = 48.0   # chord window = PPQ / 48
+MAX_STRUM_PPQ_DIV = 8.0          # total strum <= PPQ / 8
+ON_BEAT_TOLERANCE_BEAT_DIV = 8.0  # "on the beat" = within 1/8 of a beat
+MIN_LENGTH_RATIO = 0.8
+MAX_LENGTH_RATIO = 1.25
+
+
+def createDialog():
+    form = flp.ScriptDialog(
+        "Groove Humanizer",
+        "Applies Gaussian timing drift, capped chord strums, a laid-back backbeat and "
+        "velocity/length variation. Tick values are at 96 PPQ and scale to the project PPQ."
+    )
+    form.AddInputKnobInt("Timing Jitter (Ticks @96 PPQ)", 6, 0, 24)
+    form.AddInputKnobInt("Chord Strum (Ticks @96 PPQ)", 4, 0, 16)
+    form.AddInputKnob("Velocity Spread", 0.08, 0.0, 0.25)
+    form.AddInputCheckbox("Pull Backbeat (Laid-Back Feel)", True)
+    form.AddInputKnobInt("Backbeat Pull (Ticks @96 PPQ)", 3, 0, 12)
+    return form
+
+
+def gaussian_rand(mean, std_dev):
+    if std_dev <= 0:
+        return mean
+    return random.gauss(mean, std_dev)
+
+
+def _clamp(v, lo, hi):
+    return lo if v < lo else hi if v > hi else v
+
+
+def _time_signature():
+    try:
+        num = int(getattr(flp.score, "tsnum", 4) or 4)
+        den = int(getattr(flp.score, "tsden", 4) or 4)
+    except (TypeError, ValueError):
+        return 4, 4
+    if num <= 0 or den <= 0:
+        return 4, 4
+    return num, den
+
+
+def is_backbeat_onset(time, beat_ticks, tsnum):
+    """True when time is within 1/8 beat of an odd beat (beats 2 and 4 in 4/4)."""
+    nearest = int(round(time / beat_ticks))
+    if abs(time - nearest * beat_ticks) > beat_ticks / ON_BEAT_TOLERANCE_BEAT_DIV:
+        return False
+    return (nearest % tsnum) % 2 == 1
+
+
+def group_chords(notes, tolerance):
+    """Group snapshot dicts (any order) into onset clusters anchored on the
+    earliest note: a note joins if it starts within `tolerance` of the anchor."""
+    groups = []
+    for n in sorted(notes, key=lambda x: (x["time"], x["number"])):
+        if groups and n["time"] - groups[-1][0]["time"] <= tolerance:
+            groups[-1].append(n)
+        else:
+            groups.append([n])
+    return groups
+
+
+def apply(form):
+    jitter_ref = form.GetInputValue("Timing Jitter (Ticks @96 PPQ)")
+    strum_ref = form.GetInputValue("Chord Strum (Ticks @96 PPQ)")
+    vel_spread = form.GetInputValue("Velocity Spread")
+    pull_backbeat = form.GetInputValue("Pull Backbeat (Laid-Back Feel)")
+    pull_ref = form.GetInputValue("Backbeat Pull (Ticks @96 PPQ)")
+
+    count = flp.score.noteCount
+    if count == 0:
+        return
+
+    ppq = flp.score.PPQ
+    scale = ppq / REF_PPQ
+    tsnum, tsden = _time_signature()
+    beat_ticks = ppq * 4.0 / tsden
+
+    jitter_std = jitter_ref * scale / 2.0
+    strum_step = strum_ref * scale
+    max_strum = ppq / MAX_STRUM_PPQ_DIV
+    pull = pull_ref * scale if pull_backbeat else 0.0
+    len_jitter_std = 4 * scale
+
+    snapshot = []
+    refs = []
+    for i in range(count):
+        n = flp.score.getNote(i)
+        refs.append(n)
+        snapshot.append({"index": i, "number": n.number, "time": n.time,
+                         "length": n.length, "velocity": n.velocity})
+
+    new_values = {}
+    for group in group_chords(snapshot, ppq / CHORD_TOLERANCE_PPQ_DIV):
+        group.sort(key=lambda x: x["number"])
+        size = len(group)
+        is_chord = size >= 3
+        anchor = min(x["time"] for x in group)
+
+        step = 0.0
+        if is_chord and strum_step > 0:
+            step = min(strum_step, max_strum / (size - 1))
+        chord_shift = gaussian_rand(0, jitter_std) if is_chord else 0.0
+        backbeat_shift = pull if (pull and is_backbeat_onset(anchor, beat_ticks, tsnum)) else 0.0
+
+        for idx, n in enumerate(group):
+            if is_chord:
+                shift = chord_shift + idx * step
+            else:
+                shift = gaussian_rand(0, jitter_std)
+            shift += backbeat_shift
+            new_time = max(0, int(round(n["time"] + shift)))
+
+            vel_delta = gaussian_rand(0, vel_spread)
+            if is_chord and idx == size - 1:
+                vel_delta += 0.04  # let the top voice speak
+            velocity = _clamp(n["velocity"] + vel_delta, 0.10, 0.98)
+
+            orig_len = n["length"]
+            lo = max(min(1, orig_len), int(round(orig_len * MIN_LENGTH_RATIO)))
+            hi = max(lo, int(round(orig_len * MAX_LENGTH_RATIO)))
+            length = int(_clamp(int(round(orig_len + gaussian_rand(0, len_jitter_std))), lo, hi))
+
+            new_values[n["index"]] = (new_time, velocity, length)
+
+    # Edit through references captured before any change.
+    for i, note in enumerate(refs):
+        t, v, l = new_values[i]
+        note.time = t
+        note.velocity = v
+        note.length = l

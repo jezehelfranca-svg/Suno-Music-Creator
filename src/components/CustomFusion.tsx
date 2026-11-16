@@ -77,7 +77,8 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
     usecase: false,
     key: true,
     title: true,
-    highlight: true
+    highlight: true,
+    stemFriendly: false
   });
 
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>(
@@ -250,8 +251,10 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
     setGenre3(count === 3 ? picked[2] : '');
   };
 
+  // Select All / None only cover descriptor toggles; the stem-friendly mode keeps its own setting.
   const toggleAllVariations = (state: boolean) => {
-    setVariations({
+    setVariations(prev => ({
+      stemFriendly: prev.stemFriendly,
       rhythm: state,
       harmony: state,
       production: state,
@@ -264,7 +267,7 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
       key: state,
       title: state,
       highlight: state
-    });
+    }));
   };
 
   const handleGenerate = () => {
@@ -796,6 +799,29 @@ export const CustomFusion: React.FC<CustomFusionProps> = ({
               <span className="truncate">{opt.label}</span>
             </label>
           ))}
+        </div>
+
+        {/* Stem-friendly (dry tracking) mode: separate from Select All / None */}
+        <div className="mt-3 pt-3 border-t border-zinc-800/80 flex items-center gap-2 text-xs">
+          <label
+            title="Ask Suno for drier, more separable stems for Moises / DAW re-production."
+            className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all select-none ${
+              variations.stemFriendly
+                ? 'bg-emerald-950/40 border-emerald-700/50 text-emerald-200'
+                : 'bg-zinc-900/40 border-zinc-800 text-zinc-500 hover:text-zinc-300'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={variations.stemFriendly === true}
+              onChange={(e) => setVariations(prev => ({ ...prev, stemFriendly: e.target.checked }))}
+              className="rounded text-emerald-600 focus:ring-0 bg-zinc-800 border-zinc-700"
+            />
+            <span>Stem-friendly (dry)</span>
+          </label>
+          <span className="text-zinc-500 hidden sm:inline">
+            Ask Suno for drier, more separable stems for Moises / DAW re-production.
+          </span>
         </div>
       </div>
 
