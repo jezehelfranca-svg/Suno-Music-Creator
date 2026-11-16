@@ -7,12 +7,13 @@ Install: copy to Documents/Image-Line/FL Studio/Settings/Piano roll scripts/
 
 Design notes
 * Tick-valued knobs are in "ticks @96 PPQ" and scale by PPQ/96.
-* Notes starting within PPQ/48 of the first note of a group form a chord;
-  a chord shares one timing offset, is strummed low-to-high, and the total
-  strum is capped at PPQ/8.
+* Notes starting within PPQ/48 of the first note of a group form a chord
+  (two or more notes, so dyads stay together); a chord shares one timing
+  offset, is strummed low-to-high, and the total strum is capped at PPQ/8.
 * The backbeat pull only moves notes whose onset is on/near beats 2 and 4
   (the odd beats of the bar, using the score time signature when exposed).
-* Length variation never shortens a note below 80% of its original length.
+* Length variation never shortens a note below 80% of its original length
+  (and never below 1 tick, so zero-length notes come out 1 tick long).
 * All values are computed from a snapshot before any note is edited.
 """
 import flpianoroll as flp
@@ -115,7 +116,7 @@ def apply(form):
     for group in group_chords(snapshot, ppq / CHORD_TOLERANCE_PPQ_DIV):
         group.sort(key=lambda x: x["number"])
         size = len(group)
-        is_chord = size >= 3
+        is_chord = size >= 2
         anchor = min(x["time"] for x in group)
 
         step = 0.0
@@ -138,7 +139,7 @@ def apply(form):
             velocity = _clamp(n["velocity"] + vel_delta, 0.10, 0.98)
 
             orig_len = n["length"]
-            lo = max(min(1, orig_len), int(round(orig_len * MIN_LENGTH_RATIO)))
+            lo = max(1, int(round(orig_len * MIN_LENGTH_RATIO)))
             hi = max(lo, int(round(orig_len * MAX_LENGTH_RATIO)))
             length = int(_clamp(int(round(orig_len + gaussian_rand(0, len_jitter_std))), lo, hi))
 

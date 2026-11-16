@@ -97,7 +97,7 @@ Picks up each track folder in `02_Moises_Stems/`, writes prepped stems and drum 
    pip install -r pipeline/scripts/stem_prep/requirements.txt
    ```
 3. **Install the FL Studio piano-roll scripts:** copy the three `.pyscript` files from `pipeline/scripts/fl_studio/` into
-   `Documents/Image-Line/FL Studio/Settings/Piano roll scripts/`, then in the Piano Roll use **Tools > Scripting** or `Alt+Y` to re-run the last script.
+   `Documents/Image-Line/FL Studio/Settings/Piano roll scripts/`, then run them from the scripts list in the Piano Roll **Tools** menu; **Run last script again** (`Ctrl+Alt+Y`) repeats the last one.
 4. **Run the stem prep tool:**
    ```bash
    python pipeline/scripts/stem_prep/stem_prep.py --base-dir C:/Music_Pipeline --dry-run   # preview
