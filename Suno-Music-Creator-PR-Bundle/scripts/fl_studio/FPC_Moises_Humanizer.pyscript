@@ -1,0 +1,127 @@
+import flpianoroll as flp
+import math
+import random
+
+# FPC Factory GM MIDI Note Numbers (FL Studio C3 = MIDI 36)
+FPC_KICK = 36         # Pad 2: Kick (C3)
+FPC_SIDESTICK = 37    # Pad 1: Side Stick (C#3)
+FPC_SNARE_SOFT = 38   # Pad 6: Snare 2 / Ghost Snare (D3)
+FPC_CLAP = 39         # Pad 16: Hand Clap (D#3)
+FPC_SNARE_MAIN = 40   # Pad 5: Snare 1 / Main Backbeat (E3)
+FPC_HAT_CLOSED = 42   # Pad 3: Closed Hi-Hat (F#3)
+FPC_HAT_PEDAL = 44    # Pad 8: Pedal Hi-Hat (G#3)
+FPC_HAT_OPEN = 46     # Pad 7: Open Hi-Hat (A#3)
+FPC_CRASH = 49        # Pad 12: Crash Cymbal (C#4)
+FPC_RIDE = 51         # Pad 13: Ride Cymbal (D#4)
+
+def createDialog():
+    form = flp.ScriptDialog(
+        "FPC Moises Mapper & 16-Layer Humanizer",
+        "Cleans Moises drum MIDI, maps to FPC pads, and cycles across FPC's multi-velocity sample layers."
+    )
+    form.AddInputKnobInt("Bleed Gate Length (Ticks)", 10, 1, 48)
+    form.AddInputKnob("Bleed Gate Velocity", 0.16, 0.01, 0.45)
+    form.AddInputCheckbox("Remap Pitches to FPC Factory Pads", True)
+    form.AddInputCheckbox("Split Dual Snares (D3 Ghost / E3 Main)", True)
+    form.AddInputKnob("FPC Layer Cycling Spread", 0.14, 0.02, 0.30)
+    form.AddInputKnobInt("Timing Pocket Jitter (Ticks)", 5, 0, 20)
+    form.AddInputKnobInt("Snare Lay-Back (Ticks)", 4, -8, 12)
+    return form
+
+def gaussian_rand(mean, std_dev):
+    u1 = max(1e-7, random.random())
+    u2 = random.random()
+    z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2.0 * math.pi * u2)
+    return mean + z0 * std_dev
+
+def apply(form):
+    min_len = form.GetInputValue("Bleed Gate Length (Ticks)")
+    min_vel = form.GetInputValue("Bleed Gate Velocity")
+    do_remap = form.GetInputValue("Remap Pitches to FPC Factory Pads")
+    dual_snare = form.GetInputValue("Split Dual Snares (D3 Ghost / E3 Main)")
+    layer_spread = form.GetInputValue("FPC Layer Cycling Spread")
+    jitter_ticks = form.GetInputValue("Timing Pocket Jitter (Ticks)")
+    snare_layback = form.GetInputValue("Snare Lay-Back (Ticks)")
+
+    ppq = flp.score.PPQ
+    sixteenth = max(1, ppq // 4)
+    bar_ticks = ppq * 4
+
+    last_pad_vel = {}
+
+    for i in range(flp.score.noteCount - 1, -1, -1):
+        note = flp.score.getNote(i)
+
+        # 1. PURGE MOISES BLEED ARTIFACTS
+        if note.length <= min_len or note.velocity <= min_vel:
+            flp.score.deleteNote(i)
+            continue
+
+        sixteenth_idx = round(note.time / sixteenth) % 16
+        beat_in_bar = (sixteenth_idx // 4)
+        sub_pos = sixteenth_idx % 4
+        is_bar_start = (note.time % bar_ticks) < sixteenth
+
+        # 2. SMART PITCH-TO-FPC PAD MAPPING
+        if do_remap:
+            orig_pitch = note.number
+            if orig_pitch <= 43:
+                note.number = FPC_KICK
+            elif orig_pitch <= 58:
+                if note.velocity < 0.35:
+                    note.number = FPC_SIDESTICK
+                elif dual_snare:
+                    if beat_in_bar in (1, 3) and sub_pos == 0 and note.velocity >= 0.52:
+                        note.number = FPC_SNARE_MAIN
+                    else:
+                        note.number = FPC_SNARE_SOFT
+                else:
+                    note.number = FPC_SNARE_SOFT
+            else:
+                if is_bar_start and note.length >= int(ppq * 0.9) and orig_pitch >= 70:
+                    note.number = FPC_CRASH
+                elif note.length >= int(ppq * 0.65):
+                    note.number = FPC_HAT_OPEN
+                elif sub_pos in (1, 3) and note.velocity < 0.48 and random.random() < 0.18:
+                    note.number = FPC_HAT_PEDAL
+                else:
+                    note.number = FPC_HAT_CLOSED
+
+        # 3. FPC 16-LAYER VELOCITY TARGETING BY DRUM ROLE & METRIC PULSE
+        pad = note.number
+        if pad == FPC_KICK:
+            base_vel = 0.88 if (beat_in_bar in (0, 2) and sub_pos == 0) else 0.70
+        elif pad == FPC_SNARE_MAIN:
+            base_vel = 0.89
+        elif pad in (FPC_SNARE_SOFT, FPC_SIDESTICK):
+            base_vel = 0.42 if sub_pos in (1, 3) else 0.58
+        elif pad in (FPC_HAT_CLOSED, FPC_HAT_PEDAL):
+            hat_matrix = {0: 0.78, 1: 0.38, 2: 0.62, 3: 0.44}
+            base_vel = hat_matrix.get(sub_pos, 0.60)
+        elif pad in (FPC_HAT_OPEN, FPC_CRASH, FPC_RIDE):
+            base_vel = 0.82
+        else:
+            base_vel = note.velocity
+
+        target_vel = (note.velocity * 0.40) + (base_vel * 0.60) + gaussian_rand(0, layer_spread * 0.6)
+
+        # Anti-Machine-Gun Guard
+        prev_v = last_pad_vel.get(pad, -1.0)
+        if abs(target_vel - prev_v) < 0.07:
+            step = 0.08 if target_vel < 0.85 else -0.08
+            target_vel += step
+
+        note.velocity = max(0.15, min(0.98, target_vel))
+        last_pad_vel[pad] = note.velocity
+
+        # 4. MICRO-TIMING POCKET & SUBTLE FILTER/PAN HUMANIZATION
+        tick_shift = int(gaussian_rand(0, jitter_ticks / 2.0))
+        if pad in (FPC_SNARE_MAIN, FPC_SNARE_SOFT) and beat_in_bar in (1, 3) and sub_pos == 0:
+            tick_shift += snare_layback
+        elif pad in (FPC_HAT_CLOSED, FPC_HAT_OPEN) and sub_pos in (1, 3):
+            tick_shift += 2
+
+        note.time = max(0, note.time + tick_shift)
+        note.fcut = max(0.35, min(0.65, 0.50 + gaussian_rand(0, 0.04)))
+        if pad in (FPC_HAT_CLOSED, FPC_HAT_OPEN, FPC_SNARE_SOFT):
+            note.pan = max(0.44, min(0.56, 0.50 + gaussian_rand(0, 0.02)))
