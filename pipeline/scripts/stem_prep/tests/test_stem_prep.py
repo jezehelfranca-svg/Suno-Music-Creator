@@ -357,6 +357,29 @@ class TestProcessing(ProcessingBase):
         self.assertTrue(res.success)
         self.assertTrue(self.paths.done_marker("My Song").exists())
 
+    def test_source_change_during_processing_not_marked_done(self):
+        runner = FakeRunner()
+        inner = runner.__call__
+
+        def runner_adding_stem(cmd, **kw):
+            if len(runner.calls) == 0:  # a late stem lands mid-run
+                _touch_wav(self.track / "Guitar.wav")
+            return inner(cmd, **kw)
+
+        p = self.prepper(runner_adding_stem)
+        with self.assertLogs("stem_prep", level="WARNING"):
+            res = p.handle_track(self.track)
+        self.assertTrue(res.sources_changed)
+        self.assertFalse(res.success)
+        self.assertFalse(self.paths.done_marker("My Song").exists())
+        self.assertIn(self.track, sp.pending_tracks(self.paths))
+        # The next settled pass processes the new stem and completes the track.
+        res = p.handle_track(self.track)
+        self.assertTrue(res.success)
+        stems = self.paths.track_out("My Song") / "Audio_Stems"
+        self.assertTrue((stems / "Guitar_prep.wav").exists())
+        self.assertTrue(self.paths.done_marker("My Song").exists())
+
     def test_dry_run_prints_and_writes_nothing(self):
         runner = mock.Mock()
         lines = []

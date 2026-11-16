@@ -365,10 +365,13 @@ class TrackResult:
     ok: List[Path] = field(default_factory=list)
     failed: List[Tuple[Path, str]] = field(default_factory=list)
     dry_run: bool = False
+    # Source folder changed while we were processing: leave it pending so a
+    # later settled pass picks up the new/updated stems.
+    sources_changed: bool = False
 
     @property
     def success(self) -> bool:
-        return not self.failed and (bool(self.ok) or self.dry_run)
+        return not self.failed and not self.sources_changed and (bool(self.ok) or self.dry_run)
 
 
 def _tail(text: str, lines: int = 15) -> str:
@@ -441,6 +444,7 @@ class StemPrepper:
         stems_out = out_root / "Audio_Stems"
         triggers_out = out_root / "Drum_Triggers"
 
+        before = folder_snapshot(track_dir)
         sources = find_source_wavs(track_dir)
         if not sources:
             log.warning("[%s] no .wav stems found in %s", track, track_dir)
@@ -474,13 +478,18 @@ class StemPrepper:
         if self.dry_run:
             return result
 
+        if folder_snapshot(track_dir) != before:
+            result.sources_changed = True
+            log.warning("[%s] source folder changed during processing; leaving it pending for another pass",
+                        track)
+
         self._copy_template(track)
         if result.success:
             self.paths.done_marker(track).write_text(
                 f"prepped {len(result.ok)} file(s) with preset {self.preset}\n", encoding="utf-8"
             )
             log.info("[%s] done -> %s", track, out_root)
-        else:
+        elif result.failed:
             log.error("[%s] %d output(s) failed; not marking done", track, len(result.failed))
         return result
 
