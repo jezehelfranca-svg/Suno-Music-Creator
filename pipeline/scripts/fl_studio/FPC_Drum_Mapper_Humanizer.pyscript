@@ -1,127 +1,279 @@
+"""FPC Drum Mapper & Humanizer -- FL Studio piano-roll script.
+
+Cleans drum MIDI (for example a transcription of a separated drum stem),
+maps it onto FPC factory pads and humanizes velocity/timing so FPC's
+multi-velocity sample layers get exercised.
+
+Install: copy to Documents/Image-Line/FL Studio/Settings/Piano roll scripts/
+
+Design notes
+* Standalone on purpose: FL loads each .pyscript on its own, so the drum
+  categorisation helpers are duplicated (identically) in
+  Stem_MIDI_Cleaner.pyscript. The unit tests check they stay in agreement.
+* Tick-valued knobs are expressed in "ticks @96 PPQ" and scaled by PPQ/96,
+  so the musical result is the same at any project PPQ.
+* Bar/beat maths uses the score time signature when FL exposes it
+  (score.tsnum / score.tsden), otherwise 4/4.
+* Notes already on General MIDI drum numbers (35-59) keep their identity;
+  only non-GM / pitched transcription output is band-mapped. Output pads are
+  themselves GM numbers, so running the script twice keeps pad assignment.
+* Mutation is two-phase: snapshot every note, compute the plan, delete gated
+  notes in descending index order, then edit the survivors.
+"""
 import flpianoroll as flp
-import math
 import random
 
-# FPC Factory GM MIDI Note Numbers (FL Studio C3 = MIDI 36)
-FPC_KICK = 36         # Pad 2: Kick (C3)
-FPC_SIDESTICK = 37    # Pad 1: Side Stick (C#3)
-FPC_SNARE_SOFT = 38   # Pad 6: Snare 2 / Ghost Snare (D3)
-FPC_CLAP = 39         # Pad 16: Hand Clap (D#3)
-FPC_SNARE_MAIN = 40   # Pad 5: Snare 1 / Main Backbeat (E3)
-FPC_HAT_CLOSED = 42   # Pad 3: Closed Hi-Hat (F#3)
-FPC_HAT_PEDAL = 44    # Pad 8: Pedal Hi-Hat (G#3)
-FPC_HAT_OPEN = 46     # Pad 7: Open Hi-Hat (A#3)
-FPC_CRASH = 49        # Pad 12: Crash Cymbal (C#4)
-FPC_RIDE = 51         # Pad 13: Ride Cymbal (D#4)
+# FPC factory pad note numbers (GM layout; FL shows MIDI 36 as C3)
+FPC_KICK = 36         # Kick (C3)
+FPC_SIDESTICK = 37    # Side Stick (C#3)
+FPC_SNARE_SOFT = 38   # Snare 2 / ghost snare (D3)
+FPC_CLAP = 39         # Hand Clap (D#3)
+FPC_SNARE_MAIN = 40   # Snare 1 / main backbeat (E3)
+FPC_HAT_CLOSED = 42   # Closed Hi-Hat (F#3)
+FPC_HAT_PEDAL = 44    # Pedal Hi-Hat (G#3)
+FPC_HAT_OPEN = 46     # Open Hi-Hat (A#3)
+FPC_CRASH = 49        # Crash Cymbal (C#4)
+FPC_RIDE = 51         # Ride Cymbal (D#4)
+
+REF_PPQ = 96.0
+
+# --- Shared drum categorisation (keep identical in Stem_MIDI_Cleaner) -------
+INPUT_MODES = ("Auto", "GM drums (pass-through)", "Pitched transcription (band map)")
+MODE_AUTO = 0
+MODE_GM = 1
+MODE_PITCHED = 2
+
+GM_CATEGORY = {
+    35: "kick", 36: "kick",
+    37: "snare", 38: "snare", 39: "snare", 40: "snare",
+    41: "tom", 43: "tom", 45: "tom", 47: "tom", 48: "tom", 50: "tom",
+    42: "hat", 44: "hat", 46: "hat", 54: "hat",
+    49: "cymbal", 51: "cymbal", 52: "cymbal", 53: "cymbal",
+    55: "cymbal", 57: "cymbal", 59: "cymbal",
+    56: "perc", 58: "perc",
+}
+# Pad numbers this family of scripts writes. In "Pitched transcription" mode
+# a note already on one of these is treated as mapped (keeps re-runs stable).
+MAPPED_PADS = (36, 37, 38, 39, 40, 42, 44, 46, 49, 51)
+# GM numbers outside the FPC factory kit, folded to the closest pad.
+GM_TO_PAD = {35: 36, 52: 49, 55: 49, 57: 49, 53: 51, 59: 51, 54: 42}
+
+KICK_BAND_TOP = 45     # band map: pitch <= 45 -> kick
+SNARE_BAND_TOP = 62    # band map: 46..62 -> snare
+CYMBAL_BAND_LOW = 70   # band map: >= 70 and long -> cymbal, else hat
+CYMBAL_MIN_BEATS = 0.9  # "long" = at least this many quarter notes
+
+
+def classify_drum(pitch, length, ppq, mode):
+    """Return (category, source); source is 'gm', 'band' or None (untouched)."""
+    if mode == MODE_PITCHED:
+        use_gm = pitch in MAPPED_PADS
+    else:
+        use_gm = pitch in GM_CATEGORY
+    if use_gm:
+        return GM_CATEGORY[pitch], "gm"
+    if mode == MODE_GM:
+        return None, None
+    if pitch <= KICK_BAND_TOP:
+        return "kick", "band"
+    if pitch <= SNARE_BAND_TOP:
+        return "snare", "band"
+    if pitch >= CYMBAL_BAND_LOW and length >= CYMBAL_MIN_BEATS * ppq:
+        return "cymbal", "band"
+    return "hat", "band"
+# ---------------------------------------------------------------------------
+
 
 def createDialog():
     form = flp.ScriptDialog(
-        "FPC Moises Mapper & 16-Layer Humanizer",
-        "Cleans Moises drum MIDI, maps to FPC pads, and cycles across FPC's multi-velocity sample layers."
+        "FPC Drum Mapper & Humanizer",
+        "Removes short/quiet ghost notes left by drum transcription of separated stems, "
+        "maps drums to FPC factory pads and humanizes velocity and timing so FPC's "
+        "velocity layers are used. Tick values are at 96 PPQ and scale to the project PPQ."
     )
-    form.AddInputKnobInt("Bleed Gate Length (Ticks)", 10, 1, 48)
-    form.AddInputKnob("Bleed Gate Velocity", 0.16, 0.01, 0.45)
+    form.AddInputKnobInt("Ghost Gate Length (Ticks @96 PPQ)", 10, 1, 48)
+    form.AddInputKnob("Ghost Gate Velocity", 0.16, 0.01, 0.45)
     form.AddInputCheckbox("Remap Pitches to FPC Factory Pads", True)
+    form.AddInputCombo("Input Mode", ",".join(INPUT_MODES), MODE_AUTO)
     form.AddInputCheckbox("Split Dual Snares (D3 Ghost / E3 Main)", True)
     form.AddInputKnob("FPC Layer Cycling Spread", 0.14, 0.02, 0.30)
-    form.AddInputKnobInt("Timing Pocket Jitter (Ticks)", 5, 0, 20)
-    form.AddInputKnobInt("Snare Lay-Back (Ticks)", 4, -8, 12)
+    form.AddInputKnobInt("Timing Pocket Jitter (Ticks @96 PPQ)", 5, 0, 20)
+    form.AddInputKnobInt("Snare Lay-Back (Ticks @96 PPQ)", 4, -8, 12)
     return form
 
+
 def gaussian_rand(mean, std_dev):
-    u1 = max(1e-7, random.random())
-    u2 = random.random()
-    z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2.0 * math.pi * u2)
-    return mean + z0 * std_dev
+    if std_dev <= 0:
+        return mean
+    return random.gauss(mean, std_dev)
+
+
+def _clamp(v, lo, hi):
+    return lo if v < lo else hi if v > hi else v
+
+
+def _time_signature():
+    """(tsnum, tsden) from the score if FL exposes it, else 4/4."""
+    try:
+        num = int(getattr(flp.score, "tsnum", 4) or 4)
+        den = int(getattr(flp.score, "tsden", 4) or 4)
+    except (TypeError, ValueError):
+        return 4, 4
+    if num <= 0 or den <= 0:
+        return 4, 4
+    return num, den
+
+
+def _grid_position(time, beat_ticks, tsnum):
+    """(beat index in bar, 16th-of-beat index 0..3) rounded to nearest step."""
+    step = beat_ticks / 4.0
+    steps_per_bar = 4 * tsnum
+    idx = int(round(time / step)) % steps_per_bar
+    return idx // 4, idx % 4
+
+
+def _snapshot():
+    notes = []
+    for i in range(flp.score.noteCount):
+        n = flp.score.getNote(i)
+        notes.append({
+            "index": i,
+            "number": n.number,
+            "time": n.time,
+            "length": n.length,
+            "velocity": n.velocity,
+            "pan": getattr(n, "pan", 0.5),
+            "fcut": getattr(n, "fcut", 0.5),
+        })
+    return notes
+
+
+def _commit(plan):
+    """plan: list of dicts with 'index', 'delete' and new property values."""
+    for p in sorted((p for p in plan if p["delete"]), key=lambda p: p["index"], reverse=True):
+        flp.score.deleteNote(p["index"])
+    keep = sorted((p for p in plan if not p["delete"]), key=lambda p: p["index"])
+    if flp.score.noteCount != len(keep):
+        return  # unexpected score state; leave survivors untouched
+    # Take references to every survivor before editing any of them, so a
+    # host that re-sorts notes on edit cannot make us edit the wrong one.
+    refs = [flp.score.getNote(i) for i in range(len(keep))]
+    for note, p in zip(refs, keep):
+        note.number = p["number"]
+        note.time = p["time"]
+        note.length = p["length"]
+        note.velocity = p["velocity"]
+        note.fcut = p["fcut"]
+        note.pan = p["pan"]
+
+
+def _fpc_pad(category, source, pitch, velocity, length, ppq, beat, sub,
+             is_bar_start, dual_snare):
+    if source == "gm":
+        return GM_TO_PAD.get(pitch, pitch)
+    if category == "kick":
+        return FPC_KICK
+    if category == "snare":
+        if velocity < 0.35:
+            return FPC_SIDESTICK
+        if dual_snare and beat % 2 == 1 and sub == 0 and velocity >= 0.52:
+            return FPC_SNARE_MAIN
+        return FPC_SNARE_SOFT
+    if category == "cymbal":
+        return FPC_CRASH if is_bar_start else FPC_RIDE
+    if category == "hat":
+        if length >= 0.65 * ppq:
+            return FPC_HAT_OPEN
+        if sub in (1, 3) and velocity < 0.48 and random.random() < 0.18:
+            return FPC_HAT_PEDAL
+        return FPC_HAT_CLOSED
+    return pitch
+
 
 def apply(form):
-    min_len = form.GetInputValue("Bleed Gate Length (Ticks)")
-    min_vel = form.GetInputValue("Bleed Gate Velocity")
+    min_len_ref = form.GetInputValue("Ghost Gate Length (Ticks @96 PPQ)")
+    min_vel = form.GetInputValue("Ghost Gate Velocity")
     do_remap = form.GetInputValue("Remap Pitches to FPC Factory Pads")
+    mode = int(form.GetInputValue("Input Mode"))
     dual_snare = form.GetInputValue("Split Dual Snares (D3 Ghost / E3 Main)")
     layer_spread = form.GetInputValue("FPC Layer Cycling Spread")
-    jitter_ticks = form.GetInputValue("Timing Pocket Jitter (Ticks)")
-    snare_layback = form.GetInputValue("Snare Lay-Back (Ticks)")
+    jitter_ref = form.GetInputValue("Timing Pocket Jitter (Ticks @96 PPQ)")
+    layback_ref = form.GetInputValue("Snare Lay-Back (Ticks @96 PPQ)")
 
     ppq = flp.score.PPQ
-    sixteenth = max(1, ppq // 4)
-    bar_ticks = ppq * 4
+    scale = ppq / REF_PPQ
+    tsnum, tsden = _time_signature()
+    beat_ticks = ppq * 4.0 / tsden
+    bar_ticks = beat_ticks * tsnum
+    sixteenth = beat_ticks / 4.0
 
+    min_len = min_len_ref * scale
+    jitter_std = jitter_ref * scale / 2.0
+    layback = layback_ref * scale
+    hat_push = 2 * scale
+
+    notes = _snapshot()
+    plan = []
     last_pad_vel = {}
 
-    for i in range(flp.score.noteCount - 1, -1, -1):
-        note = flp.score.getNote(i)
-
-        # 1. PURGE MOISES BLEED ARTIFACTS
-        if note.length <= min_len or note.velocity <= min_vel:
-            flp.score.deleteNote(i)
+    # Process in time order so the repeated-velocity guard sees real neighbours.
+    for n in sorted(notes, key=lambda x: (x["time"], x["index"])):
+        if n["length"] < min_len or n["velocity"] < min_vel:
+            plan.append({"index": n["index"], "delete": True})
             continue
 
-        sixteenth_idx = round(note.time / sixteenth) % 16
-        beat_in_bar = (sixteenth_idx // 4)
-        sub_pos = sixteenth_idx % 4
-        is_bar_start = (note.time % bar_ticks) < sixteenth
+        beat, sub = _grid_position(n["time"], beat_ticks, tsnum)
+        is_bar_start = (n["time"] % bar_ticks) < sixteenth / 2.0 or \
+            (bar_ticks - (n["time"] % bar_ticks)) < sixteenth / 2.0
 
-        # 2. SMART PITCH-TO-FPC PAD MAPPING
+        pad = n["number"]
         if do_remap:
-            orig_pitch = note.number
-            if orig_pitch <= 43:
-                note.number = FPC_KICK
-            elif orig_pitch <= 58:
-                if note.velocity < 0.35:
-                    note.number = FPC_SIDESTICK
-                elif dual_snare:
-                    if beat_in_bar in (1, 3) and sub_pos == 0 and note.velocity >= 0.52:
-                        note.number = FPC_SNARE_MAIN
-                    else:
-                        note.number = FPC_SNARE_SOFT
-                else:
-                    note.number = FPC_SNARE_SOFT
-            else:
-                if is_bar_start and note.length >= int(ppq * 0.9) and orig_pitch >= 70:
-                    note.number = FPC_CRASH
-                elif note.length >= int(ppq * 0.65):
-                    note.number = FPC_HAT_OPEN
-                elif sub_pos in (1, 3) and note.velocity < 0.48 and random.random() < 0.18:
-                    note.number = FPC_HAT_PEDAL
-                else:
-                    note.number = FPC_HAT_CLOSED
+            category, source = classify_drum(n["number"], n["length"], ppq, mode)
+            if category is not None:
+                pad = _fpc_pad(category, source, n["number"], n["velocity"], n["length"],
+                               ppq, beat, sub, is_bar_start, dual_snare)
 
-        # 3. FPC 16-LAYER VELOCITY TARGETING BY DRUM ROLE & METRIC PULSE
-        pad = note.number
+        # Velocity targeting by drum role & metric position
         if pad == FPC_KICK:
-            base_vel = 0.88 if (beat_in_bar in (0, 2) and sub_pos == 0) else 0.70
+            base_vel = 0.88 if (beat % 2 == 0 and sub == 0) else 0.70
         elif pad == FPC_SNARE_MAIN:
             base_vel = 0.89
         elif pad in (FPC_SNARE_SOFT, FPC_SIDESTICK):
-            base_vel = 0.42 if sub_pos in (1, 3) else 0.58
+            base_vel = 0.42 if sub in (1, 3) else 0.58
         elif pad in (FPC_HAT_CLOSED, FPC_HAT_PEDAL):
-            hat_matrix = {0: 0.78, 1: 0.38, 2: 0.62, 3: 0.44}
-            base_vel = hat_matrix.get(sub_pos, 0.60)
+            base_vel = {0: 0.78, 1: 0.38, 2: 0.62, 3: 0.44}.get(sub, 0.60)
         elif pad in (FPC_HAT_OPEN, FPC_CRASH, FPC_RIDE):
             base_vel = 0.82
         else:
-            base_vel = note.velocity
+            base_vel = n["velocity"]
 
-        target_vel = (note.velocity * 0.40) + (base_vel * 0.60) + gaussian_rand(0, layer_spread * 0.6)
+        target_vel = n["velocity"] * 0.40 + base_vel * 0.60 + gaussian_rand(0, layer_spread * 0.6)
 
-        # Anti-Machine-Gun Guard
-        prev_v = last_pad_vel.get(pad, -1.0)
-        if abs(target_vel - prev_v) < 0.07:
-            step = 0.08 if target_vel < 0.85 else -0.08
-            target_vel += step
+        # Avoid identical consecutive hits on the same pad (same sample layer)
+        prev_v = last_pad_vel.get(pad)
+        if prev_v is not None and abs(target_vel - prev_v) < 0.07:
+            target_vel += 0.08 if target_vel < 0.85 else -0.08
+        velocity = _clamp(target_vel, 0.15, 0.98)
+        last_pad_vel[pad] = velocity
 
-        note.velocity = max(0.15, min(0.98, target_vel))
-        last_pad_vel[pad] = note.velocity
+        # Micro-timing pocket
+        shift = gaussian_rand(0, jitter_std)
+        if pad in (FPC_SNARE_MAIN, FPC_SNARE_SOFT) and beat % 2 == 1 and sub == 0:
+            shift += layback
+        elif pad in (FPC_HAT_CLOSED, FPC_HAT_OPEN) and sub in (1, 3):
+            shift += hat_push
+        new_time = max(0, int(round(n["time"] + shift)))
 
-        # 4. MICRO-TIMING POCKET & SUBTLE FILTER/PAN HUMANIZATION
-        tick_shift = int(gaussian_rand(0, jitter_ticks / 2.0))
-        if pad in (FPC_SNARE_MAIN, FPC_SNARE_SOFT) and beat_in_bar in (1, 3) and sub_pos == 0:
-            tick_shift += snare_layback
-        elif pad in (FPC_HAT_CLOSED, FPC_HAT_OPEN) and sub_pos in (1, 3):
-            tick_shift += 2
-
-        note.time = max(0, note.time + tick_shift)
-        note.fcut = max(0.35, min(0.65, 0.50 + gaussian_rand(0, 0.04)))
+        # Subtle filter/pan variation, relative to each note's existing value
+        fcut = _clamp(n["fcut"] + _clamp(gaussian_rand(0, 0.04), -0.15, 0.15), 0.0, 1.0)
+        pan = n["pan"]
         if pad in (FPC_HAT_CLOSED, FPC_HAT_OPEN, FPC_SNARE_SOFT):
-            note.pan = max(0.44, min(0.56, 0.50 + gaussian_rand(0, 0.02)))
+            pan = _clamp(pan + _clamp(gaussian_rand(0, 0.02), -0.06, 0.06), 0.0, 1.0)
+
+        plan.append({
+            "index": n["index"], "delete": False,
+            "number": pad, "time": new_time, "length": n["length"],
+            "velocity": velocity, "fcut": fcut, "pan": pan,
+        })
+
+    _commit(plan)
