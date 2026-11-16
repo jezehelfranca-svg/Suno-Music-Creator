@@ -56,6 +56,75 @@ function buildGenreText(validGenres: string[], verb: string): string {
   return listPhrase(lower);
 }
 
+// ---------------------------------------------------------------------------
+// Stem-friendly (dry tracking) mode
+// ---------------------------------------------------------------------------
+
+/** Phrases appended to the Suno style tag when `opts.stemFriendly` is on. */
+export const STEM_FRIENDLY_TAG_PHRASES = [
+  'dry studio tracking',
+  'close-mic vocal',
+  'minimal reverb',
+  'tight transients',
+  'clear instrument separation'
+] as const;
+
+const WET_ADJ = '(?:cavernous|lush|huge|massive|big|vast|wide|stereo|long|deep|heavy|thick|dense|cathedral|hall|plate|spring|shimmer(?:ing)?|ambient|epic|airy|washy)';
+
+// Order matters: the longer "drenched in reverb" forms run before the bare reverb pattern.
+const WET_DESCRIPTOR_PATTERNS: RegExp[] = [
+  new RegExp(`\\b(?:drenched|soaked|swimming|bathed|awash|lost)\\s+in\\s+(?:${WET_ADJ}[\\s-]+)*(?:reverb|echo|delay)s?\\b`, 'gi'),
+  new RegExp(`(?:\\b(?:an?|the|some)\\s+)?\\b(?:${WET_ADJ}[\\s-]+){0,3}reverbs?(?:[\\s-]+(?:tails?|drenched|soaked|heavy|wash(?:es)?))?\\b`, 'gi'),
+  /\b(?:wash(?:ed|ing)?[\s-]+out|washy|(?:ambient|echo|delay)\s+wash(?:es)?)\b/gi,
+  /\b(?:dub-style\s+)?(?:long\s+)?(?:delay|echo)\s+(?:throws|tails|washes)\b/gi,
+  /\bcavernous(?:\s+(?:space|room|hall|ambience|echo))?\b/gi
+];
+
+/** A wet phrase preceded by one of these (e.g. "minimal reverb", "rather than washing out") is kept. */
+const NEGATED_BEFORE = /\b(?:no|minimal|minimum|little|less|without|avoid(?:ing)?|rather than|instead of|not|dry)\s+(?:[\w’'-]+\s+)?$/i;
+
+function tidyFragment(s: string): string {
+  let out = s
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.;:])/g, '$1')
+    .replace(/([,;:])(?:\s*[,;:])+/g, '$1')
+    .replace(/[,;:]\s*\./g, '.')
+    .replace(/\b(?:and|with|plus)\s+(?=(?:and|with|plus)\b|[,.;:]|$)/gi, '')
+    .trim();
+  out = out.replace(/^(?:(?:and|with|plus|&)\b|[,;:&])\s*/i, '').replace(/\s*(?:\b(?:and|with|plus)|[,;:&])$/i, '').trim();
+  return /^[\s.,;:&-]*$/.test(out) ? '' : out;
+}
+
+/**
+ * Remove reverb / wash descriptors that would contradict a dry, stem-friendly request.
+ * Negated mentions ("minimal reverb", "rather than washing out their edges") are kept,
+ * and any `protectedTerms` (e.g. user-chosen instrument names) are never altered.
+ * Pure and deterministic: never touches the rng. Returns '' when nothing meaningful is left.
+ */
+export function stripWetDescriptors(text: string, protectedTerms: readonly string[] = []): string {
+  if (!text) return text;
+  const terms = protectedTerms.filter(Boolean).sort((a, b) => b.length - a.length);
+  let out = text;
+  terms.forEach((term, i) => { out = out.split(term).join(`\u0000${i}\u0000`); });
+  let changed = false;
+  for (const re of WET_DESCRIPTOR_PATTERNS) {
+    out = out.replace(re, (match: string, ...rest: unknown[]) => {
+      const offset = rest[rest.length - 2] as number;
+      const whole = rest[rest.length - 1] as string;
+      if (NEGATED_BEFORE.test(whole.slice(Math.max(0, offset - 32), offset))) return match;
+      changed = true;
+      return ' ';
+    });
+  }
+  if (!changed) return text;
+  out = tidyFragment(out);
+  return out.replace(/\u0000(\d+)\u0000/g, (_m, i: string) => terms[Number(i)]);
+}
+
+function stemFriendlyPhrases(instrumental: boolean): string[] {
+  return STEM_FRIENDLY_TAG_PHRASES.filter(p => !(instrumental && p === 'close-mic vocal'));
+}
+
 export function generateSunoPrompt(
   genres: string[],
   timeSig: string,
@@ -68,6 +137,9 @@ export function generateSunoPrompt(
 ): GeneratedPrompt | null {
   const validGenres = genres.filter(g => g && g.trim());
   if (validGenres.length < 2) return null;
+  const stemFriendly = opts.stemFriendly === true;
+  // Identity when off, so output is byte-identical to the non-stem-friendly path.
+  const dry = (t: string, keep: readonly string[] = []) => (stemFriendly ? stripWetDescriptors(t, keep) : t);
 
   const key = opts.key ? pick(KEYS, rng) : pick(KEYS, rng);
   const title = opts.title ? `${pick(TITLE_A, rng)} ${pick(TITLE_B, rng)}` : `${pick(TITLE_A, rng)} ${pick(TITLE_B, rng)}`;
@@ -96,12 +168,15 @@ export function generateSunoPrompt(
   const selectedVocals = opts.vocals ? pick(POOLS.vocals, rng) : '';
   const selectedMood = opts.mood ? pick(POOLS.mood, rng) : '';
 
-  if (opts.rhythm) core.push(`Groove: ${groove.description}`);
+  // Instrument names the user picked are protected; only descriptive wording is filtered.
+  const grooveText = dry(groove.description, selectedInstruments);
+  const productionText = dry(groove.production, selectedInstruments);
+  if (opts.rhythm && (!stemFriendly || grooveText)) core.push(`Groove: ${grooveText}`);
   if (opts.harmony) core.push(segment('harmony', pick(POOLS.harmony, rng), rng));
   if ((opts.instruments || (customInstruments && customInstruments.length > 0)) && selectedInstruments.length > 0) {
     core.push(segment('instruments', listPhrase(selectedInstruments), rng));
   }
-  if (opts.production) core.push(`Sound design: ${groove.production}`);
+  if (opts.production && (!stemFriendly || productionText)) core.push(`Sound design: ${productionText}`);
 
   const tail: string[] = [];
   if (opts.structure) tail.push(segment('structure', pick(POOLS.structure, rng), rng));
@@ -111,7 +186,11 @@ export function generateSunoPrompt(
   if (opts.usecase) tail.push(segment('usecase', pick(POOLS.usecase, rng), rng));
   if (opts.highlight) tail.push(`Highlight the interplay between ${groove.anchor} and ${groove.pulse}.`);
 
-  const body = [opening, ...shuffle(core, rng), ...tail].join(' ');
+  const instrumental = selectedVocals.includes('no vocals');
+  const stemPhrases = stemFriendly ? stemFriendlyPhrases(instrumental) : [];
+  // Appended after the shuffle so the rng sequence is unchanged by the flag.
+  const stemLine = stemFriendly ? [`Stem-friendly mix: ${stemPhrases.join(', ')}.`] : [];
+  const body = [opening, ...shuffle(core, rng), ...tail, ...stemLine].join(' ');
   const fusionName = `${validGenres.join(' × ')} Fusion`;
 
   const bpmLabel = minBpm === maxBpm ? `${minBpm} BPM` : `${minBpm}–${maxBpm} BPM`;
@@ -132,13 +211,18 @@ export function generateSunoPrompt(
     bpmLabel,
     ...(opts.key ? [key] : []),
     ...selectedInstruments,
-    ...(opts.rhythm ? [groove.description] : []),
-    ...(opts.production ? [groove.production] : [])
+    ...(opts.rhythm ? [grooveText] : []),
+    ...(opts.production ? [productionText] : [])
   ].filter(t => Boolean(t && t.trim()));
   tagComponents.push(...[
-    selectedVocals.includes('no vocals') ? 'instrumental' : selectedVocals.replace(' vocals', '').replace('vocals', ''),
-    selectedMood ? selectedMood.split(' and ')[0] : ''
+    instrumental ? 'instrumental' : dry(selectedVocals.replace(' vocals', '').replace('vocals', '')),
+    selectedMood ? dry(selectedMood.split(' and ')[0]) : ''
   ].filter(Boolean));
+
+  if (stemFriendly) {
+    const existing = tagComponents.join(', ').toLowerCase();
+    tagComponents.push(...stemPhrases.filter(p => !existing.includes(p)));
+  }
 
   const sunoStyleTag = tagComponents.join(', ');
 
@@ -177,6 +261,7 @@ export function generateSunoPrompt(
     selectedInstruments,
     lyricSnippet,
     structureTags,
+    ...(stemFriendly ? { stemFriendly: true } : {}),
     createdAt: Date.now()
   };
 }

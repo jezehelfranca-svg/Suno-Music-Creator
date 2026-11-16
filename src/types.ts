@@ -42,6 +42,11 @@ export interface VariationOptions {
   key: boolean;
   title: boolean;
   highlight: boolean;
+  /**
+   * Optional "stem-friendly" mode: ask Suno for drier, more separable stems
+   * (for Moises / DAW re-production). Optional so older saved options keep working.
+   */
+  stemFriendly?: boolean;
 }
 
 export type SunoPromptFormat = 'suno-tag' | 'full-prompt' | 'complete-bundle';
@@ -68,6 +73,8 @@ export interface GeneratedPrompt {
   variety?: 'Low' | 'Medium' | 'High';
   maxMode?: boolean;
   isInstrumental?: boolean;
+  /** Set when generated with the stem-friendly (dry tracking) option. */
+  stemFriendly?: boolean;
   createdAt: number;
   isFavorite?: boolean;
 }
