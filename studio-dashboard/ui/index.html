@@ -545,7 +545,15 @@
     }
 
     /* Tab Controls */
+    .stem-lane { display:grid; gap:6px; margin-top:12px; overflow-wrap:anywhere; }
+    .stem-lane canvas { width:100%; background:var(--bg-card); }
+    .workflow-section { padding:16px; margin-bottom:12px; border:1px solid var(--border); border-radius:var(--radius-md); }
+    .workflow-section h3 { margin:0 0 8px; font-size:15px; }
+    .workflow-section p, #moisesFields { color:var(--text-muted); font-size:13px; line-height:1.5; margin:8px 0; }
+    .workflow-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .workflow-actions select, #moisesTrack { background:var(--bg-card); color:var(--text-main); padding:6px; border:1px solid var(--border); max-width:100%; }
     .tabs-nav {
+      flex-wrap: wrap;
       display: flex;
       gap: 6px;
       border-bottom: 1px solid var(--border);
@@ -1133,17 +1141,21 @@
           <span>Audio Upload Box</span>
         </div>
         <div class="upload-controls">
-          <select id="uploadTarget" style="flex:1;background:var(--bg-card);border:1px solid var(--border);padding:6px;border-radius:var(--radius-sm);color:#fff;">
+          <select aria-label="Upload destination" id="uploadTarget" onchange="updateMoisesFields()" style="flex:1;background:var(--bg-card);border:1px solid var(--border);padding:6px;border-radius:var(--radius-sm);color:#fff;">
             <option value="inbox">Target: 01_Suno_Inbox</option>
-            <option value="moises">Target: 02_Moises_Stems (Current Track)</option>
+            <option value="moises">Target: Moises separated tracks</option>
             <option value="renders">Target: 05_Mix_Renders</option>
           </select>
+        </div>
+        <div id="moisesFields" hidden>
+          <label>Destination track <input id="moisesTrack" placeholder="Song name"></label>
+          <p>In Moises, export Separated Tracks. Unzip the download and select the stem files together.</p>
         </div>
         <div id="uploadDropZone" class="upload-zone" onclick="document.getElementById('fileInput').click()">
           <div style="font-size:20px;margin-bottom:4px;">&#128392;</div>
           <strong style="color:var(--text-main);font-size:12px;">Drop .wav, .mp3, .flac, or .m4a files here</strong>
           <div class="upload-zone-text">or click to browse from disk (.ogg also supported)</div>
-          <input type="file" id="fileInput" accept=".wav,.mp3,.flac,.m4a,.ogg" multiple style="display:none;" onchange="handleFileInput(this.files); this.value='';">
+          <input type="file" id="fileInput" accept=".wav,.mp3,.flac,.m4a,.ogg" multiple style="display:none;" onchange="handleFileInput(Array.from(this.files)); this.value='';">
         </div>
       </div>
     </aside>
@@ -1196,9 +1208,42 @@
         <button class="tab-btn" onclick="switchTab('humanTab', this)">
           &#129345; Humanized Mix
         </button>
+        <button class="tab-btn" onclick="switchTab('productionTab', this)">Production</button>
         <button class="tab-btn" onclick="switchTab('mixQaTab', this)">
           &#127926; Mix QA &amp; Loudness Analyzer
         </button>
+      </div>
+
+      <div id="productionTab" class="tab-pane">
+        <stem-workspace></stem-workspace>
+        <section class="workflow-section">
+          <h3>Scaler 3 harmony</h3>
+          <p id="harmonyKey"></p>
+          <p>Drag an instrument stem into Scaler 3 for Detect Audio, or import the bass line with Detect MIDI. Audition chords against the song, then drag the progression MIDI from Scaler into your DAW.</p>
+          <div id="harmonyFiles" class="workflow-actions"></div>
+        </section>
+        <section class="workflow-section">
+          <h3>ML Studio session</h3>
+          <p id="mlStatus">Checking ML Studio…</p>
+          <div class="workflow-actions">
+            <button id="mlLaunch" disabled class="btn" onclick="launchMlStudio()">Open a working copy</button>
+            <button id="mlStems" disabled class="btn" onclick="openCurrentTrackFolder()">Show prepared stems and MIDI</button>
+          </div>
+          <p>For assistant control, enable AI in ML Studio and use its generated MCP configuration in your assistant. Approve the session permissions inside the DAW.</p>
+        </section>
+        <section class="workflow-section">
+          <h3>Waveform video</h3>
+          <p>Choose a finished mix for an audio-reactive MP4.</p>
+          <div class="workflow-actions">
+            <select id="videoRender" aria-label="Mix render"></select>
+            <select id="videoOrientation" aria-label="Video dimensions">
+              <option value="landscape">YouTube · 1920 × 1080</option>
+              <option value="vertical">Shorts · 1080 × 1920</option>
+            </select>
+            <button id="videoExport" class="btn btn-cyan" disabled onclick="exportVideo()">Download MP4</button>
+          </div>
+          <p role="status" id="videoStatus"></p>
+        </section>
       </div>
 
       <!-- Tab 1: Audition Deck -->
@@ -1436,6 +1481,7 @@
   <div id="toast">Message</div>
 
   <!-- Client-Side Dashboard Script -->
+  <script src="/stem-workspace.js"></script>
   <script>
     const state = {
       watcher_running: true,
@@ -1520,6 +1566,8 @@
         if (!res.ok) return;
         const data = await res.json();
 
+        state.mlAvailable = data.ml_studio_available;
+        renderProduction(currentTrack());
         state.watcher_running = data.watcher_running;
         state.auto_humanize = data.auto_humanize;
         state.preset = data.preset;
@@ -1694,6 +1742,7 @@
 
     function renderSelectedTrack() {
       const track = currentTrack();
+      renderProduction(track);
       if (!track) {
         document.getElementById('inspectorTitle').textContent = "Select or Import a Track";
         return;
@@ -1748,6 +1797,75 @@
 
       renderHumanTab(track);
       renderMixQa(track, false);
+    }
+
+    function renderProduction(track) {
+      document.querySelector('stem-workspace').select(track);
+      const hasProject = Boolean(track?.fl_project?.exists);
+      document.getElementById('mlLaunch').disabled = !state.mlAvailable || !hasProject;
+      document.getElementById('mlStems').disabled = !track?.prepped_stems?.length;
+      document.getElementById('mlStatus').textContent = !state.mlAvailable
+        ? 'Set ML_STUDIO_EXE to the installed executable and restart the dashboard.'
+        : hasProject ? 'Open a fresh copy of the track’s FL project, then drag any missing stems or MIDI into the playlist.'
+        : 'A prepared FL project is needed to launch this track.';
+      const meta = track?.metadata || {};
+      document.getElementById('harmonyKey').textContent = [meta.estimated_key, meta.estimated_bpm && meta.estimated_bpm + ' BPM',
+        (meta.scale_notes || []).join(' · ')].filter(Boolean).join('  /  ') || 'Key and tempo appear after stem analysis.';
+      const harmony = [...(track?.prepped_stems || []).filter(f => f.kind === 'instruments'),
+        ...(track?.midi_files || []).filter(f => f.role === 'Bass')];
+      if (changed('harmony', harmony)) {
+        document.getElementById('harmonyFiles').innerHTML = harmony.map(f =>
+          `<a class="btn" href="/api/download?path=${encodeURIComponent(f.rel_path)}">Download ${escapeHtml(f.name)}</a>`
+        ).join('') || 'Prepare instrument stems or bass MIDI to enable downloads.';
+      }
+      const names = (track?.renders || []).map(r => r.name);
+      const select = document.getElementById('videoRender');
+      if (changed('videoRenders', [track?.name, names])) {
+        const previous = select.value;
+        select.replaceChildren(...names.map(name => new Option(name, name)));
+        if (names.includes(previous)) select.value = previous;
+        if (!names.length) select.add(new Option('Generate or import a mix first', ''));
+      }
+      document.getElementById('videoExport').disabled = !select.value || Boolean(state.exportingVideo);
+    }
+
+    async function launchMlStudio() {
+      const track = currentTrack();
+      if (!track) return;
+      try {
+        const {data} = await postJson('/api/open-ml-studio', {track: track.name});
+        showToast(data.message);
+      } catch { showToast('Could not reach the dashboard server'); }
+    }
+
+    async function exportVideo() {
+      const track = currentTrack();
+      const render = document.getElementById('videoRender').value;
+      const orientation = document.getElementById('videoOrientation').value;
+      if (!track || !render || state.exportingVideo) return;
+      const status = document.getElementById('videoStatus');
+      state.exportingVideo = true;
+      renderProduction(track);
+      status.textContent = `Encoding ${render} · ${orientation}…`;
+      try {
+        const response = await fetch('/api/export-video', {method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({track: track.name, render, orientation})});
+        if (!response.ok) throw new Error((await response.json()).message);
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = render.slice(0, -4) + '_' + orientation + '.mp4';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        status.textContent = 'Download ready · ' + link.download;
+      } catch (err) { status.textContent = err.message || 'Video export failed.'; }
+      finally { state.exportingVideo = false; renderProduction(currentTrack()); }
+    }
+
+    function updateMoisesFields() {
+      const shown = document.getElementById('uploadTarget').value === 'moises';
+      document.getElementById('moisesFields').hidden = !shown;
+      if (shown) document.getElementById('moisesTrack').value = state.selectedTrackName || '';
     }
 
     function renderFailures(track) {
@@ -1992,6 +2110,7 @@
     }
 
     function switchTab(tabId, btn) {
+      if (tabId !== "productionTab") document.querySelector('stem-workspace').pause();
       document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
@@ -2120,6 +2239,7 @@
 
     // Audio Mutual Exclusion & Sync
     function onAudioPlay(currentAudio) {
+      document.querySelector('stem-workspace').pause();
       if (state.syncPlay) return;
       document.querySelectorAll('audio').forEach(a => {
         if (a !== currentAudio && !a.paused) a.pause();
@@ -2143,6 +2263,7 @@
     }
 
     function stopAllAudio() {
+      document.querySelector('stem-workspace').pause();
       document.querySelectorAll('audio').forEach(a => a.pause());
       if (state.syncPlay) toggleSyncPlay();
     }
@@ -2163,6 +2284,12 @@
     async function handleFileInput(files) {
       if (!files || !files.length) return;
       const target = document.getElementById('uploadTarget').value;
+      const destination = target === 'moises' ? document.getElementById('moisesTrack').value.trim() : '';
+      if (target === 'moises' && !destination) {
+        showToast('Enter one destination track for these stems.');
+        document.getElementById('moisesTrack').focus();
+        return;
+      }
       const allowedExts = ['.wav', '.mp3', '.flac', '.m4a', '.ogg'];
 
       for (const file of files) {
@@ -2174,7 +2301,7 @@
         showToast(`Uploading ${file.name}...`);
         try {
           const res = await fetch(
-            `/api/upload?target=${encodeURIComponent(target)}&track=${encodeURIComponent(state.selectedTrackName || '')}&filename=${encodeURIComponent(file.name)}`,
+            `/api/upload?target=${encodeURIComponent(target)}&track=${encodeURIComponent(destination)}&filename=${encodeURIComponent(file.name)}`,
             { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file }
           );
           const data = await res.json();

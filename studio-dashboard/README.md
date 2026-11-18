@@ -8,6 +8,14 @@ Unified Dark-DAW Studio Web UI, multi-threaded HTTP automation server, and 6-sta
 
 `studio-dashboard/` provides a self-contained, zero-framework web dashboard (`http://127.0.0.1:8765`) paired with a background automation engine (`pipeline_automator.py`), a Humanized Mix renderer (`humanized_mix.py`) and an HTTP control plane (`pipeline_server.py`).
 
+### Production tab
+
+1. For a full Suno mix, use the inbox and local Demucs. For a [Moises export](https://help.moises.ai/hc/en-us/articles/10554030191004-How-do-I-export-my-song-with-the-changes-made), choose **Separated Tracks**, unzip the files, select **Moises separated tracks** in the dashboard, enter the destination song name and select all its stems together.
+2. Select the song and open **Production → Load waveforms**. Play, seek, solo, mute and adjust levels across the prepared stems. The browser remembers audition settings for each track. Use **Humanized Mix** to change the rendered audio.
+3. In **Scaler 3 harmony**, download an instrument stem for Detect Audio or bass MIDI for Detect MIDI. Use the estimated key and tempo as starting points. Audition the harmony and drag the chosen progression from Scaler 3 into your DAW. See the [Scaler 3 user guide](https://downloads.scalermusic.com/Scaler-3_User_Guide.pdf).
+4. To use [ML Studio](https://github.com/Dorfhaus/ML-Studio/tree/michael-lane), set `ML_STUDIO_EXE` to the absolute path of the installed executable and restart the server. On macOS use the executable inside the app bundle. The dashboard also checks for `mlstudio` and `lemonstudio` on PATH. **Open a working copy** launches a new sibling copy of the provisioned FL project each time. Import prepared stems and MIDI as needed, and save your arrangement in the DAW. Its AI panel supplies the [MCP configuration and permission controls](https://github.com/Dorfhaus/ML-Studio/blob/michael-lane/crates/os-app/src/ai_control.rs).
+5. Generate a mix or import your DAW bounce into **05_Mix_Renders**. Choose that WAV in **Waveform video**, select landscape or vertical, and download the full-length H.264/AAC MP4. FFmpeg needs the showwaves filter and libx264 encoder. Keep the dashboard open during export.
+
 ### 6-Stage Automation Engine
 
 | Stage | Pipeline Folder | Responsibility |

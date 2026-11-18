@@ -16,6 +16,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest import mock
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -176,6 +177,31 @@ class TestPipelineServerHTTP(unittest.TestCase):
             self.assertIn("SUNO", body)
             self.assertIn("FL STUDIO", body)
             self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
+
+    def test_ml_studio_opens_independent_working_copies(self) -> None:
+        track = "ML Session"
+        project = self.paths.fl_project / track / f"{track}.flp"
+        project.parent.mkdir()
+        project.write_bytes(b"original")
+        with mock.patch.object(pipeline_server, "ml_studio_executable", return_value="/opt/ML Studio"), \
+             mock.patch.object(subprocess, "Popen") as launch:
+            for _ in range(2):
+                status, _ = self._post("/api/open-ml-studio", {"track": track})
+                self.assertEqual(status, HTTPStatus.OK)
+            copies = [Path(call.args[0][1]) for call in launch.call_args_list]
+        self.assertNotEqual(*copies)
+        for copy in copies:
+            self.assertEqual(copy.parent, project.parent)
+            self.assertNotEqual(copy, project)
+            self.assertEqual(copy.read_bytes(), b"original")
+
+    def test_export_requires_a_render_from_selected_track(self) -> None:
+        status, _ = self._post("/api/export-video", {"track": "Different", "render": self.render.name,
+                                                     "orientation": "landscape"})
+        self.assertEqual(status, HTTPStatus.NOT_FOUND)
+        status, _ = self._post("/api/export-video", {"track": "Venus_in_Versace", "render": self.render.name,
+                                                     "orientation": "square"})
+        self.assertEqual(status, HTTPStatus.BAD_REQUEST)
 
     def test_get_favicon_returns_no_content(self) -> None:
         with urllib.request.urlopen(f"{self.base_url}/favicon.ico") as resp:
