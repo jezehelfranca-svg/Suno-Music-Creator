@@ -10,13 +10,16 @@ Automates the complete Suno-to-FL-Studio music production pipeline:
 - Stage 6: Automated Mix QA analysis (EBUR128 LUFS, True Peak, Crest Factor,
   5-band spectral and pocket audit with concrete FL Studio actionable fixes).
 
-Zero-external-dependency Standard MIDI File (SMF) binary writer included.
+Requires numpy, scipy and soundfile. Includes a pure-Python Standard MIDI File
+(SMF) writer and a built-in ITU-R BS.1770 loudness meter, so ffmpeg is optional
+for analysis (it is still used for transcoding and by stem_prep.py).
 """
 
 from __future__ import annotations
 
 import argparse
 import atexit
+import hashlib
 import json
 import logging
 from logging.handlers import RotatingFileHandler
@@ -25,26 +28,20 @@ import os
 from pathlib import Path
 import random
 import re
+import shlex
 import shutil
 import signal
 import struct
 import subprocess
 import sys
+import threading
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+import scipy.ndimage
 import scipy.signal
 import soundfile as sf
-
-try:
-    from watchdog.events import FileSystemEventHandler
-    from watchdog.observers import Observer
-    HAVE_WATCHDOG = True
-except ImportError:
-    HAVE_WATCHDOG = False
-    FileSystemEventHandler = object
-    Observer = None
 
 # --------------------------------------------------------------------------
 # Constants & FPC Definitions
@@ -306,9 +303,143 @@ class PipelinePaths:
     def pid_file(self) -> Path:
         return self.automation / ".watcher.pid"
 
+    @property
+    def failures_file(self) -> Path:
+        return self.automation / "failures.json"
+
     def ensure_dirs(self) -> None:
         for d in [self.inbox, self.stems, self.prepped, self.fl_project, self.renders, self.templates, self.automation, self.logs]:
             d.mkdir(parents=True, exist_ok=True)
+
+
+def visible_wavs(folder: Path) -> List[Path]:
+    """Sorted list of non-hidden .wav files directly inside folder (empty if missing)."""
+    if not folder.is_dir():
+        return []
+    return sorted(p for p in folder.glob("*.wav") if not p.name.startswith("."))
+
+
+def visible_dirs(folder: Path) -> List[Path]:
+    """Sorted list of non-hidden sub-directories of folder (empty if missing)."""
+    if not folder.is_dir():
+        return []
+    return sorted(d for d in folder.iterdir() if d.is_dir() and not d.name.startswith("."))
+
+
+# --------------------------------------------------------------------------
+# Render naming: one place that decides which render belongs to which track
+# --------------------------------------------------------------------------
+
+RENDER_SUFFIXES = ("_RoughMix", "_Humanized", "_Mix", "_Master")
+_RENDER_SUFFIX_RE = re.compile(r"(" + "|".join(RENDER_SUFFIXES) + r")$", re.IGNORECASE)
+QA_REPORT_SUFFIX = "_Mix_QA_Report.md"
+
+
+def render_track_name(render_stem: str) -> str:
+    """Map a render file stem to its track name ('Song_RoughMix' -> 'Song')."""
+    return _RENDER_SUFFIX_RE.sub("", render_stem) or render_stem
+
+
+def render_kind(render_stem: str) -> str:
+    """Classify a render: 'humanized', 'rough' or 'render' (an export from FL Studio)."""
+    low = render_stem.lower()
+    if low.endswith("_humanized"):
+        return "humanized"
+    if low.endswith("_roughmix"):
+        return "rough"
+    return "render"
+
+
+def qa_report_path(render_wav: Path) -> Path:
+    return render_wav.with_name(f"{render_wav.stem}{QA_REPORT_SUFFIX}")
+
+
+def renders_for_track(paths: "PipelinePaths", track_name: str) -> List[Path]:
+    """Render WAVs in 05_Mix_Renders that belong to exactly this track (no prefix matching)."""
+    return [w for w in visible_wavs(paths.renders) if render_track_name(w.stem) == track_name]
+
+
+# --------------------------------------------------------------------------
+# Failure registry: stops the watcher retrying a broken step every poll
+# --------------------------------------------------------------------------
+
+def fingerprint(files: Sequence[Path]) -> str:
+    """Stable signature of a set of input files (name, size, mtime).
+
+    A recorded failure is only retried once its inputs change (or the user
+    clears it via Re-Process), so a broken file can't cause a retry loop.
+    """
+    h = hashlib.sha1()
+    for f in sorted(files, key=lambda x: str(x)):
+        try:
+            st = f.stat()
+            h.update(f"{f.name}|{st.st_size}|{st.st_mtime_ns};".encode("utf-8"))
+        except OSError:
+            h.update(f"{f.name}|missing;".encode("utf-8"))
+    return h.hexdigest()[:16]
+
+
+class FailureRegistry:
+    """Persistent record of failed (stage, track) steps in Automation/failures.json."""
+
+    _lock = threading.Lock()
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def _load(self) -> Dict[str, Dict[str, Any]]:
+        try:
+            data = json.loads(self.path.read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def _save(self, data: Dict[str, Dict[str, Any]]) -> None:
+        atomic_write_text(self.path, json.dumps(data, indent=2))
+
+    @staticmethod
+    def _key(stage: str, track: str) -> str:
+        return f"{stage}::{track}"
+
+    def record(self, stage: str, track: str, signature: str, error: str) -> None:
+        with self._lock:
+            data = self._load()
+            key = self._key(stage, track)
+            attempts = int(data.get(key, {}).get("attempts", 0)) + 1
+            data[key] = {
+                "stage": stage,
+                "track": track,
+                "signature": signature,
+                "error": str(error)[-2000:],
+                "attempts": attempts,
+                "failed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            self._save(data)
+        log.error("[%s] %s failed (will not retry until inputs change or Re-Process): %s", track, stage, str(error)[-500:])
+
+    def is_blocked(self, stage: str, track: str, signature: str) -> bool:
+        entry = self._load().get(self._key(stage, track))
+        return bool(entry) and entry.get("signature") == signature
+
+    def clear(self, stage: Optional[str] = None, track: Optional[str] = None) -> None:
+        with self._lock:
+            data = self._load()
+            keep = {
+                k: v for k, v in data.items()
+                if not ((stage is None or v.get("stage") == stage) and (track is None or v.get("track") == track))
+            }
+            if keep != data:
+                self._save(keep)
+
+    def for_track(self, track: str) -> List[Dict[str, Any]]:
+        return [v for v in self._load().values() if v.get("track") == track]
+
+    def all(self) -> List[Dict[str, Any]]:
+        return list(self._load().values())
+
+
+def failures(paths: "PipelinePaths") -> FailureRegistry:
+    return FailureRegistry(paths.failures_file)
 
 
 # --------------------------------------------------------------------------
@@ -446,118 +577,297 @@ def estimate_key_from_audio(audio_path: Path, max_duration: float = 60.0) -> Tup
 # MIDI Generators: Drum Trigger-to-FPC & Bass-to-MIDI
 # --------------------------------------------------------------------------
 
+def detect_onsets(
+    mono: np.ndarray,
+    sr: int,
+    min_gap_sec: float = 0.060,
+    rel_threshold: float = 0.15,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Detect transient onsets on an amplitude envelope (not raw sample peaks).
+
+    Returns (onset_sample_indices, relative_strength 0..1). The threshold is
+    relative to the loudest hit, so quiet and loud stems behave the same.
+    """
+    if mono.size == 0:
+        return np.zeros(0, dtype=int), np.zeros(0)
+    rect = np.abs(mono.astype(np.float64))
+    win = max(1, int(sr * 0.005))
+    env = scipy.ndimage.maximum_filter1d(rect, size=win)
+    env = scipy.ndimage.uniform_filter1d(env, size=win)
+    peak = float(env.max())
+    if peak <= 1e-6:
+        return np.zeros(0, dtype=int), np.zeros(0)
+    peaks, _ = scipy.signal.find_peaks(
+        env,
+        height=peak * rel_threshold,
+        distance=max(1, int(sr * min_gap_sec)),
+        prominence=peak * rel_threshold * 0.5,
+    )
+    if peaks.size == 0:
+        return peaks, np.zeros(0)
+    # Walk back from each envelope peak to where the attack starts (~20% of peak).
+    onsets = np.empty_like(peaks)
+    max_back = int(sr * 0.030)
+    for i, p in enumerate(peaks):
+        floor = env[p] * 0.2
+        j = p
+        lim = max(0, p - max_back)
+        while j > lim and env[j - 1] > floor:
+            j -= 1
+        onsets[i] = j
+    strength = np.clip(env[peaks] / peak, 0.0, 1.0)
+    return onsets, strength
+
+
+def estimate_downbeat_offset(onset_times: Sequence[float], bpm: float) -> float:
+    """Return the time (sec) of the first beat of the grid.
+
+    Uses the earliest strong kick onset, folded back to the start of the
+    song by whole beats so a pickup or silent intro doesn't shift beats 2/4.
+    """
+    if not onset_times:
+        return 0.0
+    beat = 60.0 / max(1.0, bpm)
+    first = float(min(onset_times))
+    return first - beat * math.floor(first / beat)
+
+
+def refine_tempo(onset_times: Sequence[float], bpm: float) -> Tuple[float, float]:
+    """Fit tempo and downbeat to the actual hit times (least squares on beat indices).
+
+    The autocorrelation BPM is only accurate to ~0.5 BPM, which drifts the
+    grid by a beat or more over a whole song. Fitting the kick/snare onsets
+    to integer beat numbers pins the grid to what the drummer played.
+    Returns (bpm, downbeat_sec); falls back to the input when there's too little data.
+    """
+    times = np.sort(np.asarray(onset_times, dtype=np.float64))
+    if times.size < 8:
+        return bpm, estimate_downbeat_offset(list(times), bpm)
+    beat = 60.0 / bpm
+    t0 = float(times[0])
+    for _ in range(3):
+        idx = np.round((times - t0) / beat)
+        # Only fit hits that sit close to a beat (ignore off-beat kicks / fills)
+        resid = (times - t0) - idx * beat
+        keep = np.abs(resid) < beat * 0.2
+        if keep.sum() < 8 or np.ptp(idx[keep]) < 4:
+            break
+        slope, intercept = np.polyfit(idx[keep], times[keep], 1)
+        if not (60.0 / 200.0 < slope < 60.0 / 60.0):
+            break
+        beat, t0 = float(slope), float(intercept)
+    new_bpm = round(60.0 / beat, 2)
+    if abs(new_bpm - bpm) > 3.0:  # a bigger jump means the fit locked onto something else
+        return bpm, estimate_downbeat_offset(list(times), bpm)
+    return new_bpm, t0 - beat * math.floor(t0 / beat)
+
+
+def grid_position(t_sec: float, bpm: float, downbeat_sec: float) -> Tuple[int, int, int]:
+    """(bar_step 0..15, beat 0..3, sixteenth-in-beat 0..3) for a time on the 4/4 grid."""
+    sixteenth = 60.0 / max(1.0, bpm) / 4.0
+    step = int(round((t_sec - downbeat_sec) / sixteenth)) % 16
+    return step, step // 4, step % 4
+
+
+def _sec_to_tick(t_sec: float, bpm: float, ppq: int) -> int:
+    return max(0, int(round(t_sec * (bpm / 60.0) * ppq)))
+
+
+def notes_to_midi_track(
+    name: str,
+    notes: Sequence[Dict[str, Any]],
+    bpm: float,
+    channel: int,
+    ppq: int = MIDI_PPQ,
+) -> MidiTrack:
+    """Build a MidiTrack from note dicts {start, dur (sec), pitch, vel (0..1)}."""
+    track = MidiTrack(name)
+    track.add_tempo(0, bpm)
+    track.add_time_signature(0, 4, 4)
+    for n in notes:
+        start = _sec_to_tick(n["start"], bpm, ppq)
+        length = max(1, _sec_to_tick(n["start"] + n["dur"], bpm, ppq) - start)
+        track.add_note(start, length, int(n["pitch"]), int(round(max(0.0, min(1.0, n["vel"])) * 127)), channel=channel)
+    return track
+
+
+def transcribe_drum_hits(
+    track_name: str,
+    triggers_dir: Path,
+    bpm: float,
+    downbeat_sec: Optional[float] = None,
+) -> Tuple[List[Dict[str, Any]], float, float]:
+    """Transcribe Kick/Snare/Hat trigger WAVs into clean FPC note dicts.
+
+    Deterministic: no random jitter. Groove/feel is applied separately by
+    humanized_mix.humanize_notes() (or the FL Studio .pyscript tools).
+    When downbeat_sec is None the tempo is refined from the hits.
+    Returns (notes, downbeat_sec, bpm).
+    """
+    roles = (("kick", "*Kick_Trigger.wav"), ("snare", "*Snare_Trigger.wav"), ("hat", "*Hat_Trigger.wav"))
+    hits: List[Tuple[float, str, float]] = []
+    for role, pattern in roles:
+        for wav in sorted(triggers_dir.glob(pattern)):
+            try:
+                audio, sr = sf.read(str(wav), always_2d=True)
+            except Exception as exc:
+                log.warning("[%s] Failed reading trigger %s: %s", track_name, wav.name, exc)
+                continue
+            onsets, strength = detect_onsets(np.mean(audio, axis=1), sr)
+            hits.extend((idx / sr, role, float(v)) for idx, v in zip(onsets, strength))
+
+    if not hits:
+        return [], 0.0 if downbeat_sec is None else downbeat_sec, bpm
+
+    hits.sort(key=lambda h: h[0])
+    if downbeat_sec is None:
+        anchors = [t for t, r, v in hits if r in ("kick", "snare") and v >= 0.4]
+        bpm, downbeat_sec = refine_tempo(anchors or [hits[0][0]], bpm)
+        strong_kicks = [t for t, r, v in hits if r == "kick" and v >= 0.5]
+        if strong_kicks:
+            # Bar 1 starts on a kick: shift the beat grid phase to the first strong kick's beat.
+            beat = 60.0 / bpm
+            k = round((strong_kicks[0] - downbeat_sec) / beat)
+            downbeat_sec = (downbeat_sec + k * beat) % (beat * 4)
+
+    sixteenth = 60.0 / max(1.0, bpm) / 4.0
+    notes: List[Dict[str, Any]] = []
+    for t_sec, role, raw_vel in hits:
+        _, beat, sub = grid_position(t_sec, bpm, downbeat_sec)
+        if role == "kick":
+            pad = FPC_KICK
+        elif role == "snare":
+            if raw_vel < 0.35:
+                pad = FPC_SIDESTICK
+            elif beat in (1, 3) and sub == 0 and raw_vel >= 0.52:
+                pad = FPC_SNARE_MAIN
+            else:
+                pad = FPC_SNARE_SOFT
+        else:
+            pad = FPC_HAT_PEDAL if (sub in (1, 3) and raw_vel < 0.30) else FPC_HAT_CLOSED
+
+        vel = 0.25 + 0.70 * raw_vel  # map relative strength into a playable velocity range
+        if vel < 0.16:
+            continue  # ghost-note gate
+        notes.append({"start": t_sec, "dur": sixteenth, "pitch": pad, "vel": vel, "role": role})
+    return notes, downbeat_sec, bpm
+
+
 def generate_fpc_drums_midi(
     track_name: str,
     triggers_dir: Path,
     bpm: float,
     output_mid: Path,
     ppq: int = MIDI_PPQ,
+    downbeat_sec: Optional[float] = None,
 ) -> bool:
-    """Generate FPC Drum MIDI from Kick, Snare, and Hat trigger WAVs.
-
-    Applies FPC drum mapping, ghost gating, and micro-timing / velocity humanization.
-    """
-    kick_files = list(triggers_dir.glob("*Kick_Trigger.wav"))
-    snare_files = list(triggers_dir.glob("*Snare_Trigger.wav"))
-    hat_files = list(triggers_dir.glob("*Hat_Trigger.wav"))
-
-    all_hits: List[Tuple[float, str, float]] = []  # (time_sec, role, raw_vel)
-
-    def extract_onsets(wav_path: Path, role: str) -> None:
-        try:
-            audio, sr = sf.read(str(wav_path), always_2d=True)
-            mono = np.abs(np.mean(audio, axis=1))
-            # 60 ms minimum distance between onsets to prevent double-trigger bleed
-            distance_samples = int(sr * 0.060)
-            peaks, properties = scipy.signal.find_peaks(
-                mono,
-                height=0.10,
-                distance=distance_samples,
-            )
-            for idx in peaks:
-                t_sec = idx / sr
-                val = float(min(1.0, mono[idx]))
-                all_hits.append((t_sec, role, val))
-        except Exception as exc:
-            log.warning("[%s] Failed reading trigger %s: %s", track_name, wav_path.name, exc)
-
-    for k in kick_files:
-        extract_onsets(k, "kick")
-    for s in snare_files:
-        extract_onsets(s, "snare")
-    for h in hat_files:
-        extract_onsets(h, "hat")
-
-    if not all_hits:
+    """Write clean (un-humanized) FPC drum MIDI from Kick/Snare/Hat trigger WAVs."""
+    notes, _, bpm = transcribe_drum_hits(track_name, triggers_dir, bpm, downbeat_sec)
+    if not notes:
         log.warning("[%s] No drum trigger transients detected in %s", track_name, triggers_dir)
         return False
-
-    all_hits.sort(key=lambda x: x[0])
-
-    track = MidiTrack(f"{track_name} FPC Drums")
-    track.add_tempo(0, bpm)
-    track.add_time_signature(0, 4, 4)
-
-    last_pad_vel: Dict[int, float] = {}
-    sixteenth_ticks = ppq / 4.0
-    steps_per_bar = 16
-
-    for t_sec, role, raw_vel in all_hits:
-        raw_tick = int(round(t_sec * (bpm / 60.0) * ppq))
-        step_idx = int(round(raw_tick / sixteenth_ticks)) % steps_per_bar
-        beat = step_idx // 4  # 0, 1, 2, 3
-        sub = step_idx % 4    # 0, 1, 2, 3
-
-        # 1. Pad Mapping
-        if role == "kick":
-            pad = FPC_KICK
-            base_vel = 0.88 if (beat % 2 == 0 and sub == 0) else 0.70
-        elif role == "snare":
-            if raw_vel < 0.35:
-                pad = FPC_SIDESTICK
-                base_vel = 0.42 if sub in (1, 3) else 0.58
-            elif beat in (1, 3) and sub == 0 and raw_vel >= 0.52:
-                pad = FPC_SNARE_MAIN
-                base_vel = 0.89
-            else:
-                pad = FPC_SNARE_SOFT
-                base_vel = 0.42 if sub in (1, 3) else 0.58
-        else:  # hat
-            if sub in (1, 3) and raw_vel < 0.48:
-                pad = FPC_HAT_PEDAL
-                base_vel = {0: 0.78, 1: 0.38, 2: 0.62, 3: 0.44}.get(sub, 0.60)
-            else:
-                pad = FPC_HAT_CLOSED
-                base_vel = {0: 0.78, 1: 0.38, 2: 0.62, 3: 0.44}.get(sub, 0.60)
-
-        # 2. Velocity Layer Cycling & Humanization
-        target_vel = raw_vel * 0.40 + base_vel * 0.60 + random.gauss(0, 0.14 * 0.6)
-        prev_v = last_pad_vel.get(pad)
-        if prev_v is not None and abs(target_vel - prev_v) < 0.07:
-            target_vel += 0.08 if target_vel < 0.85 else -0.08
-        final_vel = max(0.15, min(0.98, target_vel))
-        last_pad_vel[pad] = final_vel
-
-        # 3. Timing Offsets: Snare Lay-Back & Hat Push
-        shift = random.gauss(0, 2.5)  # micro-timing pocket jitter
-        if pad in (FPC_SNARE_MAIN, FPC_SNARE_SOFT) and beat in (1, 3) and sub == 0:
-            shift += 4.0  # +4 ticks snare lay-back
-        elif pad in (FPC_HAT_CLOSED, FPC_HAT_OPEN) and sub in (1, 3):
-            shift += 2.0  # +2 ticks hat push
-
-        final_tick = max(0, int(round(raw_tick + shift)))
-        note_len = int(round(sixteenth_ticks))  # 24 ticks length at 96 PPQ
-
-        # 4. Ghost Note Gate: min_len >= 10 ticks, min_vel >= 0.16
-        if final_vel < 0.16 or note_len < 10:
-            continue
-
-        midi_vel = int(round(final_vel * 127))
-        track.add_note(final_tick, note_len, pad, midi_vel, channel=9)
-
-    write_smf_midi(output_mid, [track], ppq=ppq)
-    log.info("[%s] Generated FPC Drum MIDI: %s (%d hits)", track_name, output_mid.name, len(all_hits))
+    write_smf_midi(output_mid, [notes_to_midi_track(f"{track_name} FPC Drums", notes, bpm, channel=9, ppq=ppq)], ppq=ppq)
+    log.info("[%s] Generated FPC Drum MIDI: %s (%d hits)", track_name, output_mid.name, len(notes))
     return True
+
+
+def _yin_pitch(frame: np.ndarray, sr: int, f_min: float, f_max: float, threshold: float = 0.15) -> Optional[float]:
+    """YIN fundamental estimate for one frame; None if unvoiced.
+
+    Uses the cumulative-mean-normalised difference, which avoids the octave
+    errors that plain autocorrelation argmax makes on bass.
+    """
+    n = frame.size
+    tau_min = max(2, int(sr / f_max))
+    tau_max = min(n // 2, int(sr / f_min))
+    if tau_max <= tau_min + 2:
+        return None
+    # Difference function via FFT autocorrelation: d(tau) = r0(0) + r_tau(0) - 2 r(tau)
+    w = n - tau_max
+    x = frame.astype(np.float64)
+    fft_len = 1 << int(math.ceil(math.log2(2 * n)))
+    spec = np.fft.rfft(x, fft_len)
+    acf = np.fft.irfft(spec * np.conj(spec), fft_len)[: tau_max + 1]
+    sq = np.concatenate(([0.0], np.cumsum(x * x)))
+    energy0 = sq[w]
+    taus = np.arange(tau_max + 1)
+    energy_tau = sq[taus + w] - sq[taus]
+    diff = energy0 + energy_tau - 2.0 * acf
+    diff[0] = 0.0
+    cmnd = np.ones_like(diff)
+    running = np.cumsum(diff[1:])
+    cmnd[1:] = diff[1:] * np.arange(1, tau_max + 1) / np.maximum(running, 1e-12)
+    below = np.where(cmnd[tau_min:tau_max] < threshold)[0]
+    if below.size == 0:
+        return None
+    tau = tau_min + int(below[0])
+    while tau + 1 < tau_max and cmnd[tau + 1] < cmnd[tau]:
+        tau += 1
+    # Parabolic refinement
+    if 1 <= tau < tau_max:
+        a, b, c = cmnd[tau - 1], cmnd[tau], cmnd[tau + 1]
+        den = a - 2 * b + c
+        shift = 0.5 * (a - c) / den if abs(den) > 1e-12 else 0.0
+    else:
+        shift = 0.0
+    return sr / (tau + shift)
+
+
+def transcribe_bass_notes(bass_wav: Path) -> List[Dict[str, Any]]:
+    """Transcribe a bass stem into clean note dicts {start, dur, pitch, vel}.
+
+    YIN pitch tracking on 50 ms frames with a level gate relative to the
+    stem's own loudness (so a quiet bass stem still transcribes).
+    """
+    audio, sr = sf.read(str(bass_wav), always_2d=True)
+    mono = np.mean(audio, axis=1)
+    sos = scipy.signal.butter(4, 400, btype="lowpass", fs=sr, output="sos")
+    filtered = scipy.signal.sosfilt(sos, mono)
+
+    frame_len = int(sr * 0.050)
+    hop_len = int(sr * 0.020)
+    if len(filtered) < frame_len:
+        return []
+    num_frames = (len(filtered) - frame_len) // hop_len + 1
+    starts = np.arange(num_frames) * hop_len
+    rms = np.array([np.sqrt(np.mean(filtered[s : s + frame_len] ** 2)) for s in starts])
+    loud_ref = float(np.percentile(rms, 95)) if rms.size else 0.0
+    if loud_ref <= 1e-5:
+        return []
+    gate = loud_ref * 0.12
+
+    voiced: List[Tuple[float, int, float]] = []
+    for s, r in zip(starts, rms):
+        if r < gate:
+            continue
+        f0 = _yin_pitch(filtered[s : s + frame_len], sr, 30.0, 300.0)
+        if not f0 or f0 <= 0:
+            continue
+        pitch = int(round(69.0 + 12.0 * math.log2(f0 / 440.0)))
+        if 24 <= pitch <= 64:
+            voiced.append(((s + frame_len / 2) / sr, pitch, min(1.0, r / loud_ref)))
+
+    notes: List[Dict[str, Any]] = []
+    cur: Optional[Dict[str, Any]] = None
+    for t_sec, pitch, amp in voiced:
+        if cur is not None and pitch == cur["pitch"] and (t_sec - cur["end"]) <= 0.045:
+            cur["end"] = t_sec + 0.025
+            cur["amps"].append(amp)
+            continue
+        if cur is not None:
+            notes.append(cur)
+        cur = {"start": t_sec - 0.025, "end": t_sec + 0.025, "pitch": pitch, "amps": [amp]}
+    if cur is not None:
+        notes.append(cur)
+
+    out: List[Dict[str, Any]] = []
+    for n in notes:
+        dur = n["end"] - n["start"]
+        vel = 0.30 + 0.65 * float(np.mean(n["amps"]))
+        if dur < 0.06:  # cleaner gate: drop blips shorter than 60 ms
+            continue
+        out.append({"start": max(0.0, n["start"]), "dur": dur, "pitch": n["pitch"], "vel": min(1.0, vel), "role": "bass"})
+    return out
 
 
 def generate_bass_midi(
@@ -567,102 +877,11 @@ def generate_bass_midi(
     output_mid: Path,
     ppq: int = MIDI_PPQ,
 ) -> bool:
-    """Transcribe prepped bass stem into MIDI with fundamental tracking,
-
-    Stem_MIDI_Cleaner ghost gating, and Groove_Humanize pocket feel.
-    """
+    """Write clean (un-humanized) bass MIDI transcribed from the prepped bass stem."""
     try:
-        audio, sr = sf.read(str(bass_wav), always_2d=True)
-        mono = np.mean(audio, axis=1)
-
-        # Lowpass filter for clean fundamental extraction
-        sos = scipy.signal.butter(4, 320, btype="lowpass", fs=sr, output="sos")
-        filtered = scipy.signal.sosfilt(sos, mono)
-
-        frame_len = int(sr * 0.050)  # 50 ms
-        hop_len = int(sr * 0.020)    # 20 ms
-        num_frames = (len(filtered) - frame_len) // hop_len
-
-        min_lag = int(sr / 250.0)  # 250 Hz top
-        max_lag = int(sr / 35.0)   # 35 Hz bottom
-
-        voiced_frames: List[Tuple[float, int, float]] = []  # (t_sec, midi_note, amp)
-
-        for i in range(num_frames):
-            start = i * hop_len
-            frame = filtered[start : start + frame_len]
-            rms = float(np.sqrt(np.mean(frame**2)))
-            if rms < 0.025:
-                continue
-
-            # Normalized Autocorrelation
-            frame_centered = frame - np.mean(frame)
-            corr = np.correlate(frame_centered, frame_centered, mode="full")
-            corr = corr[len(frame_centered) - 1 :]
-
-            if max_lag >= len(corr):
-                continue
-
-            peak_lag = min_lag + int(np.argmax(corr[min_lag:max_lag]))
-            r_norm = corr[peak_lag] / (corr[0] + 1e-9)
-
-            if r_norm > 0.40:
-                f0 = sr / peak_lag
-                pitch = int(round(69.0 + 12.0 * math.log2(f0 / 440.0)))
-                pitch = max(24, min(60, pitch))  # C1 to C4 bass range
-                t_sec = (start + frame_len / 2) / sr
-                voiced_frames.append((t_sec, pitch, min(1.0, rms * 8.0)))
-
-        # Cluster frames into continuous notes
-        notes: List[Dict[str, Any]] = []
-        cur_note: Optional[Dict[str, Any]] = None
-
-        for t_sec, pitch, amp in voiced_frames:
-            if cur_note is None:
-                cur_note = {"start": t_sec, "end": t_sec + 0.025, "pitch": pitch, "amps": [amp]}
-            else:
-                if pitch == cur_note["pitch"] and (t_sec - cur_note["end"]) <= 0.040:
-                    cur_note["end"] = t_sec + 0.025
-                    cur_note["amps"].append(amp)
-                else:
-                    cur_note["amp"] = float(np.mean(cur_note["amps"]))
-                    notes.append(cur_note)
-                    cur_note = {"start": t_sec, "end": t_sec + 0.025, "pitch": pitch, "amps": [amp]}
-
-        if cur_note:
-            cur_note["amp"] = float(np.mean(cur_note["amps"]))
-            notes.append(cur_note)
-
-        track = MidiTrack(f"{track_name} Bass")
-        track.add_tempo(0, bpm)
-        track.add_time_signature(0, 4, 4)
-
-        beat_ticks = ppq
-        count = 0
-
-        for n in notes:
-            start_tick = int(round(n["start"] * (bpm / 60.0) * ppq))
-            dur_ticks = int(round((n["end"] - n["start"]) * (bpm / 60.0) * ppq))
-            vel = n["amp"]
-
-            # Stem_MIDI_Cleaner gating: min_len >= 12 ticks, min_vel >= 0.18
-            if dur_ticks < 12 or vel < 0.18:
-                continue
-
-            # Groove_Humanize: Backbeat pull (+3 ticks on beats 2/4) & Gaussian jitter
-            nearest_beat = int(round(start_tick / beat_ticks))
-            if (nearest_beat % 4) in (1, 3) and abs(start_tick - nearest_beat * beat_ticks) < (beat_ticks / 8):
-                start_tick += 3
-
-            start_tick += int(round(random.gauss(0, 2.0)))
-            start_tick = max(0, start_tick)
-            vel = max(0.20, min(0.95, vel + random.gauss(0, 0.05)))
-
-            track.add_note(start_tick, dur_ticks, n["pitch"], int(round(vel * 127)), channel=0)
-            count += 1
-
-        write_smf_midi(output_mid, [track], ppq=ppq)
-        log.info("[%s] Generated Bass MIDI: %s (%d notes)", track_name, output_mid.name, count)
+        notes = transcribe_bass_notes(bass_wav)
+        write_smf_midi(output_mid, [notes_to_midi_track(f"{track_name} Bass", notes, bpm, channel=0, ppq=ppq)], ppq=ppq)
+        log.info("[%s] Generated Bass MIDI: %s (%d notes)", track_name, output_mid.name, len(notes))
         return True
     except Exception as exc:
         log.warning("[%s] Bass MIDI transcription failed: %s", track_name, exc)
@@ -670,170 +889,253 @@ def generate_bass_midi(
 
 
 # --------------------------------------------------------------------------
+# Built-in loudness meter (ITU-R BS.1770-4 / EBU R128)
+# --------------------------------------------------------------------------
+
+def _k_weighting_sos(sr: int) -> np.ndarray:
+    """K-weighting pre-filter (high shelf + RLB high-pass) for any sample rate.
+
+    Bilinear-transform form that reproduces the ITU-R BS.1770 48 kHz
+    coefficients exactly and adapts them to other sample rates.
+    """
+    # Stage 1: high shelf
+    G, Q, fc = 3.999843853973347, 0.7071752369554196, 1681.974450955533
+    K = math.tan(math.pi * fc / sr)
+    Vh = 10 ** (G / 20.0)
+    Vb = Vh ** 0.4996667741545416
+    a0 = 1.0 + K / Q + K * K
+    shelf = [(Vh + Vb * K / Q + K * K) / a0, 2.0 * (K * K - Vh) / a0, (Vh - Vb * K / Q + K * K) / a0,
+             1.0, 2.0 * (K * K - 1.0) / a0, (1.0 - K / Q + K * K) / a0]
+    # Stage 2: RLB high-pass
+    Q, fc = 0.5003270373253953, 38.13547087602444
+    K = math.tan(math.pi * fc / sr)
+    a0 = 1.0 + K / Q + K * K
+    hp = [1.0, -2.0, 1.0, 1.0, 2.0 * (K * K - 1.0) / a0, (1.0 - K / Q + K * K) / a0]
+    return np.array([shelf, hp])
+
+
+def measure_loudness(audio: np.ndarray, sr: int) -> Dict[str, Optional[float]]:
+    """Integrated loudness (LUFS), loudness range (LU) and true peak (dBTP).
+
+    audio: (frames, channels) float array. Returns None for a value that
+    cannot be measured (e.g. a file shorter than one 400 ms block).
+    """
+    if audio.ndim == 1:
+        audio = audio[:, None]
+    audio = audio.astype(np.float64)
+    weighted = scipy.signal.sosfilt(_k_weighting_sos(sr), audio, axis=0)
+    power = weighted ** 2
+
+    def block_loudness(block_sec: float, hop_sec: float) -> np.ndarray:
+        blk, hop = int(sr * block_sec), int(sr * hop_sec)
+        if power.shape[0] < blk:
+            return np.zeros(0)
+        csum = np.vstack([np.zeros((1, power.shape[1])), np.cumsum(power, axis=0)])
+        starts = np.arange(0, power.shape[0] - blk + 1, hop)
+        ms = (csum[starts + blk] - csum[starts]) / blk  # mean square per channel
+        return ms.sum(axis=1)  # channel weights are 1.0 for L/R (no surround)
+
+    def to_lufs(z: np.ndarray) -> np.ndarray:
+        return -0.691 + 10 * np.log10(np.maximum(z, 1e-20))
+
+    result: Dict[str, Optional[float]] = {"lufs": None, "lra": None, "true_peak": None}
+
+    z = block_loudness(0.4, 0.1)
+    if z.size:
+        gated = z[to_lufs(z) > -70.0]
+        if gated.size:
+            rel_gate = to_lufs(np.array([gated.mean()]))[0] - 10.0
+            final = gated[to_lufs(gated) > rel_gate]
+            if final.size:
+                result["lufs"] = round(float(to_lufs(np.array([final.mean()]))[0]), 2)
+
+    zs = block_loudness(3.0, 0.1)
+    if zs.size:
+        ls = to_lufs(zs)
+        ls = ls[ls > -70.0]
+        if ls.size:
+            rel = to_lufs(np.array([np.mean(10 ** ((ls + 0.691) / 10))]))[0] - 20.0
+            ls = ls[ls > rel]
+            if ls.size:
+                result["lra"] = round(float(np.percentile(ls, 95) - np.percentile(ls, 10)), 2)
+
+    # True peak: 4x oversampled peak (BS.1770 Annex 2)
+    try:
+        over = scipy.signal.resample_poly(audio, 4, 1, axis=0) if sr < 96000 else audio
+        tp = float(np.max(np.abs(over))) if over.size else 0.0
+        result["true_peak"] = round(20 * math.log10(max(tp, 1e-9)), 2)
+    except Exception:
+        pass
+    return result
+
+
+# --------------------------------------------------------------------------
 # Stage 6: Automated Mix QA Analyzer
 # --------------------------------------------------------------------------
 
+# Loudness targets used everywhere (report, fix list, UI) so they can't disagree.
+QA_TARGET_LUFS_LOW = -14.0    # streaming normalisation reference
+QA_TARGET_LUFS_HIGH = -9.0    # loud modern pre-master
+QA_TRUE_PEAK_CEILING = -1.0
+QA_CREST_RANGE = (8.0, 16.0)
+QA_LRA_RANGE = (4.0, 12.0)
+QA_LUFS_TOLERANCE = 0.5       # meters differ by a few tenths; don't flag -14.3 against -14.0
+
+
 class MixQAReport:
-    """Extracts EBUR128 loudness and multi-band spectral QA metrics for audio renders."""
+    """Measures loudness, dynamics, spectral balance and stereo image of a render.
+
+    Every number in the report is measured from the file. Loudness comes
+    from ffmpeg's ebur128 filter when available, otherwise from the built-in
+    BS.1770 meter; if neither works the value is reported as unavailable,
+    never guessed.
+    """
 
     def __init__(self, wav_path: Path, ffmpeg_bin: str = "ffmpeg") -> None:
         self.wav_path = wav_path
         self.ffmpeg_bin = ffmpeg_bin
 
-    def run_ebur128(self) -> Dict[str, float]:
-        """Execute ffmpeg ebur128 filter and parse LUFS, LRA, and True Peak."""
-        cmd = [
-            self.ffmpeg_bin,
-            "-nostats",
-            "-i", str(self.wav_path),
-            "-filter_complex", "ebur128=peak=true",
-            "-f", "null",
-            "-",
-        ]
+    def run_ebur128(self) -> Optional[Dict[str, float]]:
+        """ffmpeg ebur128 measurement, or None if ffmpeg is missing / output unparseable."""
+        cmd = [self.ffmpeg_bin, "-nostats", "-i", str(self.wav_path),
+               "-filter_complex", "ebur128=peak=true", "-f", "null", "-"]
         try:
-            res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace", check=False)
-            output = res.stderr or ""
-        except Exception as exc:
-            log.error("Failed running ffmpeg ebur128 on %s: %s", self.wav_path.name, exc)
-            return {"lufs": -14.0, "lra": 7.0, "true_peak": -1.0}
+            res = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                                 text=True, errors="replace", check=False, timeout=600)
+        except (OSError, subprocess.SubprocessError) as exc:
+            log.info("ffmpeg ebur128 unavailable for %s (%s); using built-in meter", self.wav_path.name, exc)
+            return None
+        out = res.stderr or ""
+        summary = out[out.rfind("Summary:"):] if "Summary:" in out else ""
+        i_m = re.search(r"I:\s+([-\d\.]+)\s+LUFS", summary)
+        lra_m = re.search(r"LRA:\s+([-\d\.]+)\s+LU", summary)
+        tp_m = re.search(r"Peak:\s+([-\d\.]+)\s+dBFS", summary)
+        if res.returncode != 0 or not (i_m and lra_m and tp_m):
+            return None
+        return {"lufs": float(i_m.group(1)), "lra": float(lra_m.group(1)), "true_peak": float(tp_m.group(1))}
 
-        i_matches = re.findall(r"I:\s+([-\d\.]+)\s+LUFS", output)
-        lra_matches = re.findall(r"LRA:\s+([-\d\.]+)\s+LU", output)
-        tp_matches = re.findall(r"Peak:\s+([-\d\.]+)\s+dBFS", output)
-
-        lufs = float(i_matches[-1]) if i_matches else -14.0
-        lra = float(lra_matches[-1]) if lra_matches else 7.0
-        true_peak = float(tp_matches[-1]) if tp_matches else -1.0
-
-        return {"lufs": lufs, "lra": lra, "true_peak": true_peak}
-
-    def generate_report(self) -> str:
-        """Run complete 5-band spectral and dynamic QA analysis and output Markdown."""
-        ebur = self.run_ebur128()
+    def analyze(self) -> Dict[str, Any]:
+        """Return all measurements as a dict (None = not measurable)."""
         info = sf.info(str(self.wav_path))
         sr = info.samplerate
-        duration_s = info.duration
+        audio, _ = sf.read(str(self.wav_path), always_2d=True, dtype="float32")
 
-        audio, _ = sf.read(str(self.wav_path), always_2d=True)
-        peak_amp = float(np.max(np.abs(audio)))
-        rms_amp = float(np.sqrt(np.mean(audio**2)))
+        loud = self.run_ebur128()
+        method = "ffmpeg ebur128"
+        if loud is None:
+            method = "built-in BS.1770 meter"
+            loud = measure_loudness(audio, sr)
+
+        peak_amp = float(np.max(np.abs(audio))) if audio.size else 0.0
+        rms_amp = float(np.sqrt(np.mean(np.square(audio, dtype=np.float64)))) if audio.size else 0.0
         peak_db = 20.0 * math.log10(max(1e-9, peak_amp))
         rms_db = 20.0 * math.log10(max(1e-9, rms_amp))
-        crest_factor = peak_db - rms_db
 
-        # Multi-window 5-second band inspection
-        window_sec = 5.0
-        step_sec = 5.0
-        total_windows = max(1, int(duration_s // step_sec))
-
-        harsh_scores: List[Tuple[float, float]] = []
-        sib_scores: List[Tuple[float, float]] = []
-        mud_scores: List[Tuple[float, float]] = []
-        sub_scores: List[Tuple[float, float]] = []
-
+        # Spectral balance per 5 s window (fraction of total power in each band)
         mono = np.mean(audio, axis=1)
+        win = int(5.0 * sr)
+        bands = {"harsh": (8000, 16000), "sibilance": (5500, 10000), "sub": (20, 120), "mud": (150, 400)}
+        scores: Dict[str, List[Tuple[float, float]]] = {k: [] for k in bands}
+        for start in range(0, max(1, len(mono) - 1024), win):
+            chunk = mono[start:start + win]
+            if len(chunk) < 1024 or float(np.max(np.abs(chunk))) < 1e-4:
+                continue  # skip silence: it would rank as the "hot spot" for nothing
+            freqs, psd = scipy.signal.welch(chunk, fs=sr, nperseg=min(4096, len(chunk)))
+            tot = float(np.sum(psd)) + 1e-12
+            for k, (lo, hi) in bands.items():
+                m = (freqs >= lo) & (freqs <= hi)
+                scores[k].append((start / sr, float(np.sum(psd[m]) / tot)))
+        peaks = {k: (max(v, key=lambda x: x[1]) if v else None) for k, v in scores.items()}
+        means = {k: (float(np.mean([x[1] for x in v])) if v else None) for k, v in scores.items()}
 
-        for w in range(total_windows):
-            t_start = w * step_sec
-            idx_start = int(t_start * sr)
-            idx_end = int(min(len(mono), idx_start + window_sec * sr))
-            chunk = mono[idx_start:idx_end]
-            if len(chunk) < 1024:
-                continue
+        # Stereo image: L/R correlation and side-to-mid energy
+        correlation: Optional[float] = None
+        side_ratio_db: Optional[float] = None
+        if audio.shape[1] >= 2:
+            left, right = audio[:, 0].astype(np.float64), audio[:, 1].astype(np.float64)
+            denom = math.sqrt(float(np.sum(left ** 2)) * float(np.sum(right ** 2)))
+            if denom > 0:
+                correlation = float(np.sum(left * right) / denom)
+                mid_e = float(np.sum(((left + right) / 2) ** 2))
+                side_e = float(np.sum(((left - right) / 2) ** 2))
+                side_ratio_db = 10 * math.log10(max(side_e, 1e-12) / max(mid_e, 1e-12))
 
-            freqs, psd = scipy.signal.welch(chunk, fs=sr, nperseg=min(2048, len(chunk)))
-            tot_power = np.sum(psd) + 1e-12
+        return {
+            "sr": sr, "channels": info.channels, "duration": info.duration, "loudness_method": method,
+            "lufs": loud.get("lufs"), "lra": loud.get("lra"), "true_peak": loud.get("true_peak"),
+            "peak_db": peak_db, "rms_db": rms_db, "crest": peak_db - rms_db,
+            "band_peaks": peaks, "band_means": means,
+            "correlation": correlation, "side_ratio_db": side_ratio_db,
+        }
 
-            def bpower(f_lo: float, f_hi: float) -> float:
-                m = (freqs >= f_lo) & (freqs <= f_hi)
-                return float(np.sum(psd[m]) / tot_power)
-
-            harsh_scores.append((t_start, bpower(8000, 16000)))
-            sib_scores.append((t_start, bpower(5500, 10000)))
-            sub_scores.append((t_start, bpower(20, 120)))
-            mud_scores.append((t_start, bpower(150, 400)))
-
-        harsh_scores.sort(key=lambda x: x[1], reverse=True)
-        sib_scores.sort(key=lambda x: x[1], reverse=True)
-        mud_scores.sort(key=lambda x: x[1], reverse=True)
-        sub_scores.sort(key=lambda x: x[1], reverse=True)
-
-        top_harsh_t = harsh_scores[0][0] if harsh_scores else 0.0
-        top_sib_t = sib_scores[0][0] if sib_scores else 0.0
-        top_mud_t = mud_scores[0][0] if mud_scores else 0.0
+    def generate_report(self) -> str:
+        """Run the analysis and render it as a Markdown report."""
+        m = self.analyze()
 
         def fmt_time(sec: float) -> str:
-            m = int(sec // 60)
-            s = int(sec % 60)
-            return f"{m:02d}:{s:02d}"
+            return f"{int(sec // 60):02d}:{int(sec % 60):02d}"
 
-        # Build fix recommendations
-        fix_items: List[str] = []
+        def fmt(v: Optional[float], unit: str, nd: int = 1) -> str:
+            return f"{v:.{nd}f} {unit}" if v is not None else "unavailable"
 
-        # 1. Harshness check
-        if harsh_scores and harsh_scores[0][1] > 0.08:
-            fix_items.append(
-                f"{fmt_time(top_harsh_t)} – Cymbals / Air – High-frequency fizz accumulation in 8–16 kHz – "
-                f"Fruity Parametric EQ 2: -2.5 dB bell notch at 11,500 Hz (Q=3.8)"
-            )
-        else:
-            fix_items.append(
-                f"{fmt_time(top_harsh_t)} – Master Air – Smooth top-end response – "
-                f"Fruity Parametric EQ 2: gentle high-shelf bypass or optional +0.5 dB air above 14,000 Hz"
-            )
+        def in_range(v: Optional[float], lo: float, hi: float, ok: str = "[OK]", bad: str = "[ATTENTION]") -> str:
+            if v is None:
+                return "[NOT MEASURED]"
+            return ok if lo <= v <= hi else bad
 
-        # 2. Sibilance check
-        if sib_scores and sib_scores[0][1] > 0.12:
-            fix_items.append(
-                f"{fmt_time(top_sib_t)} – Vocals – Piercing vocal sibilance on consonants – "
-                f"Maximus: De-esser preset on vocal bus, band target 6,800 Hz, threshold -18 dB"
-            )
-        else:
-            fix_items.append(
-                f"{fmt_time(top_sib_t)} – Vocals – Controlled sibilance presence – "
-                f"Maximus: Maintain transparent de-essing or dynamic EQ at 7,200 Hz with 1.0 dB gain reduction max"
-            )
+        lufs, tp, lra = m["lufs"], m["true_peak"], m["lra"]
+        bp = m["band_peaks"]
+        harsh, sib, mud, sub = bp["harsh"], bp["sibilance"], bp["mud"], bp["sub"]
+        harsh_hot = bool(harsh and harsh[1] > 0.08)
+        sib_hot = bool(sib and sib[1] > 0.12)
+        mud_hot = bool(mud and mud[1] > 0.22)
+        sub_mean = m["band_means"]["sub"]
+        sub_heavy = bool(sub_mean is not None and sub_mean > 0.55)
+        corr = m["correlation"]
 
-        # 3. Low-end & Mud check
-        if mud_scores and mud_scores[0][1] > 0.22:
-            fix_items.append(
-                f"{fmt_time(top_mud_t)} – Bass / Synths – Low-mid mud masking kick punch at 150–400 Hz – "
-                f"Fruity Parametric EQ 2: -2.8 dB dip at 260 Hz (Q=2.2) on instrument bus"
-            )
-        else:
-            fix_items.append(
-                f"{fmt_time(top_mud_t)} – Low-End – Sub-to-mid balance stable – "
-                f"Fruity Parametric EQ 2: 30 Hz 24dB/oct low-cut on Master to clean sub-audible DC offset"
-            )
+        fixes: List[str] = []
+        if tp is not None and tp > QA_TRUE_PEAK_CEILING:
+            fixes.append(f"00:00 – Master Output – True peak {tp:.1f} dBTP is above the {QA_TRUE_PEAK_CEILING:.0f} dBTP streaming ceiling – "
+                         f"Fruity Limiter: ceiling {QA_TRUE_PEAK_CEILING:.1f} dB, enable lookahead, re-export")
+        if lufs is not None and lufs < QA_TARGET_LUFS_LOW - QA_LUFS_TOLERANCE:
+            fixes.append(f"00:00 – Master Bus – Integrated loudness {lufs:.1f} LUFS is below the {QA_TARGET_LUFS_LOW:.0f} LUFS target – "
+                         f"Maximus / Fruity Limiter: raise input gain about {QA_TARGET_LUFS_LOW - lufs:.1f} dB into the limiter")
+        elif lufs is not None and lufs > QA_TARGET_LUFS_HIGH + QA_LUFS_TOLERANCE:
+            fixes.append(f"00:00 – Master Bus – Integrated loudness {lufs:.1f} LUFS is above {QA_TARGET_LUFS_HIGH:.0f} LUFS (likely over-limited) – "
+                         f"Maximus: back off input gain about {lufs - QA_TARGET_LUFS_HIGH:.1f} dB to recover transients")
+        if harsh_hot:
+            fixes.append(f"{fmt_time(harsh[0])} – Cymbals / Air – High-frequency fizz ({harsh[1]*100:.0f}% of energy in 8–16 kHz) – "
+                         f"Fruity Parametric EQ 2: -2.5 dB bell at 11,500 Hz (Q 3.8) on the drum or instrument bus")
+        if sib_hot:
+            fixes.append(f"{fmt_time(sib[0])} – Vocals – Sibilance build-up ({sib[1]*100:.0f}% of energy in 5.5–10 kHz) – "
+                         f"Maximus: de-ess band around 6,800 Hz on the vocal insert, threshold about -18 dB")
+        if mud_hot:
+            fixes.append(f"{fmt_time(mud[0])} – Bass / Synths – Low-mid build-up ({mud[1]*100:.0f}% of energy in 150–400 Hz) – "
+                         f"Fruity Parametric EQ 2: -2.8 dB dip at 260 Hz (Q 2.2) on the instrument bus")
+        if sub_heavy:
+            fixes.append(f"00:00 – Low End – Sub band holds {sub_mean*100:.0f}% of the energy on average – "
+                         f"Fruity Parametric EQ 2: tighten the bass with a 30 Hz low-cut and check kick/bass overlap")
+        if corr is not None and corr < 0.2:
+            fixes.append(f"00:00 – Stereo Image – Low L/R correlation ({corr:+.2f}); risk of mono cancellation – "
+                         f"Fruity Stereo Shaper: narrow wide elements and keep bass/kick centred")
+        if not fixes:
+            fixes.append("00:00 – Mix – No measured issue crossed a threshold – No action needed; trust your ears for the final call")
 
-        # 4. Loudness & True Peak check
-        if ebur["true_peak"] > -1.0:
-            fix_items.append(
-                f"00:00 – Master Output – True Peak ({ebur['true_peak']:.1f} dBTP) exceeds streaming ceiling – "
-                f"Fruity Limiter: Set Master ceiling to -1.0 dBTP with lookahead 2.0 ms"
-            )
-        elif ebur["lufs"] < -14.0:
-            fix_items.append(
-                f"00:00 – Master Bus – Pre-master level ({ebur['lufs']:.1f} LUFS) has headroom below -11 LUFS – "
-                f"Maximus / Fruity Limiter: Clean makeup gain +1.5 to +2.5 dB into transparent brickwall ceiling"
-            )
-        else:
-            fix_items.append(
-                f"00:00 – Master Bus – Loudness sits in target pre-master range ({ebur['lufs']:.1f} LUFS) – "
-                f"Maintain clean transient preservation and verify inter-sample peak safety"
-            )
+        def band_line(entry: Optional[Tuple[float, float]], hot: bool, ok: str, bad: str, label: str) -> str:
+            if entry is None:
+                return "- **Status**: Not measured (no non-silent audio)"
+            return (f"- **Status**: {bad if hot else ok}\n"
+                    f"- Highest {label} at **{fmt_time(entry[0])}** ({entry[1]*100:.1f}% of window energy).")
 
-        # 5. Timing & Pocket check
-        fix_items.append(
-            f"00:30 – Drums & Bass – Pocket alignment and backbeat anchor – "
-            f"FPC Drum Mapper: Keep +4 ticks lay-back on backbeat snare and +3 ticks on bass groove anchor"
-        )
+        stereo_status = "Not measured (mono file)" if corr is None else (
+            "Mono-compatibility risk" if corr < 0.2 else ("Very narrow / near mono" if corr > 0.97 else "Healthy width"))
 
         md = f"""# Mix QA Analysis Report: {self.wav_path.stem}
 
 **Source File**: `{self.wav_path.name}`  
 **Analyzed At**: `{time.strftime('%Y-%m-%d %H:%M:%S')}`  
-**Sample Rate**: `{sr} Hz` | **Channels**: `{info.channels}` | **Duration**: `{duration_s:.2f} s`  
+**Sample Rate**: `{m['sr']} Hz` | **Channels**: `{m['channels']}` | **Duration**: `{m['duration']:.2f} s`  
+**Loudness Measured With**: `{m['loudness_method']}`  
 
 ---
 
@@ -841,45 +1143,39 @@ class MixQAReport:
 
 | Metric | Measured Value | Standard Target | Status |
 | :--- | :--- | :--- | :--- |
-| **Integrated Loudness** | **{ebur['lufs']:.1f} LUFS** | -10.0 to -12.0 LUFS (pre-master) | {'[OK]' if -14.0 <= ebur['lufs'] <= -10.0 else '[ATTENTION]'} |
-| **True Peak** | **{ebur['true_peak']:.1f} dBTP** | <= -1.0 dBTP | {'[OK]' if ebur['true_peak'] <= -1.0 else '[PEAK WARNING]'} |
-| **Crest Factor** | **{crest_factor:.1f} dB** | 10.0 to 14.0 dB | {'[OK]' if 9.0 <= crest_factor <= 16.0 else '[CHECK COMPRESSION]'} |
-| **Loudness Range (LRA)** | **{ebur['lra']:.1f} LU** | 6.0 to 10.0 LU | [OK] |
-| **Peak Amplitude** | **{peak_db:.2f} dBFS** | < 0.0 dBFS | {'[OK]' if peak_db < -0.1 else '[CLIPPING]'} |
-| **RMS Level** | **{rms_db:.2f} dBFS** | -18.0 to -12.0 dBFS | [OK] |
+| **Integrated Loudness** | **{fmt(lufs, 'LUFS')}** | {QA_TARGET_LUFS_LOW:.1f} to {QA_TARGET_LUFS_HIGH:.1f} LUFS | {in_range(lufs, QA_TARGET_LUFS_LOW - QA_LUFS_TOLERANCE, QA_TARGET_LUFS_HIGH + QA_LUFS_TOLERANCE)} |
+| **True Peak** | **{fmt(tp, 'dBTP')}** | <= {QA_TRUE_PEAK_CEILING:.1f} dBTP | {in_range(tp, -200.0, QA_TRUE_PEAK_CEILING, bad='[PEAK WARNING]')} |
+| **Crest Factor** | **{m['crest']:.1f} dB** | {QA_CREST_RANGE[0]:.1f} to {QA_CREST_RANGE[1]:.1f} dB | {in_range(m['crest'], *QA_CREST_RANGE, bad='[CHECK COMPRESSION]')} |
+| **Loudness Range (LRA)** | **{fmt(lra, 'LU')}** | {QA_LRA_RANGE[0]:.1f} to {QA_LRA_RANGE[1]:.1f} LU | {in_range(lra, *QA_LRA_RANGE)} |
+| **Peak Amplitude** | **{m['peak_db']:.2f} dBFS** | < 0.0 dBFS | {'[OK]' if m['peak_db'] < -0.1 else '[CLIPPING]'} |
+| **RMS Level** | **{m['rms_db']:.2f} dBFS** | -18.0 to -8.0 dBFS | {in_range(m['rms_db'], -18.0, -8.0)} |
 
 ---
 
-## 2. Five-Band Frequency & Pocket Assessment
+## 2. Five-Band Frequency & Stereo Assessment
 
 ### Band 1: Harshness / Fizz (8–16 kHz)
-- **Status**: {'Controlled' if harsh_scores and harsh_scores[0][1] <= 0.08 else 'Elevated High-End Fizz'}
-- Peak hot-spot identified at **{fmt_time(top_harsh_t)}** (energy ratio: {harsh_scores[0][1]*100:.1f}%).
-- Inspect separation artifacts on cymbals and reverb tails.
+{band_line(harsh, harsh_hot, 'Controlled', 'Elevated High-End Fizz', 'fizz')}
 
 ### Band 2: Sibilance (5.5–10 kHz)
-- **Status**: {'Transparent' if sib_scores and sib_scores[0][1] <= 0.12 else 'Sibilance Accentuation'}
-- Focal transient concentration at **{fmt_time(top_sib_t)}**.
-- Check lead vocal consonants ('s', 't', 'sh') with dynamic EQ.
+{band_line(sib, sib_hot, 'Transparent', 'Sibilance Accentuation', 'sibilance')}
 
-### Band 3: Low-End Balance: Sub (20–120 Hz) vs. Mud (150–400 Hz)
-- **Status**: {'Balanced punch' if mud_scores and mud_scores[0][1] <= 0.22 else 'Low-Mid Masking Present'}
-- Warmth accumulation centered at **{fmt_time(top_mud_t)}**.
-- Ensure kick transient cuts through without bass frequency masking.
+### Band 3: Low-Mid Mud (150–400 Hz)
+{band_line(mud, mud_hot, 'Balanced', 'Low-Mid Masking Present', 'low-mid build-up')}
 
-### Band 4: Loudness & True Peak / Transients
-- Target pre-master delivery is -10 to -12 LUFS.
-- True peak ceiling: **{ebur['true_peak']:.1f} dBTP** (Ceiling limit is -1.0 dBTP).
+### Band 4: Sub (20–120 Hz)
+{band_line(sub, sub_heavy, 'Balanced', 'Sub-Heavy', 'sub energy')}
+- Average sub share: {f"{sub_mean*100:.1f}%" if sub_mean is not None else 'unavailable'}.
 
-### Band 5: Timing & Pocket Assessment
-- Drums and bass groove relation: transients exhibit well-defined attack envelopes.
-- Backbeat lay-back aligns with FPC humanizer grid.
+### Band 5: Stereo Image & Mono Compatibility
+- **Status**: {stereo_status}
+- L/R correlation: {f"{corr:+.2f}" if corr is not None else 'unavailable'}; side-to-mid energy: {f"{m['side_ratio_db']:.1f} dB" if m['side_ratio_db'] is not None else 'unavailable'}.
 
 ---
 
 ## 3. Recommended Actionable Fix List
 
-{chr(10).join(f"- {item}" for item in fix_items)}
+{chr(10).join(f"- {item}" for item in fixes)}
 """
         return md
 
@@ -888,43 +1184,74 @@ class MixQAReport:
 # Pipeline Stages Implementation
 # --------------------------------------------------------------------------
 
+INBOX_STEM_PATTERN = re.compile(r"^(.+)_(vocals|drums|bass|instruments|other|keys)$", re.IGNORECASE)
+
+
+def demucs_command() -> List[str]:
+    """Python launcher used to run Demucs.
+
+    DEMUCS_PYTHON overrides it (e.g. "py -3.10" or a venv's python.exe).
+    Default: the Windows "py -3.10" launcher when present (the original
+    setup), otherwise the interpreter running this script.
+    """
+    env = os.environ.get("DEMUCS_PYTHON", "").strip()
+    if env:
+        return shlex.split(env, posix=(os.name != "nt"))
+    if os.name == "nt" and shutil.which("py"):
+        return ["py", "-3.10"]
+    return [sys.executable]
+
+
+def inbox_groups(paths: PipelinePaths) -> Tuple[Dict[str, List[Path]], List[Path]]:
+    """Split inbox WAVs into grouped stem sets {track: [wavs]} and solitary full mixes."""
+    groups: Dict[str, List[Path]] = {}
+    solitary: List[Path] = []
+    for wav in visible_wavs(paths.inbox):
+        match = INBOX_STEM_PATTERN.match(wav.stem)
+        if match:
+            groups.setdefault(match.group(1).strip(), []).append(wav)
+        else:
+            solitary.append(wav)
+    return groups, solitary
+
+
+def pending_inbox(paths: PipelinePaths) -> List[str]:
+    """Track names in 01_Suno_Inbox that still need routing or Demucs separation."""
+    reg = failures(paths)
+    pending: List[str] = []
+    groups, solitary = inbox_groups(paths)
+    for track, files in groups.items():
+        for src in files:
+            dest = paths.stems / track / src.name
+            if not dest.exists() or dest.stat().st_size != src.stat().st_size:
+                pending.append(track)
+                break
+    for mix in solitary:
+        if visible_wavs(paths.stems / mix.stem):
+            continue
+        if reg.is_blocked("demucs", mix.stem, fingerprint([mix])):
+            continue
+        pending.append(mix.stem)
+    return pending
+
+
 def process_inbox(paths: PipelinePaths) -> int:
     """Stage 1 -> 2: Inbox Auto-Router & Stem Splitter.
 
     Scans 01_Suno_Inbox for WAV files. NEVER modifies or deletes files in 01_Suno_Inbox.
-    - If grouped stem files exist: copies them to 02_Moises_Stems/<Track>/
-    - If full stereo mix exists and no stems folder exists: attempts Demucs separation via py -3.10.
+    - Grouped stem files (<Track>_vocals.wav ...) are copied to 02_Moises_Stems/<Track>/.
+    - A full mix with no stems folder is separated with Demucs (see demucs_command()).
+      A failed separation is recorded and not retried until the file changes.
     """
-    if not paths.inbox.exists():
-        return 0
-
-    wav_files = [p for p in paths.inbox.glob("*.wav") if not p.name.startswith(".")]
-    if not wav_files:
-        return 0
-
+    groups, solitary = inbox_groups(paths)
+    reg = failures(paths)
     processed_count = 0
 
-    # Check for grouped stem files: <Track>_[vocals|drums|bass|instruments|other|keys].wav
-    stem_pattern = re.compile(r"^(.+)_(vocals|drums|bass|instruments|other|keys)$", re.IGNORECASE)
-    groups: Dict[str, List[Path]] = {}
-    solitary_mixes: List[Path] = []
-
-    for wav in wav_files:
-        match = stem_pattern.match(wav.stem)
-        if match:
-            track_name = match.group(1).strip()
-            groups.setdefault(track_name, []).append(wav)
-        else:
-            solitary_mixes.append(wav)
-
-    # 1. Process Grouped Stems
     for track_name, files in groups.items():
+        if not all(wait_file_ready(f) for f in files):
+            continue
         dest_dir = paths.stems / track_name
         dest_dir.mkdir(parents=True, exist_ok=True)
-        all_ready = all(wait_file_ready(f) for f in files)
-        if not all_ready:
-            continue
-
         for src in files:
             dest = dest_dir / src.name
             if not dest.exists() or dest.stat().st_size != src.stat().st_size:
@@ -932,41 +1259,36 @@ def process_inbox(paths: PipelinePaths) -> int:
                 log.info("[%s] Routed inbox stem %s -> %s", track_name, src.name, dest_dir)
                 processed_count += 1
 
-    # 2. Process Solitary Mixes (Demucs 4-Stem Separation fallback)
-    for mix_wav in solitary_mixes:
+    for mix_wav in solitary:
         track_name = mix_wav.stem
         dest_dir = paths.stems / track_name
-        if dest_dir.exists() and any(not p.name.startswith(".") for p in dest_dir.glob("*.wav")):
+        if visible_wavs(dest_dir):
             continue
-
+        sig = fingerprint([mix_wav])
+        if reg.is_blocked("demucs", track_name, sig):
+            continue
         if not wait_file_ready(mix_wav):
             continue
 
-        log.info("[%s] Full mix detected in 01_Suno_Inbox; attempting Demucs separation...", track_name)
+        log.info("[%s] Full mix detected in 01_Suno_Inbox; running Demucs separation...", track_name)
         temp_demucs_out = paths.automation / f"demucs_tmp_{int(time.time())}"
-        demucs_cmd = [
-            "py", "-3.10", "-m", "demucs",
-            "-n", "htdemucs",
-            "-o", str(temp_demucs_out),
-            str(mix_wav)
-        ]
+        demucs_cmd = demucs_command() + ["-m", "demucs", "-n", "htdemucs", "-o", str(temp_demucs_out), str(mix_wav)]
         try:
             res = subprocess.run(demucs_cmd, capture_output=True, text=True, check=False)
-            if res.returncode == 0:
-                out_folder = temp_demucs_out / "htdemucs" / mix_wav.stem
-                if out_folder.exists():
-                    dest_dir.mkdir(parents=True, exist_ok=True)
-                    for st_wav in out_folder.glob("*.wav"):
-                        shutil.copy2(st_wav, dest_dir / f"{track_name}_{st_wav.name}")
-                    log.info("[%s] Demucs 4-stem separation complete -> %s", track_name, dest_dir)
-                    processed_count += 1
+            out_folder = temp_demucs_out / "htdemucs" / mix_wav.stem
+            if res.returncode == 0 and out_folder.exists() and visible_wavs(out_folder):
+                dest_dir.mkdir(parents=True, exist_ok=True)
+                for st_wav in visible_wavs(out_folder):
+                    shutil.copy2(st_wav, dest_dir / f"{track_name}_{st_wav.name}")
+                log.info("[%s] Demucs 4-stem separation complete -> %s", track_name, dest_dir)
+                reg.clear("demucs", track_name)
+                processed_count += 1
             else:
-                log.warning(
-                    "[%s] Demucs failed or py -3.10 not configured. Moises export recommended:\n%s",
-                    track_name, res.stderr
-                )
+                reg.record("demucs", track_name, sig,
+                           f"Demucs exit {res.returncode} ({' '.join(demucs_cmd[:3])}). Set DEMUCS_PYTHON or export "
+                           f"stems via Moises into {dest_dir}.\n{(res.stderr or '').strip()[-1500:]}")
         except Exception as exc:
-            log.warning("[%s] Could not invoke Demucs: %s. Please export stems via Moises into %s", track_name, exc, dest_dir)
+            reg.record("demucs", track_name, sig, f"Could not invoke Demucs: {exc}")
         finally:
             shutil.rmtree(temp_demucs_out, ignore_errors=True)
 
@@ -974,15 +1296,16 @@ def process_inbox(paths: PipelinePaths) -> int:
 
 
 def pending_stem_tracks(paths: PipelinePaths) -> List[Path]:
-    """Find track folders in 02_Moises_Stems containing WAV files and lacking a .done marker in 03_Prepped_Stems."""
-    if not paths.stems.exists():
-        return []
+    """Track folders in 02_Moises_Stems with WAVs, no .done marker, and no unresolved failure."""
+    reg = failures(paths)
     pending: List[Path] = []
-    for d in paths.stems.iterdir():
-        if d.is_dir() and not d.name.startswith("."):
-            done_marker = paths.prepped / d.name / ".done"
-            if not done_marker.exists() and any(not p.name.startswith(".") for p in d.glob("*.wav")):
-                pending.append(d)
+    for d in visible_dirs(paths.stems):
+        wavs = visible_wavs(d)
+        if not wavs or (paths.prepped / d.name / ".done").exists():
+            continue
+        if reg.is_blocked("stem_prep", d.name, fingerprint(wavs)):
+            continue
+        pending.append(d)
     return pending
 
 
@@ -995,140 +1318,160 @@ def run_stem_prep(
     """Stage 2: Execute stem_prep.py --base-dir ... --once --preset ...
 
     Prepares 24-bit PCM stems, triggers, and copies FL Studio template non-destructively.
-    Only spawns stem_prep when pending tracks exist in 02_Moises_Stems (unless force=True).
+    Tracks that still lack a .done marker afterwards are recorded as failed.
     """
-    if not stem_prep_path.is_file():
-        log.error("stem_prep.py not found at %s", stem_prep_path)
-        return 0
-
     pending = pending_stem_tracks(paths)
     if not pending and not force:
         return 0
 
-    track_names = ", ".join(d.name for d in pending)
-    log.info("Pending tracks for stem_prep: [%s]", track_names if track_names else "forced run")
+    reg = failures(paths)
 
-    cmd = [
-        sys.executable,
-        str(stem_prep_path),
-        "--base-dir", str(paths.base),
-        "--once",
-        "--preset", preset,
-    ]
+    def fail_all(msg: str) -> None:
+        for d in pending:
+            if not (paths.prepped / d.name / ".done").exists():
+                reg.record("stem_prep", d.name, fingerprint(visible_wavs(d)), msg)
+
+    if not stem_prep_path.is_file():
+        fail_all(f"stem_prep.py not found at {stem_prep_path} (set STEM_PREP_SCRIPT)")
+        return 0
+
+    log.info("Pending tracks for stem_prep: [%s]", ", ".join(d.name for d in pending) or "forced run")
+    cmd = [sys.executable, str(stem_prep_path), "--base-dir", str(paths.base), "--once", "--preset", preset]
     log.info("Running stem_prep: %s", " ".join(cmd))
     res = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if res.returncode != 0:
-        log.error("stem_prep failed with exit code %d:\n%s", res.returncode, res.stderr)
+        fail_all(f"stem_prep exit code {res.returncode}:\n{(res.stderr or res.stdout or '').strip()[-1500:]}")
         return 0
 
-    log.info("stem_prep completed successfully:\n%s", res.stdout.strip())
+    log.info("stem_prep completed:\n%s", res.stdout.strip())
+    fail_all("stem_prep finished but wrote no .done marker for this track:\n" + (res.stdout or "").strip()[-1500:])
+    for d in pending:
+        if (paths.prepped / d.name / ".done").exists():
+            reg.clear("stem_prep", d.name)
     return len(pending) if pending else 1
+
+
+def midi_inputs(track_dir: Path) -> List[Path]:
+    return visible_wavs(track_dir / "Audio_Stems") + visible_wavs(track_dir / "Drum_Triggers")
+
+
+def pending_midi_tracks(paths: PipelinePaths) -> List[Path]:
+    """Prepped track folders with .done but no MIDI/.midi_done or metadata (and no unresolved failure)."""
+    reg = failures(paths)
+    pending: List[Path] = []
+    for d in visible_dirs(paths.prepped):
+        if not (d / ".done").exists():
+            continue
+        if (d / "MIDI" / ".midi_done").exists() and (d / "track_metadata.json").exists():
+            continue
+        if reg.is_blocked("midi", d.name, fingerprint(midi_inputs(d))):
+            continue
+        pending.append(d)
+    return pending
+
+
+def _midi_for_track(paths: PipelinePaths, track_dir: Path, preset: str) -> None:
+    track_name = track_dir.name
+    midi_dir = track_dir / "MIDI"
+    midi_dir.mkdir(parents=True, exist_ok=True)
+    audio_stems_dir = track_dir / "Audio_Stems"
+    drum_triggers_dir = track_dir / "Drum_Triggers"
+
+    log.info("[%s] Starting BPM/Key detection and MIDI generation...", track_name)
+    drum_prep = sorted(audio_stems_dir.glob("*drum*_prep.wav"))
+    bass_prep = sorted(audio_stems_dir.glob("*bass*_prep.wav"))
+    kick_trig = sorted(drum_triggers_dir.glob("*Kick_Trigger.wav"))
+
+    bpm_ref = drum_prep[0] if drum_prep else (kick_trig[0] if kick_trig else (bass_prep[0] if bass_prep else None))
+    bpm = estimate_bpm_from_audio(bpm_ref) if bpm_ref else 120.0
+    log.info("[%s] Estimated BPM: %.1f", track_name, bpm)
+
+    inst_prep = sorted(audio_stems_dir.glob("*instrument*_prep.wav")) + sorted(audio_stems_dir.glob("*other*_prep.wav"))
+    key_ref = inst_prep[0] if inst_prep else (bass_prep[0] if bass_prep else bpm_ref)
+    key_name, scale_notes = estimate_key_from_audio(key_ref) if key_ref else ("C Major", ["C", "D", "E", "F", "G", "A", "B"])
+    log.info("[%s] Estimated Key: %s (Scale: %s)", track_name, key_name, ", ".join(scale_notes))
+
+    downbeat = 0.0
+    drums_mid = midi_dir / f"{track_name}_FPC_Drums.mid"
+    if drum_triggers_dir.exists():
+        notes, downbeat, bpm = transcribe_drum_hits(track_name, drum_triggers_dir, bpm)
+        log.info("[%s] Tempo fitted to drum hits: %.2f BPM, downbeat at %.3f s", track_name, bpm, downbeat)
+        if notes:
+            write_smf_midi(drums_mid, [notes_to_midi_track(f"{track_name} FPC Drums", notes, bpm, channel=9)])
+            log.info("[%s] Generated FPC Drum MIDI: %s (%d hits)", track_name, drums_mid.name, len(notes))
+        else:
+            log.warning("[%s] No drum trigger transients detected in %s", track_name, drum_triggers_dir)
+
+    if bass_prep:
+        generate_bass_midi(track_name, bass_prep[0], bpm, midi_dir / f"{track_name}_Bass.mid")
+
+    fl_proj_path = paths.fl_project / track_name / f"{track_name}.flp"
+    metadata: Dict[str, Any] = {
+        "track": track_name,
+        "estimated_bpm": bpm,
+        "estimated_key": key_name,
+        "scale_notes": scale_notes,
+        "downbeat_sec": round(downbeat, 4),
+        "preset": preset,
+        "prepped_stems": [p.name for p in visible_wavs(audio_stems_dir)],
+        "drum_triggers": [p.name for p in visible_wavs(drum_triggers_dir)],
+        "midi_files": [p.name for p in sorted(midi_dir.glob("*.mid"))],
+        "fl_project_path": str(fl_proj_path) if fl_proj_path.exists() else None,
+        "processed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    atomic_write_text(track_dir / "track_metadata.json", json.dumps(metadata, indent=2))
+    atomic_write_text(midi_dir / ".midi_done", f"MIDI generated at {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+    log.info("[%s] Metadata & MIDI done written", track_name)
 
 
 def generate_midi_and_metadata(
     paths: PipelinePaths,
     preset: str = DEFAULT_PRESET,
 ) -> int:
-    """Stage 3 & 4: BPM/Key Detection, Trigger-to-FPC MIDI, Bass-to-MIDI, and Metadata."""
-    if not paths.prepped.exists():
-        return 0
-
+    """Stage 3 & 4: BPM/Key/downbeat detection, clean FPC drum MIDI, bass MIDI and metadata."""
+    reg = failures(paths)
     processed = 0
-    for track_dir in paths.prepped.iterdir():
-        if not track_dir.is_dir() or track_dir.name.startswith("."):
-            continue
-
-        track_name = track_dir.name
-        if not (track_dir / ".done").exists():
-            continue
-
-        midi_dir = track_dir / "MIDI"
-        midi_done = midi_dir / ".midi_done"
-        metadata_file = track_dir / "track_metadata.json"
-
-        if midi_done.exists() and metadata_file.exists():
-            continue
-
-        midi_dir.mkdir(parents=True, exist_ok=True)
-        audio_stems_dir = track_dir / "Audio_Stems"
-        drum_triggers_dir = track_dir / "Drum_Triggers"
-
-        log.info("[%s] Starting BPM/Key detection and MIDI generation...", track_name)
-
-        # 1. Detect BPM
-        drum_prep = list(audio_stems_dir.glob("*drum*_prep.wav"))
-        bass_prep = list(audio_stems_dir.glob("*bass*_prep.wav"))
-        kick_trig = list(drum_triggers_dir.glob("*Kick_Trigger.wav"))
-
-        bpm_ref = drum_prep[0] if drum_prep else (kick_trig[0] if kick_trig else (bass_prep[0] if bass_prep else None))
-        bpm = estimate_bpm_from_audio(bpm_ref) if bpm_ref else 120.0
-        log.info("[%s] Estimated BPM: %.1f", track_name, bpm)
-
-        # 2. Detect Musical Key
-        inst_prep = list(audio_stems_dir.glob("*instrument*_prep.wav")) + list(audio_stems_dir.glob("*other*_prep.wav"))
-        key_ref = inst_prep[0] if inst_prep else (bass_prep[0] if bass_prep else bpm_ref)
-        key_name, scale_notes = estimate_key_from_audio(key_ref) if key_ref else ("C Major", ["C", "D", "E", "F", "G", "A", "B"])
-        log.info("[%s] Estimated Key: %s (Scale: %s)", track_name, key_name, ", ".join(scale_notes))
-
-        # 3. Drum Trigger-to-FPC MIDI
-        drums_mid = midi_dir / f"{track_name}_FPC_Drums.mid"
-        if drum_triggers_dir.exists():
-            generate_fpc_drums_midi(track_name, drum_triggers_dir, bpm, drums_mid)
-
-        # 4. Bass-to-MIDI
-        bass_mid = midi_dir / f"{track_name}_Bass.mid"
-        if bass_prep:
-            generate_bass_midi(track_name, bass_prep[0], bpm, bass_mid)
-
-        # 5. Metadata JSON
-        fl_proj_path = paths.fl_project / track_name / f"{track_name}.flp"
-        metadata: Dict[str, Any] = {
-            "track": track_name,
-            "estimated_bpm": bpm,
-            "estimated_key": key_name,
-            "scale_notes": scale_notes,
-            "preset": preset,
-            "prepped_stems": [p.name for p in audio_stems_dir.glob("*.wav")],
-            "drum_triggers": [p.name for p in drum_triggers_dir.glob("*.wav")],
-            "midi_files": [p.name for p in midi_dir.glob("*.mid")],
-            "fl_project_path": str(fl_proj_path) if fl_proj_path.exists() else None,
-            "processed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        }
-
-        atomic_write_text(metadata_file, json.dumps(metadata, indent=2))
-        atomic_write_text(midi_done, f"MIDI generated at {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-        log.info("[%s] Metadata & MIDI done written -> %s", track_name, metadata_file)
-        processed += 1
-
+    for track_dir in pending_midi_tracks(paths):
+        try:
+            _midi_for_track(paths, track_dir, preset)
+            reg.clear("midi", track_dir.name)
+            processed += 1
+        except Exception as exc:
+            log.debug("MIDI stage traceback", exc_info=True)
+            reg.record("midi", track_dir.name, fingerprint(midi_inputs(track_dir)), f"{type(exc).__name__}: {exc}")
     return processed
 
 
+def pending_mix_renders(paths: PipelinePaths) -> List[Path]:
+    """Render WAVs in 05_Mix_Renders without a QA report (and no unresolved failure)."""
+    reg = failures(paths)
+    return [
+        w for w in visible_wavs(paths.renders)
+        if not qa_report_path(w).exists() and not reg.is_blocked("mix_qa", w.stem, fingerprint([w]))
+    ]
+
+
+def write_qa_report(render_wav: Path, ffmpeg_bin: str = "ffmpeg") -> Path:
+    report = qa_report_path(render_wav)
+    atomic_write_text(report, MixQAReport(render_wav, ffmpeg_bin=ffmpeg_bin).generate_report())
+    log.info("Mix QA report written -> %s", report)
+    return report
+
+
 def process_mix_renders(paths: PipelinePaths, ffmpeg_bin: str = "ffmpeg") -> int:
-    """Stage 6: Automated Mix QA Analyzer.
-
-    Scans 05_Mix_Renders for WAV files lacking <MixName>_Mix_QA_Report.md and analyzes them.
-    """
-    if not paths.renders.exists():
-        return 0
-
-    wav_files = [p for p in paths.renders.glob("*.wav") if not p.name.startswith(".")]
+    """Stage 6: Automated Mix QA Analyzer for every render lacking a report."""
+    reg = failures(paths)
     analyzed = 0
-
-    for wav in wav_files:
-        report_path = paths.renders / f"{wav.stem}_Mix_QA_Report.md"
-        if report_path.exists():
-            continue
-
+    for wav in pending_mix_renders(paths):
         if not wait_file_ready(wav):
             continue
-
         log.info("Analyzing mix render: %s...", wav.name)
-        qa = MixQAReport(wav, ffmpeg_bin=ffmpeg_bin)
-        md_content = qa.generate_report()
-        atomic_write_text(report_path, md_content)
-        log.info("Mix QA report written -> %s", report_path)
-        analyzed += 1
-
+        try:
+            write_qa_report(wav, ffmpeg_bin=ffmpeg_bin)
+            reg.clear("mix_qa", wav.stem)
+            analyzed += 1
+        except Exception as exc:
+            reg.record("mix_qa", wav.stem, fingerprint([wav]), f"{type(exc).__name__}: {exc}")
     return analyzed
 
 
@@ -1146,8 +1489,10 @@ class PipelineAutomator:
         poll_interval: float = 2.0,
         ffmpeg_bin: str = "ffmpeg",
         stem_prep_path: Path = STEM_PREP_SCRIPT_DEFAULT,
+        humanize: bool = True,
     ) -> None:
         self.paths = PipelinePaths(base_dir)
+        self.humanize = humanize
         self.preset = preset
         self.poll_interval = poll_interval
         self.ffmpeg_bin = ffmpeg_bin
@@ -1170,6 +1515,12 @@ class PipelineAutomator:
         midi_count = generate_midi_and_metadata(self.paths, preset=self.preset)
         if midi_count:
             log.info("Stage 3/4 MIDI & Metadata: %d track(s) processed", midi_count)
+
+        # Rough mix + Humanized Mix (drums & bass re-performed from MIDI)
+        import humanized_mix  # local import: humanized_mix imports this module
+        mix_count = humanized_mix.run_mix_stages(self.paths, ffmpeg_bin=self.ffmpeg_bin, humanize=self.humanize)
+        if mix_count:
+            log.info("Mix stage: %d mix(es) rendered", mix_count)
 
         # Stage 6: Mix QA Analyzer
         qa_count = process_mix_renders(self.paths, ffmpeg_bin=self.ffmpeg_bin)
@@ -1208,6 +1559,8 @@ class PipelineAutomator:
                     process_inbox(self.paths)
                     run_stem_prep(self.paths, preset=self.preset, stem_prep_path=self.stem_prep_path)
                     generate_midi_and_metadata(self.paths, preset=self.preset)
+                    import humanized_mix  # local import: humanized_mix imports this module
+                    humanized_mix.run_mix_stages(self.paths, ffmpeg_bin=self.ffmpeg_bin, humanize=self.humanize)
                     process_mix_renders(self.paths, ffmpeg_bin=self.ffmpeg_bin)
                 except Exception as exc:
                     log.error("Error during watch cycle: %s", exc, exc_info=True)
@@ -1271,6 +1624,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Path to stem_prep.py",
     )
     parser.add_argument(
+        "--no-humanize",
+        action="store_true",
+        help="Skip rendering the Humanized Mix (drums & bass re-performed from MIDI)",
+    )
+    parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable verbose debug logging",
@@ -1294,6 +1652,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         poll_interval=args.poll_interval,
         ffmpeg_bin=args.ffmpeg,
         stem_prep_path=args.stem_prep,
+        humanize=not args.no_humanize,
     )
 
     if args.watch:
