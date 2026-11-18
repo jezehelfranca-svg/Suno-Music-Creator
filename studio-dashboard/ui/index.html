@@ -120,6 +120,74 @@
       border-color: rgba(255, 171, 0, 0.3);
     }
 
+    .status-pill.moises-connected {
+      background: rgba(0, 229, 255, 0.12);
+      color: var(--neon-cyan);
+      border-color: rgba(0, 229, 255, 0.35);
+    }
+
+    .status-pill.moises-offline {
+      background: rgba(139, 155, 180, 0.12);
+      color: var(--text-muted);
+      border-color: var(--border-light);
+    }
+
+    .moises-meta-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .moises-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .moises-config-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .moises-config-box input {
+      background: var(--bg-darker);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 6px 8px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      width: 100%;
+    }
+
+    .moises-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .moises-chip {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--neon-cyan);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+    }
+
     .pulse-dot {
       width: 7px;
       height: 7px;
@@ -1037,6 +1105,10 @@
         <span class="pulse-dot"></span>
         <span id="statusPillText">INITIALIZING...</span>
       </div>
+      <div id="moisesHeaderBadge" class="status-pill moises-offline" title="Moises Studio MCP Bridge status">
+        <span class="pulse-dot"></span>
+        <span id="moisesHeaderText">MOISES MCP: CHECKING...</span>
+      </div>
       <div id="busyIndicator" class="busy-indicator">
         <div class="spinner"></div>
         <span id="busyText">Processing...</span>
@@ -1118,6 +1190,34 @@
         </div>
         <div id="trackList" class="track-list">
           <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Moises Studio MCP Bridge -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">
+          <span>MOISES STUDIO MCP BRIDGE</span>
+          <span id="moisesStemCountBadge" style="color:var(--neon-cyan);">0</span>
+        </div>
+        <div id="moisesBridgeSummary" class="moises-meta-box">
+          Checking Moises Studio MCP...
+        </div>
+        <div class="moises-btn-grid">
+          <button class="btn" style="padding:5px 8px;font-size:11px;justify-content:center;" data-action="moises-call" data-tool="transport_play">&#9654; Play in Moises</button>
+          <button class="btn" style="padding:5px 8px;font-size:11px;justify-content:center;" data-action="moises-call" data-tool="transport_pause">&#9208; Pause</button>
+          <button class="btn" style="padding:5px 8px;font-size:11px;justify-content:center;" data-action="moises-refresh">&#128260; Refresh Moises</button>
+          <button class="btn" style="padding:5px 8px;font-size:11px;justify-content:center;" data-action="moises-toggle-config">&#9881; Configure MCP URL</button>
+        </div>
+        <div id="moisesConfigBox" class="moises-config-box" hidden>
+          <div style="font-size:11px;color:var(--text-muted);" id="moisesMaskedUrlHint">Not configured</div>
+          <input id="moisesUrlInput" type="password" placeholder="https://mcp.moises.ai/mcp/..." autocomplete="off">
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-cyan" style="padding:4px 10px;font-size:11px;flex:1;justify-content:center;" data-action="moises-save-config">Save &amp; Connect</button>
+            <button class="btn" style="padding:4px 10px;font-size:11px;" data-action="moises-toggle-config">Cancel</button>
+          </div>
+        </div>
+        <div id="moisesStemSetsList">
+          <!-- Detected Moises stem sets rendered dynamically -->
         </div>
       </div>
 
@@ -1230,6 +1330,16 @@
             <button id="mlStems" disabled class="btn" onclick="openCurrentTrackFolder()">Show prepared stems and MIDI</button>
           </div>
           <p>For assistant control, enable AI in ML Studio and use its generated MCP configuration in your assistant. Approve the session permissions inside the DAW.</p>
+        </section>
+        <section class="workflow-section" id="moisesSyncCard">
+          <h3>Moises Studio MCP Sync</h3>
+          <p id="moisesSyncStatus">Checking Moises Studio MCP bridge...</p>
+          <div class="workflow-actions">
+            <button id="moisesPushBtn" class="btn btn-cyan" data-action="moises-push">&#128228; Push Humanized MIDI &amp; Tempo to Moises Studio</button>
+            <button class="btn" data-action="moises-call" data-tool="compute_beatsAndChords_run">&#127925; Detect Chords in Moises</button>
+            <button class="btn" data-action="moises-call" data-tool="compute_sections_run">&#129513; Detect Sections in Moises</button>
+          </div>
+          <div id="moisesChordsSections" style="margin-top:10px;"></div>
         </section>
         <section class="workflow-section">
           <h3>Waveform video</h3>
@@ -1496,6 +1606,7 @@
       qaRenderPath: null,          // which render the Mix QA tab shows (null = best available)
       humanFormTrack: null,        // track whose settings are loaded into the Humanize form
       humanFormDirty: false,       // user has touched the form since it was loaded
+      moises: null,                // latest snapshot from /api/moises/status
     };
 
     // Fingerprints of what's currently on screen. A section is only rebuilt when
@@ -1522,8 +1633,10 @@
       document.body.addEventListener('change', onDelegatedChange);
       fetchStatus();
       fetchTracks();
+      fetchMoisesStatus();
       setInterval(fetchStatus, 3000);
       setInterval(fetchTracks, 5000);
+      setInterval(fetchMoisesStatus, 15000);
     });
 
     // All dynamic buttons carry data-* attributes instead of inline onclick
@@ -1537,6 +1650,12 @@
       else if (action === 'copy-move') copyToClipboard(el.dataset.text || '');
       else if (action === 'open-folder') openPipelineFolder(el.dataset.path || '');
       else if (action === 'clear-failure') clearFailure(el.dataset.track);
+      else if (action === 'moises-refresh') fetchMoisesStatus(true);
+      else if (action === 'moises-toggle-config') toggleMoisesConfigBox();
+      else if (action === 'moises-save-config') saveMoisesConfig();
+      else if (action === 'moises-pull') pullFromMoises(el.dataset.track);
+      else if (action === 'moises-push') pushTrackToMoises();
+      else if (action === 'moises-call') callMoisesTool(el.dataset.tool);
     }
 
     function onDelegatedChange(e) {
@@ -1827,6 +1946,192 @@
         if (!names.length) select.add(new Option('Generate or import a mix first', ''));
       }
       document.getElementById('videoExport').disabled = !select.value || Boolean(state.exportingVideo);
+      renderMoisesProductionCard(track);
+    }
+
+    async function fetchMoisesStatus(showFeedback) {
+      try {
+        const res = await fetch('/api/moises/status');
+        if (!res.ok) return;
+        state.moises = await res.json();
+        renderMoisesBridge();
+        renderMoisesProductionCard(currentTrack());
+        if (showFeedback) {
+          showToast(state.moises.connected
+            ? `Moises MCP synced: ${(state.moises.project && state.moises.project.name) || 'Connected'}`
+            : (state.moises.offline ? 'Moises Studio bridge is offline' : 'Moises MCP not configured'));
+        }
+      } catch (err) {
+        console.error('fetchMoisesStatus failed:', err);
+      }
+    }
+
+    function renderMoisesBridge() {
+      const m = state.moises || {};
+      const badge = document.getElementById('moisesHeaderBadge');
+      const badgeText = document.getElementById('moisesHeaderText');
+      const summary = document.getElementById('moisesBridgeSummary');
+      const urlHint = document.getElementById('moisesMaskedUrlHint');
+      const listEl = document.getElementById('moisesStemSetsList');
+      const countEl = document.getElementById('moisesStemCountBadge');
+
+      if (m.connected) {
+        const user = m.user || {};
+        const proj = m.project || {};
+        const plan = (user.plan || 'PRO').toUpperCase();
+        const projName = proj.name || 'Untitled';
+        badge.className = 'status-pill moises-connected';
+        badgeText.textContent = `MOISES ${plan}: ${projName}`;
+
+        const bpmStr = proj.bpm ? `${proj.bpm} BPM` : '-- BPM';
+        const keyStr = proj.rootKey ? `Key: ${proj.rootKey}` : 'Key: --';
+        summary.innerHTML = `
+          <div style="color:var(--text-main);font-weight:700;">${escapeHtml(user.name || 'Moises User')} (${escapeHtml(plan)})</div>
+          <div style="color:var(--neon-cyan);">Project: ${escapeHtml(projName)} &bull; ${escapeHtml(bpmStr)} &bull; ${escapeHtml(keyStr)}</div>
+        `;
+      } else if (m.configured) {
+        badge.className = 'status-pill paused';
+        badgeText.textContent = m.offline ? 'MOISES MCP: OFFLINE' : 'MOISES MCP: ERROR';
+        summary.innerHTML = `
+          <div style="color:var(--warn-amber);font-weight:700;">Moises Studio Bridge Offline</div>
+          <div style="color:var(--text-muted);">${escapeHtml(m.error || 'Open Moises Studio app to connect.')}</div>
+        `;
+      } else {
+        badge.className = 'status-pill moises-offline';
+        badgeText.textContent = 'MOISES MCP: NOT SET';
+        summary.innerHTML = `<div style="color:var(--text-muted);">Click <strong>Configure MCP URL</strong> to link your Moises Studio session.</div>`;
+      }
+
+      urlHint.textContent = m.masked_url ? `Current: ${m.masked_url}` : 'No MCP URL saved yet';
+
+      const groups = m.grouped_stem_sets || [];
+      countEl.textContent = groups.length;
+      if (!changed('moisesStemSets', groups)) return;
+      if (!groups.length) {
+        listEl.innerHTML = m.connected
+          ? `<div style="font-size:11px;color:var(--text-muted);">No audio stem sets detected in active project.</div>`
+          : '';
+        return;
+      }
+      listEl.innerHTML = groups.map(g => {
+        const btnText = g.already_imported ? '&#128260; Re-Pull &amp; Prep' : '&#9889; Pull from Moises MCP &amp; Auto-Prep';
+        const btnClass = g.already_imported ? 'btn' : 'btn btn-cyan';
+        const statusPill = g.already_imported ? '<span class="badge badge-status">Imported</span>' : '';
+        return `
+          <div class="import-item">
+            <div class="import-item-header">
+              <div class="import-item-title">${escapeHtml(g.track_name)}</div>
+              ${statusPill}
+            </div>
+            <div class="import-item-stems">${g.stem_count} Stems: ${escapeHtml((g.stems || []).join(', '))}</div>
+            <button class="${btnClass}" style="padding:4px 8px;font-size:11px;" data-action="moises-pull" data-track="${escapeHtml(g.track_name)}">
+              ${btnText}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderMoisesProductionCard(track) {
+      const m = state.moises || {};
+      const statusEl = document.getElementById('moisesSyncStatus');
+      const pushBtn = document.getElementById('moisesPushBtn');
+      const csEl = document.getElementById('moisesChordsSections');
+      if (!statusEl || !pushBtn || !csEl) return;
+
+      const hasMidi = Boolean(track && track.midi_files && track.midi_files.length);
+      pushBtn.disabled = !m.connected || !hasMidi;
+
+      if (m.connected) {
+        const proj = m.project || {};
+        statusEl.textContent = `Connected to Moises Studio project "${proj.name || 'Untitled'}" (${proj.bpm || '--'} BPM, Key ${proj.rootKey || '--'}).`;
+      } else if (m.configured) {
+        statusEl.textContent = `Moises Studio bridge is offline (${m.error || 'open Moises Studio to enable sync'}).`;
+      } else {
+        statusEl.textContent = 'Configure your Moises Studio MCP URL in the left sidebar to push humanized MIDI and sync chords/sections.';
+      }
+
+      const localMeta = track && track.moises_metadata ? track.moises_metadata : {};
+      const chords = (m.connected && m.chords && m.chords.length) ? m.chords : (localMeta.chords || []);
+      const sections = (m.connected && m.sections && m.sections.length) ? m.sections : (localMeta.sections || []);
+
+      if (!changed('moisesChordsSections', [track && track.name, chords, sections])) return;
+      const parts = [];
+      if (sections.length) {
+        parts.push('<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Sections:</div><div class="moises-chip-row">'
+          + sections.slice(0, 24).map(s => `<span class="moises-chip">${escapeHtml(s.name || s.label || s.type || JSON.stringify(s))}</span>`).join('')
+          + '</div>');
+      }
+      if (chords.length) {
+        parts.push('<div style="font-size:11px;color:var(--text-muted);margin:8px 0 4px;">Chords:</div><div class="moises-chip-row">'
+          + chords.slice(0, 32).map(c => `<span class="moises-chip">${escapeHtml(c.chord || c.name || c.symbol || c.label || JSON.stringify(c))}</span>`).join('')
+          + '</div>');
+      }
+      csEl.innerHTML = parts.join('') || '<div class="hint">No Moises chords or sections detected yet.</div>';
+    }
+
+    function toggleMoisesConfigBox() {
+      const box = document.getElementById('moisesConfigBox');
+      box.hidden = !box.hidden;
+      if (!box.hidden) document.getElementById('moisesUrlInput').focus();
+    }
+
+    async function saveMoisesConfig() {
+      const input = document.getElementById('moisesUrlInput');
+      const url = input.value.trim();
+      if (!url) { showToast('Enter a Moises MCP URL'); return; }
+      try {
+        const { ok, data } = await postJson('/api/moises/config', { url });
+        if (!ok) { showToast(data.message || 'Failed to save Moises MCP URL'); return; }
+        input.value = '';
+        document.getElementById('moisesConfigBox').hidden = true;
+        state.moises = data;
+        renderMoisesBridge();
+        renderMoisesProductionCard(currentTrack());
+        showToast(data.connected ? 'Moises MCP connected!' : 'MCP URL saved (bridge currently offline)');
+      } catch (err) {
+        showToast('Error saving Moises MCP URL');
+      }
+    }
+
+    async function pullFromMoises(trackName) {
+      showToast(`Pulling "${trackName}" stems from Moises Studio...`);
+      try {
+        const { ok, data } = await postJson('/api/moises/pull', { track_name: trackName, preset: state.preset });
+        showToast(data.message || (ok ? 'Pull queued' : 'Pull failed'));
+        fetchStatus();
+        fetchTracks();
+      } catch (err) {
+        showToast('Error pulling stems from Moises Studio');
+      }
+    }
+
+    async function pushTrackToMoises() {
+      const track = currentTrack();
+      if (!track) return;
+      showToast(`Pushing ${track.name} humanized MIDI & tempo to Moises Studio...`);
+      try {
+        const { ok, data } = await postJson('/api/moises/push', { track: track.name, include_humanized: true });
+        if (!ok) { showToast(data.message || 'Push failed'); return; }
+        showToast(`Pushed ${(data.created_patterns || []).length} MIDI patterns (${data.bpm} BPM) to Moises Studio`);
+        fetchMoisesStatus(false);
+      } catch (err) {
+        showToast('Error pushing MIDI to Moises Studio');
+      }
+    }
+
+    async function callMoisesTool(toolName) {
+      if (!toolName) return;
+      try {
+        const { ok, data } = await postJson('/api/moises/call', { tool: toolName, arguments: {} });
+        if (!ok) { showToast(data.message || `Moises tool ${toolName} failed`); return; }
+        showToast(`Moises: ${toolName} OK`);
+        if (toolName.startsWith('compute_') || toolName.startsWith('marker_')) {
+          fetchMoisesStatus(false);
+        }
+      } catch (err) {
+        showToast(`Error invoking ${toolName}`);
+      }
     }
 
     async function launchMlStudio() {

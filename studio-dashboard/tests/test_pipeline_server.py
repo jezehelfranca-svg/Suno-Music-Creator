@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
 import json
 import os
@@ -27,6 +28,8 @@ STUDIO_DIR = Path(__file__).resolve().parent.parent
 if str(STUDIO_DIR) not in sys.path:
     sys.path.insert(0, str(STUDIO_DIR))
 
+import humanized_mix
+import moises_mcp
 import pipeline_automator
 import pipeline_server
 
@@ -510,6 +513,307 @@ class TestUploadAndDiscoveryDirectives(unittest.TestCase):
             pipeline_server.has_pending_work(self.paths),
             "Generating Rough Mix & QA for Stage3...",
         )
+
+
+class _MockMoisesState:
+    offline: bool = False
+    use_sse: bool = False
+    calls: list = []
+    wav_bytes: bytes = b""
+
+
+class _MockMoisesHandler(BaseHTTPRequestHandler):
+    state: _MockMoisesState
+
+    def log_message(self, format: str, *args: Any) -> None:
+        return
+
+    def do_GET(self) -> None:
+        if self.path.startswith("/download/"):
+            data = self.state.wav_bytes
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "audio/wav")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        self.send_error(HTTPStatus.NOT_FOUND)
+
+    def do_POST(self) -> None:
+        if self.state.offline:
+            body = json.dumps({"error": "Studio bridge offline"}).encode("utf-8")
+            self.send_response(HTTPStatus.NOT_FOUND)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        length = int(self.headers.get("Content-Length", 0))
+        req = json.loads(self.rfile.read(length).decode("utf-8"))
+        req_id = req.get("id", 1)
+        params = req.get("params") or {}
+        tool = params.get("name", "")
+        args = params.get("arguments") or {}
+        self.state.calls.append((tool, args))
+
+        structured: Any = {}
+        if tool == "user_info":
+            structured = {"name": "Jezehel Franca", "plan": "PRO"}
+        elif tool == "project_get":
+            structured = {"id": "proj-1", "name": "Bright Lantern", "bpm": 120, "rootKey": "C", "timeSignature": "4/4", "isOnline": True}
+        elif tool == "track_list":
+            structured = {"tracks": [{"id": "trk-1", "name": "Vocals", "type": "audio"}]}
+        elif tool == "media_list":
+            structured = {
+                "media": [
+                    {"id": "m-bass", "name": "Good_Thing_You_Were_Born_Tropical_Birthday_Cover_bass.wav", "type": "audio/wav"},
+                    {"id": "m-drums", "name": "Good_Thing_You_Were_Born_Tropical_Birthday_Cover_drums.wav", "type": "audio/wav"},
+                    {"id": "m-other", "name": "Good_Thing_You_Were_Born_Tropical_Birthday_Cover_other.wav", "type": "audio/wav"},
+                    {"id": "m-vocals", "name": "Good_Thing_You_Were_Born_Tropical_Birthday_Cover_vocals.wav", "type": "audio/wav"},
+                ]
+            }
+        elif tool == "marker_chord_list":
+            structured = {"chords": [{"chord": "C", "time": 0.0}, {"chord": "G", "time": 2.0}]}
+        elif tool == "marker_section_list":
+            structured = {"sections": [{"name": "Intro", "time": 0.0}, {"name": "Chorus", "time": 8.0}]}
+        elif tool == "pattern_list":
+            structured = {"patterns": []}
+        elif tool == "compute_stemSeparation_options":
+            structured = {"models": ["4-stems", "6-stems"]}
+        elif tool == "media_export":
+            media_id = (args.get("input") or {}).get("mediaId")
+            if media_id == "m-bass":
+                structured = {"data": base64.b64encode(self.state.wav_bytes).decode("ascii")}
+            elif media_id == "m-drums":
+                structured = {"data": list(self.state.wav_bytes)}
+            elif media_id == "m-other":
+                structured = {"data": {str(i): b for i, b in enumerate(self.state.wav_bytes)}}
+            else:
+                port = self.server.server_address[1]
+                structured = {"url": f"http://127.0.0.1:{port}/download/{media_id}.wav"}
+        elif tool == "project_set":
+            structured = {"ok": True, **(args.get("input") or {})}
+        elif tool == "track_create":
+            name = (args.get("input") or {}).get("name", "MIDI Track")
+            structured = {"id": f"trk_{len(self.state.calls)}", "name": name}
+        elif tool == "pattern_create":
+            structured = {"id": f"pat_{len(self.state.calls)}", "ok": True}
+        elif tool == "transport_play":
+            structured = {"playing": True}
+        else:
+            structured = {"ok": True, "tool": tool}
+
+        rpc = {"jsonrpc": "2.0", "id": req_id, "result": {"structuredContent": structured}}
+        if self.state.use_sse:
+            body = f"event: message\ndata: {json.dumps(rpc)}\n\n".encode("utf-8")
+            ctype = "text/event-stream"
+        else:
+            body = json.dumps(rpc).encode("utf-8")
+            ctype = "application/json"
+
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+class TestMoisesMCPBridge(unittest.TestCase):
+    """Test MoisesMCPClient and /api/moises/* endpoints against a local mock MCP server."""
+
+    @staticmethod
+    def _make_wav_bytes(duration_sec: float = 0.25, sr: int = 24000) -> bytes:
+        buf = io.BytesIO()
+        num_frames = int(sr * duration_sec)
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(sr)
+            wf.writeframes(b"\x01\x00" * num_frames)
+        return buf.getvalue()
+
+    def setUp(self) -> None:
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.base_dir = Path(self.tmp_dir.name).resolve()
+        self.paths = pipeline_automator.PipelinePaths(self.base_dir)
+        self.paths.ensure_dirs()
+
+        self.env_patch = mock.patch.dict(os.environ, {}, clear=False)
+        self.env_patch.start()
+        os.environ.pop("MOISES_MCP_URL", None)
+
+        self.mock_state = _MockMoisesState()
+        self.mock_state.offline = False
+        self.mock_state.use_sse = False
+        self.mock_state.calls = []
+        self.mock_state.wav_bytes = self._make_wav_bytes()
+
+        class BoundMockHandler(_MockMoisesHandler):
+            state = self.mock_state
+
+        ThreadingHTTPServer.allow_reuse_address = True
+        self.moises_server = ThreadingHTTPServer(("127.0.0.1", 0), BoundMockHandler)
+        self.moises_url = f"http://127.0.0.1:{self.moises_server.server_address[1]}/mcp/TEST_MOCK_TOKEN_9876"
+        self.moises_thread = threading.Thread(target=self.moises_server.serve_forever, daemon=True)
+        self.moises_thread.start()
+
+        self._orig_paths = getattr(pipeline_server.PipelineRequestHandler, "server_paths", None)
+        self._orig_ffmpeg = getattr(pipeline_server.PipelineRequestHandler, "ffmpeg_bin", "ffmpeg")
+        pipeline_server.PipelineRequestHandler.server_paths = self.paths
+        pipeline_server.PipelineRequestHandler.ffmpeg_bin = "ffmpeg"
+        pipeline_server._invalidate_moises_cache()
+
+        self.api_server = ThreadingHTTPServer(("127.0.0.1", 0), pipeline_server.PipelineRequestHandler)
+        self.api_url = f"http://127.0.0.1:{self.api_server.server_address[1]}"
+        self.api_thread = threading.Thread(target=self.api_server.serve_forever, daemon=True)
+        self.api_thread.start()
+
+    def tearDown(self) -> None:
+        self.api_server.shutdown()
+        self.api_server.server_close()
+        self.moises_server.shutdown()
+        self.moises_server.server_close()
+        if self._orig_paths is not None:
+            pipeline_server.PipelineRequestHandler.server_paths = self._orig_paths
+        pipeline_server.PipelineRequestHandler.ffmpeg_bin = self._orig_ffmpeg
+        pipeline_server._invalidate_moises_cache()
+        self.env_patch.stop()
+        self.tmp_dir.cleanup()
+
+    def _get(self, path: str) -> Tuple[int, Dict[str, Any]]:
+        try:
+            with urllib.request.urlopen(f"{self.api_url}{path}") as resp:
+                return resp.status, json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as err:
+            return err.code, json.loads(err.read().decode("utf-8") or "{}")
+
+    def _post(self, path: str, body: Any) -> Tuple[int, Dict[str, Any]]:
+        req = urllib.request.Request(
+            f"{self.api_url}{path}",
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req) as resp:
+                return resp.status, json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as err:
+            return err.code, json.loads(err.read().decode("utf-8") or "{}")
+
+    def test_mask_and_config_helpers(self) -> None:
+        masked = moises_mcp.mask_mcp_url("https://mcp.moises.ai/mcp/DEMO_TOKEN_ABCD1234")
+        self.assertEqual(masked, "https://mcp.moises.ai/mcp/****...1234")
+        self.assertIsNone(moises_mcp.load_moises_url(self.paths))
+
+        moises_mcp.save_moises_url(self.paths, self.moises_url)
+        self.assertEqual(moises_mcp.load_moises_url(self.paths), self.moises_url)
+
+        with mock.patch.dict(os.environ, {"MOISES_MCP_URL": "https://mcp.moises.ai/mcp/ENV_9999"}):
+            self.assertEqual(moises_mcp.load_moises_url(self.paths), "https://mcp.moises.ai/mcp/ENV_9999")
+
+    def test_client_snapshot_sse_and_offline_handling(self) -> None:
+        self.mock_state.use_sse = True
+        client = moises_mcp.MoisesMCPClient(self.moises_url)
+        snap = client.get_status_snapshot(paths=self.paths)
+        self.assertTrue(snap["connected"])
+        self.assertEqual(snap["user"]["name"], "Jezehel Franca")
+        self.assertEqual(snap["project"]["name"], "Bright Lantern")
+        self.assertEqual(len(snap["grouped_stem_sets"]), 1)
+        group = snap["grouped_stem_sets"][0]
+        self.assertEqual(group["clean_id"], "Good_Thing_You_Were_Born_Tropical_Birthday_Cover")
+        self.assertEqual(group["stems"], ["bass", "drums", "other", "vocals"])
+
+        self.mock_state.offline = True
+        moises_mcp.save_moises_url(self.paths, self.moises_url)
+        safe = moises_mcp.get_safe_status(self.paths)
+        self.assertFalse(safe["connected"])
+        self.assertTrue(safe["configured"])
+        self.assertTrue(safe["offline"])
+
+    def test_endpoints_config_status_call_pull_and_push(self) -> None:
+        # 1. Initially unconfigured
+        code, st0 = self._get("/api/moises/status")
+        self.assertEqual(code, HTTPStatus.OK)
+        self.assertFalse(st0["connected"])
+        self.assertFalse(st0["configured"])
+
+        # 2. Configure URL -> connects to mock Moises MCP
+        code, cfg = self._post("/api/moises/config", {"url": self.moises_url})
+        self.assertEqual(code, HTTPStatus.OK)
+        self.assertTrue(cfg["connected"])
+        self.assertEqual(cfg["project"]["name"], "Bright Lantern")
+        self.assertTrue((self.paths.automation / "moises_mcp_config.json").is_file())
+
+        # 3. /api/status reflects moises_connected and moises_project
+        code, top_status = self._get("/api/status")
+        self.assertEqual(code, HTTPStatus.OK)
+        self.assertTrue(top_status["moises_connected"])
+        self.assertEqual(top_status["moises_project"], "Bright Lantern")
+
+        # 4. /api/moises/call proxies transport_play and blocks invalid tools
+        code, play_res = self._post("/api/moises/call", {"tool": "transport_play", "arguments": {}})
+        self.assertEqual(code, HTTPStatus.OK)
+        self.assertTrue(play_res["result"]["playing"])
+        code_bad, _ = self._post("/api/moises/call", {"tool": "rm_rf_evil"})
+        self.assertEqual(code_bad, HTTPStatus.BAD_REQUEST)
+
+        # 5. /api/moises/pull exports all 4 stems (base64, byte-array, Uint8Array-dict, URL) and runs pipeline
+        with mock.patch.object(pipeline_automator, "run_stem_prep", return_value=1) as m_prep, \
+             mock.patch.object(pipeline_automator, "generate_midi_and_metadata", return_value=1) as m_midi, \
+             mock.patch.object(humanized_mix, "run_rough", return_value=None) as m_rough, \
+             mock.patch.object(humanized_mix, "run_humanized", return_value=None) as m_hum, \
+             mock.patch.object(pipeline_automator, "process_mix_renders", return_value=0):
+            code, pull_res = self._post("/api/moises/pull", {"track_name": "Good_Thing_You_Were_Born_Tropical_Birthday_Cover"})
+            self.assertEqual(code, HTTPStatus.OK)
+            self.assertEqual(pull_res["status"], "ok")
+            # Wait briefly for background start_job to finish
+            deadline = time.monotonic() + 5.0
+            meta_file = self.paths.stems / "Good_Thing_You_Were_Born_Tropical_Birthday_Cover" / "moises_studio_metadata.json"
+            while time.monotonic() < deadline and not meta_file.is_file():
+                time.sleep(0.05)
+            self.assertTrue(meta_file.is_file())
+            self.assertTrue(m_prep.called)
+            self.assertTrue(m_midi.called)
+            self.assertTrue(m_rough.called)
+            self.assertTrue(m_hum.called)
+
+        stem_dir = self.paths.stems / "Good_Thing_You_Were_Born_Tropical_Birthday_Cover"
+        for stem in ("bass", "drums", "other", "vocals"):
+            wav_p = stem_dir / f"Good_Thing_You_Were_Born_Tropical_Birthday_Cover_{stem}.wav"
+            self.assertTrue(wav_p.is_file(), f"Missing exported stem {wav_p}")
+            self.assertEqual(wav_p.read_bytes(), self.mock_state.wav_bytes)
+
+        # 6. /api/moises/push pushes humanized MIDI + tempo/key to Moises Studio
+        track = "Push_Test_Track"
+        prep_dir = make_prepped_track(self.paths, track, seconds=2.0)
+        midi_dir = prep_dir / "MIDI"
+        midi_dir.mkdir(parents=True, exist_ok=True)
+        drum_trk = pipeline_automator.MidiTrack("Drums")
+        drum_trk.add_tempo(0, 124.0)
+        drum_trk.add_note(0, 24, 36, 100, channel=9)
+        pipeline_automator.write_smf_midi(midi_dir / f"{track}_FPC_Drums_Humanized.mid", [drum_trk])
+        bass_trk = pipeline_automator.MidiTrack("Bass")
+        bass_trk.add_tempo(0, 124.0)
+        bass_trk.add_note(0, 48, 40, 96, channel=0)
+        pipeline_automator.write_smf_midi(midi_dir / f"{track}_Bass_Humanized.mid", [bass_trk])
+        (prep_dir / "track_metadata.json").write_text(json.dumps({"estimated_bpm": 124.0, "estimated_key": "A Minor"}), encoding="utf-8")
+
+        self.mock_state.calls.clear()
+        code, push_res = self._post("/api/moises/push", {"track": track})
+        self.assertEqual(code, HTTPStatus.OK)
+        self.assertEqual(push_res["bpm"], 124.0)
+        self.assertEqual(push_res["root_key"], "Am")
+        self.assertEqual(len(push_res["created_tracks"]), 2)
+        self.assertEqual(len(push_res["created_patterns"]), 2)
+        called_tools = [name for name, _ in self.mock_state.calls]
+        self.assertIn("project_set", called_tools)
+        self.assertEqual(called_tools.count("track_create"), 2)
+        self.assertEqual(called_tools.count("pattern_create"), 2)
+
+        # Path traversal in push track rejected
+        code_bad_track, _ = self._post("/api/moises/push", {"track": "../secret"})
+        self.assertEqual(code_bad_track, HTTPStatus.BAD_REQUEST)
 
 
 if __name__ == "__main__":

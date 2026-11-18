@@ -43,6 +43,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import humanized_mix
+import moises_mcp
 import pipeline_automator
 from pipeline_automator import invalidate_track_outputs, INBOX_STEM_PATTERN, qa_report_path, render_kind, render_track_name, renders_for_track
 
@@ -271,6 +272,37 @@ _QA_CACHE: Dict[str, Tuple[int, Dict[str, Any]]] = {}
 _QA_CACHE_LOCK = threading.Lock()
 
 
+_MOISES_CACHE_LOCK = threading.Lock()
+_MOISES_CACHE: Tuple[float, str, Optional[Dict[str, Any]]] = (0.0, "", None)
+_MOISES_CACHE_TTL = 15.0
+_MOISES_SAFE_TOOL_RE = re.compile(
+    r"^(user_info|project_[a-zA-Z0-9_]+|track_[a-zA-Z0-9_]+|media_[a-zA-Z0-9_]+|"
+    r"marker_[a-zA-Z0-9_]+|pattern_[a-zA-Z0-9_]+|transport_[a-zA-Z0-9_]+|"
+    r"compute_[a-zA-Z0-9_]+|audio_[a-zA-Z0-9_]+|mixer_[a-zA-Z0-9_]+|stem_[a-zA-Z0-9_]+)$"
+)
+
+
+def _invalidate_moises_cache() -> None:
+    global _MOISES_CACHE
+    with _MOISES_CACHE_LOCK:
+        _MOISES_CACHE = (0.0, "", None)
+
+
+def _get_moises_status(paths: pipeline_automator.PipelinePaths, force: bool = False, timeout: float = 15.0) -> Dict[str, Any]:
+    global _MOISES_CACHE
+    base_key = str(paths.base)
+    now = time.monotonic()
+    if not force:
+        with _MOISES_CACHE_LOCK:
+            ts, cached_base, cached = _MOISES_CACHE
+            if cached is not None and cached_base == base_key and (now - ts) < _MOISES_CACHE_TTL:
+                return dict(cached)
+    snap = moises_mcp.get_safe_status(paths, timeout=timeout)
+    with _MOISES_CACHE_LOCK:
+        _MOISES_CACHE = (time.monotonic(), base_key, snap)
+    return dict(snap)
+
+
 def _qa_metric(content: str, label: str, unit: str) -> Optional[float]:
     m = re.search(re.escape(label) + r"\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*" + re.escape(unit), content)
     return float(m.group(1)) if m else None
@@ -473,12 +505,19 @@ def discover_tracks(paths: pipeline_automator.PipelinePaths) -> Dict[str, Any]:
             "renders": [],
             "mix_qa": None,
             "humanize": None,
+            "moises_metadata": None,
             "failures": [],
         }
 
         src_dir = paths.stems / name
         for f in vw(src_dir):
             track_info["source_stems"].append({"name": f.name, "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
+        moises_meta_path = src_dir / "moises_studio_metadata.json"
+        if moises_meta_path.is_file():
+            try:
+                track_info["moises_metadata"] = json.loads(moises_meta_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
 
         prep_dir = paths.prepped / name
         if prep_dir.is_dir():
@@ -699,7 +738,7 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
     """REST API & Audio Streaming HTTP Request Handler."""
 
     server_paths: pipeline_automator.PipelinePaths
-    ffmpeg_bin: str
+    ffmpeg_bin: str = "ffmpeg"
 
     def log_message(self, format: str, *args: Any) -> None:
         """Route access logs to debug level instead of the console."""
@@ -777,8 +816,13 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
         if path == "/api/status":
             with _STATE_LOCK:
                 busy, task, queued = IS_BUSY, CURRENT_TASK, QUEUED_JOBS
+            moises_snap = _get_moises_status(self.server_paths, force=False, timeout=5.0)
+            moises_proj = moises_snap.get("project") or {}
             self.send_json_response({
                 "ml_studio_available": bool(ml_studio_executable()),
+                "moises_connected": bool(moises_snap.get("connected")),
+                "moises_configured": bool(moises_snap.get("configured")),
+                "moises_project": str(moises_proj.get("name") or "") if isinstance(moises_proj, dict) else "",
                 "watcher_running": WATCHER_ENABLED,
                 "auto_humanize": AUTO_HUMANIZE,
                 "pid": os.getpid(),
@@ -790,6 +834,11 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
                 "counts": get_pipeline_counts(self.server_paths),
                 "logs": get_recent_logs(self.server_paths.logs / "pipeline.log", max_lines=60),
             }, head_only=head_only)
+            return
+
+        if path == "/api/moises/status":
+            snap = _get_moises_status(self.server_paths, force=True, timeout=15.0)
+            self.send_json_response(snap, head_only=head_only)
             return
 
         if path == "/api/tracks":
@@ -1097,6 +1146,100 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
                 self.send_json_response({"status": "ok", "path": str(abs_folder)})
             except Exception as exc:
                 self.send_json_response({"status": "error", "message": f"Could not open folder: {exc}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
+
+        if path == "/api/moises/config":
+            raw_url = str(body_json.get("url", "")).strip()
+            if not raw_url:
+                self.send_json_response({"status": "error", "message": "Missing 'url' parameter"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            try:
+                moises_mcp.save_moises_url(paths, raw_url)
+            except ValueError as exc:
+                self.send_json_response({"status": "error", "message": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+                return
+            _invalidate_moises_cache()
+            snap = _get_moises_status(paths, force=True, timeout=15.0)
+            self.send_json_response({"status": "ok", **snap})
+            return
+
+        if path == "/api/moises/pull":
+            url = moises_mcp.load_moises_url(paths)
+            if not url:
+                self.send_json_response({"status": "error", "message": "Moises MCP URL is not configured"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            target_name = str(body_json.get("track_name") or body_json.get("track") or "").strip() or None
+            preset = preset_from_body()
+
+            def _pull_job() -> None:
+                client = moises_mcp.MoisesMCPClient(url, timeout=60.0)
+                client.pull_project_stems(
+                    paths,
+                    group_or_track_name=target_name,
+                    preset=preset,
+                    ffmpeg_bin=ffmpeg_bin,
+                    run_pipeline=True,
+                )
+                _invalidate_moises_cache()
+
+            label = target_name or "active project"
+            start_job(f"Pulling stems from Moises Studio ({label})...", _pull_job)
+            self.send_json_response({
+                "status": "ok",
+                "message": f"Moises stem pull & pipeline queued for {label}",
+                "track_name": target_name,
+                "preset": preset,
+            })
+            return
+
+        if path == "/api/moises/push":
+            if "track" not in body_json and "track_name" in body_json:
+                body_json = {**body_json, "track": body_json["track_name"]}
+            track = self._track_param(body_json)
+            if track is None:
+                return
+            url = moises_mcp.load_moises_url(paths)
+            if not url:
+                self.send_json_response({"status": "error", "message": "Moises MCP URL is not configured"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            include_humanized = bool(body_json.get("include_humanized", True))
+            update_project = bool(body_json.get("update_project", True))
+            try:
+                client = moises_mcp.MoisesMCPClient(url, timeout=30.0)
+                res = client.push_track_to_moises_studio(
+                    paths,
+                    track,
+                    include_humanized=include_humanized,
+                    update_project=update_project,
+                )
+                _invalidate_moises_cache()
+                self.send_json_response(res)
+            except moises_mcp.MoisesMCPError as exc:
+                status = HTTPStatus.SERVICE_UNAVAILABLE if exc.offline else HTTPStatus.BAD_GATEWAY
+                self.send_json_response({"status": "error", "message": str(exc), "offline": exc.offline}, status=status)
+            return
+
+        if path == "/api/moises/call":
+            tool_name = str(body_json.get("tool", "")).strip()
+            if not tool_name or not _MOISES_SAFE_TOOL_RE.match(tool_name):
+                self.send_json_response({"status": "error", "message": f"Disallowed or invalid Moises tool '{tool_name}'"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            arguments = body_json.get("arguments")
+            if arguments is not None and not isinstance(arguments, dict):
+                self.send_json_response({"status": "error", "message": "'arguments' must be a JSON object"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            url = moises_mcp.load_moises_url(paths)
+            if not url:
+                self.send_json_response({"status": "error", "message": "Moises MCP URL is not configured"}, status=HTTPStatus.BAD_REQUEST)
+                return
+            try:
+                client = moises_mcp.MoisesMCPClient(url, timeout=30.0)
+                result = client.call_tool(tool_name, arguments or {})
+                _invalidate_moises_cache()
+                self.send_json_response({"status": "ok", "tool": tool_name, "result": result})
+            except moises_mcp.MoisesMCPError as exc:
+                status = HTTPStatus.SERVICE_UNAVAILABLE if exc.offline else HTTPStatus.BAD_GATEWAY
+                self.send_json_response({"status": "error", "message": str(exc), "offline": exc.offline}, status=status)
             return
 
         self.send_error(HTTPStatus.NOT_FOUND, f"POST endpoint {path} not found")
