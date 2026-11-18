@@ -67,6 +67,7 @@ studio-dashboard/
 ├── requirements.txt
 ├── pipeline_automator.py          # Core 6-stage DSP, Demucs, MIDI, loudness meter and Mix QA engine
 ├── humanized_mix.py               # Humanize model, drum resampler, bass synth, mix & master
+├── moises_mcp.py                  # Moises Studio MCP bridge (Streamable HTTP JSON-RPC 2.0)
 ├── pipeline_server.py             # Multi-threaded HTTP server, watcher daemon, and REST API
 ├── ui/
 │   └── index.html                 # Single-page Dark-DAW Studio Dashboard
@@ -111,6 +112,17 @@ Then open **`http://localhost:8765`** in your browser (or double-click `studio-d
 | `FL_RENDERED_DIR` | `~/OneDrive/Documents/Image-Line/FL Studio/Audio/Rendered` (fallback `~/Documents/...`) | Overrides the FL Studio Rendered Library folder scanned for 1-click stem imports. |
 | `FL_STUDIO_EXE` | `C:\Program Files (x86)\Image-Line\FL Studio 2024\FL64.exe` | Path to FL Studio for **Open in FL Studio**. |
 | `DEMUCS_PYTHON` | `py -3.10` on Windows, else the current Python | Python command used to run `-m demucs` (e.g. a venv's `python.exe`). |
+| `MOISES_MCP_URL` | `Automation/moises_mcp_config.json` | Optional override for your Moises Studio MCP endpoint (`https://mcp.moises.ai/mcp/<YOUR_TOKEN>`). |
+
+---
+
+## Moises Studio MCP Bridge
+
+`moises_mcp.py` connects the Studio Dashboard to a live **Moises Studio** session over Streamable HTTP JSON-RPC 2.0 (`application/json` and `text/event-stream`).
+
+- **Configuration:** Set `MOISES_MCP_URL` in your environment or paste `https://mcp.moises.ai/mcp/<YOUR_TOKEN>` into the dashboard's Moises Studio panel, which persists it locally to `Automation/moises_mcp_config.json` (gitignored and blocked from `/api/download` and `/api/audio`). Masked URLs (`****...<last4>`) and non-Moises external hosts are rejected, and any `/mcp/<token>` segments are redacted in error messages.
+- **Pull stems:** `POST /api/moises/pull` exports grouped audio stems from Moises Studio into `02_Moises_Stems/<Track>/` (transcoding non-WAV buffers to 24-bit PCM WAV if needed), writes `moises_studio_metadata.json`, and runs the 6-stage pipeline.
+- **Push MIDI & tempo/key:** `POST /api/moises/push` updates the active Moises project's BPM/key (`project_set`), creates MIDI tracks (`track_create`), converts `*_FPC_Drums_Humanized.mid` and `*_Bass_Humanized.mid` into 960 PPQN patterns (`pattern_create`), and places them on the timeline (`clip_create`).
 
 ---
 
@@ -229,7 +241,12 @@ If you deliberately expose the dashboard on a LAN with `--host 0.0.0.0`, add `--
 | `POST` | `/api/humanize` | Renders `05_Mix_Renders/<Track>_Humanized.wav`, humanized MIDI and re-performed stems. `new_take: true` rolls a new seed. | `{"track": "...", "settings": {"humanize": 0.5, "swing": 0, "drums_mode": "replace", "bass_mode": "layer", "target_lufs": -14, ...}, "new_take": false}` |
 | `POST` | `/api/clear-failure` | Clears recorded failures for a track so the watcher retries it. | `{"track": "<TrackName>"}` |
 | `POST` | `/api/open-flp` | Launches `FL64.exe` with `04_FL_Project/<Track>/<Track>.flp`. | `{"track": "<TrackName>"}` |
-| `POST` | `/api/open-folder` | Opens an existing sandboxed pipeline sub-folder (Explorer on Windows). | `{"rel_path": "03_Prepped_Stems"}` |
+| `POST` | `/api/open-folder` | Opens an existing sandboxed pipeline sub-folder (Explorer on Windows; blocks `Automation/` and `logs/`). | `{"rel_path": "03_Prepped_Stems"}` |
+| `GET` | `/api/moises/status` | Returns Moises Studio MCP connection state, user, active project, tracks, grouped stem sets, chords, sections, and patterns (URL masked). | — |
+| `POST` | `/api/moises/config` | Validates and saves `https://mcp.moises.ai/mcp/<YOUR_TOKEN>` to `Automation/moises_mcp_config.json` and returns live status. | `{"url": "https://mcp.moises.ai/mcp/<YOUR_TOKEN>"}` |
+| `POST` | `/api/moises/pull` | Exports grouped stems from Moises Studio into `02_Moises_Stems/<Track>/` and queues the 6-stage pipeline. | `{"track_name": "<StemGroup>", "preset": "gentle"}` |
+| `POST` | `/api/moises/push` | Pushes local humanized/prepped drum & bass MIDI (960 PPQN patterns + clips) and BPM/key into Moises Studio. | `{"track": "<TrackName>", "include_humanized": true, "update_project": true}` |
+| `POST` | `/api/moises/call` | Proxies an allowlisted Moises Studio MCP tool call (e.g. `transport_play`, `clip_*`, `pattern_*`). | `{"tool": "transport_play", "arguments": {}}` |
 
 ---
 

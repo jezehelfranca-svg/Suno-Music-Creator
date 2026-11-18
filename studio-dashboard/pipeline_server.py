@@ -173,6 +173,29 @@ def is_safe_path(base_dir: Path, requested_path: str | Path) -> Tuple[bool, Opti
         return False, None
 
 
+def is_public_pipeline_file(paths: pipeline_automator.PipelinePaths, abs_target: Path) -> bool:
+    """Return False for internal automation, log, hidden, PID, or secret config paths."""
+    try:
+        target_real = abs_target.resolve()
+        base_real = paths.base.resolve()
+        for protected_dir in (paths.automation.resolve(), paths.logs.resolve()):
+            try:
+                if Path(os.path.commonpath([str(protected_dir), str(target_real)])) == protected_dir:
+                    return False
+            except ValueError:
+                continue
+        rel_parts = target_real.relative_to(base_real).parts
+    except Exception:
+        return False
+
+    if any(part.startswith(".") for part in rel_parts):
+        return False
+    lower_name = target_real.name.lower()
+    if lower_name.endswith((".pid", ".secret.json")) or "moises_mcp_config" in lower_name:
+        return False
+    return True
+
+
 def sanitize_track_name(name: str) -> str:
     """Sanitize arbitrary stem set title into a clean directory/file identifier."""
     s = re.sub(r"\.wav$", "", name, flags=re.IGNORECASE)
@@ -277,8 +300,9 @@ _MOISES_CACHE: Tuple[float, str, Optional[Dict[str, Any]]] = (0.0, "", None)
 _MOISES_CACHE_TTL = 15.0
 _MOISES_SAFE_TOOL_RE = re.compile(
     r"^(user_info|project_[a-zA-Z0-9_]+|track_[a-zA-Z0-9_]+|media_[a-zA-Z0-9_]+|"
-    r"marker_[a-zA-Z0-9_]+|pattern_[a-zA-Z0-9_]+|transport_[a-zA-Z0-9_]+|"
-    r"compute_[a-zA-Z0-9_]+|audio_[a-zA-Z0-9_]+|mixer_[a-zA-Z0-9_]+|stem_[a-zA-Z0-9_]+)$"
+    r"marker_[a-zA-Z0-9_]+|pattern_[a-zA-Z0-9_]+|clip_[a-zA-Z0-9_]+|transport_[a-zA-Z0-9_]+|"
+    r"compute_[a-zA-Z0-9_]+|audio_[a-zA-Z0-9_]+|mixer_[a-zA-Z0-9_]+|stem_[a-zA-Z0-9_]+|"
+    r"util_[a-zA-Z0-9_]+|encoder_[a-zA-Z0-9_]+|group_[a-zA-Z0-9_]+)$"
 )
 
 
@@ -854,6 +878,9 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
             if not safe or abs_target is None:
                 self.send_error(HTTPStatus.FORBIDDEN, "Access denied: Path outside pipeline sandbox")
                 return
+            if not is_public_pipeline_file(self.server_paths, abs_target):
+                self.send_error(HTTPStatus.FORBIDDEN, "Access denied: Protected automation or config file")
+                return
             if not abs_target.is_file():
                 self.send_error(HTTPStatus.NOT_FOUND, "File not found")
                 return
@@ -1136,6 +1163,9 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
             safe, abs_folder = is_safe_path(paths.base, rel_folder)
             if not safe or abs_folder is None:
                 self.send_json_response({"status": "error", "message": "Unsafe folder path"}, status=HTTPStatus.FORBIDDEN)
+                return
+            if not is_public_pipeline_file(paths, abs_folder):
+                self.send_json_response({"status": "error", "message": "Access denied: Protected automation folder"}, status=HTTPStatus.FORBIDDEN)
                 return
             if not abs_folder.is_dir():
                 self.send_json_response({"status": "error", "message": "Folder does not exist yet"}, status=HTTPStatus.NOT_FOUND)

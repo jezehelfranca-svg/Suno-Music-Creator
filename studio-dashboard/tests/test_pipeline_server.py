@@ -558,6 +558,8 @@ class _MockMoisesHandler(BaseHTTPRequestHandler):
         self.state.calls.append((tool, args))
 
         structured: Any = {}
+        result_obj: Optional[Dict[str, Any]] = None
+        rpc_error: Optional[Dict[str, Any]] = None
         if tool == "user_info":
             structured = {"name": "Jezehel Franca", "plan": "PRO"}
         elif tool == "project_get":
@@ -595,16 +597,54 @@ class _MockMoisesHandler(BaseHTTPRequestHandler):
         elif tool == "project_set":
             structured = {"ok": True, **(args.get("input") or {})}
         elif tool == "track_create":
-            name = (args.get("input") or {}).get("name", "MIDI Track")
-            structured = {"id": f"trk_{len(self.state.calls)}", "name": name}
+            result_obj = {"content": [{"type": "text", "text": json.dumps(f"trk_{len(self.state.calls)}")}]}
         elif tool == "pattern_create":
-            structured = {"id": f"pat_{len(self.state.calls)}", "ok": True}
+            inp = args.get("input")
+            valid = (
+                isinstance(inp, dict)
+                and set(inp.keys()) == {"name", "notes"}
+                and isinstance(inp.get("name"), str)
+                and bool(inp.get("name"))
+                and isinstance(inp.get("notes"), list)
+                and all(
+                    isinstance(n, dict)
+                    and set(n.keys()) == {"position", "duration", "pitch", "velocity"}
+                    and isinstance(n["position"], int) and not isinstance(n["position"], bool) and n["position"] >= 0
+                    and isinstance(n["duration"], int) and not isinstance(n["duration"], bool) and n["duration"] >= 1
+                    and isinstance(n["pitch"], int) and not isinstance(n["pitch"], bool) and 0 <= n["pitch"] <= 127
+                    and isinstance(n["velocity"], (int, float)) and not isinstance(n["velocity"], bool)
+                    and 0.0 < float(n["velocity"]) <= 1.0
+                    for n in inp["notes"]
+                )
+            )
+            if not valid:
+                rpc_error = {"code": -32602, "message": f"Invalid pattern_create payload: {inp}"}
+            else:
+                result_obj = {"content": [{"type": "text", "text": json.dumps(f"pat_{len(self.state.calls)}")}]}
+        elif tool == "clip_create":
+            inp = args.get("input")
+            valid = (
+                isinstance(inp, dict)
+                and set(inp.keys()) == {"type", "trackId", "patternId", "position"}
+                and inp.get("type") == "midi"
+                and isinstance(inp.get("trackId"), str) and bool(inp.get("trackId"))
+                and isinstance(inp.get("patternId"), str) and bool(inp.get("patternId"))
+                and isinstance(inp.get("position"), int) and not isinstance(inp.get("position"), bool)
+                and inp.get("position") == 0
+            )
+            if not valid:
+                rpc_error = {"code": -32602, "message": f"Invalid clip_create payload: {inp}"}
+            else:
+                structured = {"id": f"clip_{len(self.state.calls)}"}
         elif tool == "transport_play":
             structured = {"playing": True}
         else:
             structured = {"ok": True, "tool": tool}
 
-        rpc = {"jsonrpc": "2.0", "id": req_id, "result": {"structuredContent": structured}}
+        if rpc_error is not None:
+            rpc = {"jsonrpc": "2.0", "id": req_id, "error": rpc_error}
+        else:
+            rpc = {"jsonrpc": "2.0", "id": req_id, "result": result_obj if result_obj is not None else {"structuredContent": structured}}
         if self.state.use_sse:
             body = f"event: message\ndata: {json.dumps(rpc)}\n\n".encode("utf-8")
             ctype = "text/event-stream"
@@ -706,11 +746,45 @@ class TestMoisesMCPBridge(unittest.TestCase):
         self.assertEqual(masked, "https://mcp.moises.ai/mcp/****...1234")
         self.assertIsNone(moises_mcp.load_moises_url(self.paths))
 
+        # redact_mcp_text and MoisesMCPError strip raw /mcp/<token> segments
+        raw_err = "Failed POST https://mcp.moises.ai/mcp/SECRET_TOKEN_XYZ987: 502"
+        self.assertEqual(
+            moises_mcp.redact_mcp_text(raw_err),
+            "Failed POST https://mcp.moises.ai/mcp/****...Z987: 502",
+        )
+        exc = moises_mcp.MoisesMCPError(raw_err)
+        self.assertNotIn("SECRET_TOKEN_XYZ987", str(exc))
+        self.assertIn("/mcp/****...Z987", str(exc))
+
+        # save_moises_url rejects masked URLs and non-Moises external hosts
+        with self.assertRaises(ValueError):
+            moises_mcp.save_moises_url(self.paths, "https://mcp.moises.ai/mcp/****...1234")
+        with self.assertRaises(ValueError):
+            moises_mcp.save_moises_url(self.paths, "https://evil.example.com/mcp/12345")
+        with self.assertRaises(ValueError):
+            moises_mcp.save_moises_url(self.paths, "http://mcp.moises.ai/mcp/12345")
+        with self.assertRaises(ValueError):
+            moises_mcp.save_moises_url(self.paths, "https://mcp.moises.ai/other/12345")
+        with self.assertRaises(ValueError):
+            moises_mcp.save_moises_url(self.paths, "https://mcp.moises.ai/mcp/")
+
         moises_mcp.save_moises_url(self.paths, self.moises_url)
         self.assertEqual(moises_mcp.load_moises_url(self.paths), self.moises_url)
 
         with mock.patch.dict(os.environ, {"MOISES_MCP_URL": "https://mcp.moises.ai/mcp/ENV_9999"}):
             self.assertEqual(moises_mcp.load_moises_url(self.paths), "https://mcp.moises.ai/mcp/ENV_9999")
+
+    def test_protected_automation_files_return_403(self) -> None:
+        moises_mcp.save_moises_url(self.paths, self.moises_url)
+        for endpoint in ("/api/download", "/api/audio"):
+            for rel_path in ("Automation/moises_mcp_config.json", "Automation/logs/pipeline.log"):
+                url = f"{self.api_url}{endpoint}?path={urllib.parse.quote(rel_path)}"
+                with self.assertRaises(urllib.error.HTTPError) as ctx:
+                    urllib.request.urlopen(url)
+                self.assertEqual(ctx.exception.code, HTTPStatus.FORBIDDEN)
+
+        code, _ = self._post("/api/open-folder", {"rel_path": "Automation"})
+        self.assertEqual(code, HTTPStatus.FORBIDDEN)
 
     def test_client_snapshot_sse_and_offline_handling(self) -> None:
         self.mock_state.use_sse = True
@@ -751,10 +825,13 @@ class TestMoisesMCPBridge(unittest.TestCase):
         self.assertTrue(top_status["moises_connected"])
         self.assertEqual(top_status["moises_project"], "Bright Lantern")
 
-        # 4. /api/moises/call proxies transport_play and blocks invalid tools
+        # 4. /api/moises/call proxies transport_play / clip_list / util_ping and blocks invalid tools
         code, play_res = self._post("/api/moises/call", {"tool": "transport_play", "arguments": {}})
         self.assertEqual(code, HTTPStatus.OK)
         self.assertTrue(play_res["result"]["playing"])
+        for extra_tool in ("clip_list", "util_ping", "encoder_status", "group_list"):
+            c_ok, _ = self._post("/api/moises/call", {"tool": extra_tool, "arguments": {}})
+            self.assertEqual(c_ok, HTTPStatus.OK)
         code_bad, _ = self._post("/api/moises/call", {"tool": "rm_rf_evil"})
         self.assertEqual(code_bad, HTTPStatus.BAD_REQUEST)
 
@@ -806,10 +883,25 @@ class TestMoisesMCPBridge(unittest.TestCase):
         self.assertEqual(push_res["root_key"], "Am")
         self.assertEqual(len(push_res["created_tracks"]), 2)
         self.assertEqual(len(push_res["created_patterns"]), 2)
+        self.assertEqual(len(push_res["created_clips"]), 2)
+        for pat in push_res["created_patterns"]:
+            self.assertTrue(str(pat["trackId"]).startswith("trk_"))
+            self.assertTrue(str(pat["patternId"]).startswith("pat_"))
+            self.assertTrue(str(pat["clipId"]).startswith("clip_"))
         called_tools = [name for name, _ in self.mock_state.calls]
         self.assertIn("project_set", called_tools)
         self.assertEqual(called_tools.count("track_create"), 2)
         self.assertEqual(called_tools.count("pattern_create"), 2)
+        self.assertEqual(called_tools.count("clip_create"), 2)
+
+        # Verify 960 PPQN tick conversion and clip_create linkage
+        pat_calls = [args["input"] for name, args in self.mock_state.calls if name == "pattern_create"]
+        self.assertEqual(pat_calls[0]["notes"][0]["duration"], 240)  # 24 ticks @ 96 PPQ -> 240 @ 960 PPQN
+        self.assertEqual(pat_calls[1]["notes"][0]["duration"], 480)  # 48 ticks @ 96 PPQ -> 480 @ 960 PPQN
+        clip_calls = [args["input"] for name, args in self.mock_state.calls if name == "clip_create"]
+        self.assertEqual(clip_calls[0]["trackId"], push_res["created_tracks"][0]["trackId"])
+        self.assertEqual(clip_calls[0]["patternId"], push_res["created_patterns"][0]["patternId"])
+        self.assertEqual(clip_calls[0]["position"], 0)
 
         # Path traversal in push track rejected
         code_bad_track, _ = self._post("/api/moises/push", {"track": "../secret"})

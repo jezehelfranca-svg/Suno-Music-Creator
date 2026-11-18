@@ -40,6 +40,14 @@ STEM_SUFFIX_RE = re.compile(
     re.IGNORECASE,
 )
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a", ".ogg", ".aac", ".aiff"}
+_MCP_TOKEN_PATH_RE = re.compile(r"(/mcp/)([A-Za-z0-9_-]{5,})")
+
+
+def redact_mcp_text(text: str) -> str:
+    """Mask any /mcp/<token> segments in logs or error strings."""
+    if not text:
+        return ""
+    return _MCP_TOKEN_PATH_RE.sub(lambda m: f"{m.group(1)}****...{m.group(2)[-4:]}", str(text))
 
 
 class MoisesMCPError(RuntimeError):
@@ -53,7 +61,7 @@ class MoisesMCPError(RuntimeError):
         offline: bool = False,
         code: Optional[int] = None,
     ) -> None:
-        super().__init__(message)
+        super().__init__(redact_mcp_text(str(message)))
         self.status_code = status_code
         self.offline = offline
         self.code = code
@@ -116,9 +124,17 @@ def load_moises_url(paths: Optional[pipeline_automator.PipelinePaths] = None) ->
 def save_moises_url(paths: pipeline_automator.PipelinePaths, url: str) -> Path:
     """Validate and atomically save a Moises MCP URL to moises_mcp_config.json."""
     clean = (url or "").strip()
+    if "*" in clean or "..." in clean:
+        raise ValueError("Cannot save a masked MCP URL; paste the full Moises MCP URL")
     parsed = urllib.parse.urlsplit(clean)
-    if parsed.scheme not in ("https", "http") or not parsed.netloc:
-        raise ValueError("Moises MCP URL must be a valid http(s):// URL")
+    scheme = (parsed.scheme or "").lower()
+    host = (parsed.hostname or "").lower()
+    is_moises_https = scheme == "https" and host == "mcp.moises.ai"
+    is_local_http = scheme == "http" and host in ("127.0.0.1", "localhost", "::1")
+    path = parsed.path or ""
+    token_part = path[len("/mcp/"):].strip("/") if path.startswith("/mcp/") else ""
+    if not (is_moises_https or is_local_http) or not path.startswith("/mcp/") or not token_part:
+        raise ValueError("Moises MCP URL must be https://mcp.moises.ai/mcp/<token>")
     cfg_file = config_path(paths)
     payload = json.dumps({"url": clean}, indent=2) + "\n"
     pipeline_automator.atomic_write_text(cfg_file, payload)
@@ -204,6 +220,37 @@ def _extract_list(payload: Dict[str, Any], *keys: str) -> List[Dict[str, Any]]:
                 if isinstance(sub, list):
                     return [x if isinstance(x, dict) else {"value": x} for x in sub]
     return []
+
+
+def _extract_entity_id(payload: Dict[str, Any], *keys: str) -> Optional[str]:
+    """Extract a string entity ID from primitive, flat dict, or nested MCP tool payloads."""
+    if not isinstance(payload, dict):
+        if isinstance(payload, (str, int)) and not isinstance(payload, bool):
+            s = str(payload).strip()
+            return s or None
+        return None
+
+    for key in (*keys, "id", "value", "text"):
+        val = payload.get(key)
+        if isinstance(val, (str, int)) and not isinstance(val, bool):
+            s = str(val).strip()
+            if s:
+                return s
+
+    for container_key in ("track", "pattern", "clip", "data", "result"):
+        sub = payload.get(container_key)
+        if isinstance(sub, dict):
+            for key in (*keys, "id"):
+                val = sub.get(key)
+                if isinstance(val, (str, int)) and not isinstance(val, bool):
+                    s = str(val).strip()
+                    if s:
+                        return s
+        elif isinstance(sub, (str, int)) and not isinstance(sub, bool):
+            s = str(sub).strip()
+            if s:
+                return s
+    return None
 
 
 def _stem_role_and_group(name: str, item: Dict[str, Any]) -> Tuple[str, str]:
@@ -717,23 +764,22 @@ class MoisesMCPClient:
 
         created_tracks: List[Dict[str, Any]] = []
         created_patterns: List[Dict[str, Any]] = []
+        created_clips: List[Dict[str, Any]] = []
+        ticks_per_sec = (bpm / 60.0) * 960.0
         for role_key, role_label, mid_path, notes, _ in parsed_parts:
             tr_res = self.call_tool(
                 "track_create",
                 {"input": {"name": f"{track_name} {role_label}", "type": "midi"}},
             )
-            tr_obj = tr_res.get("track") if isinstance(tr_res.get("track"), dict) else tr_res
-            track_id = tr_obj.get("id") or tr_obj.get("trackId") or f"{track_name}_{role_key}"
+            track_id = _extract_entity_id(tr_res, "trackId", "id") or f"{track_name}_{role_key}"
             created_tracks.append({"role": role_key, "trackId": track_id, "name": f"{track_name} {role_label}"})
 
-            max_end = max((n["start"] + n["dur"] for n in notes), default=4.0)
             pat_notes = [
                 {
-                    "pitch": int(n["pitch"]),
-                    "startTime": round(float(n["start"]), 4),
-                    "duration": round(float(n["dur"]), 4),
-                    "velocity": int(round(max(1, min(127, float(n["vel"]) * 127.0)))),
-                    "channel": int(n.get("channel", 0)),
+                    "position": max(0, int(round(float(n["start"]) * ticks_per_sec))),
+                    "duration": max(1, int(round(float(n["dur"]) * ticks_per_sec))),
+                    "pitch": max(0, min(127, int(n["pitch"]))),
+                    "velocity": round(float(min(1.0, max(0.01, float(n["vel"])))), 4),
                 }
                 for n in notes
             ]
@@ -741,21 +787,41 @@ class MoisesMCPClient:
                 "pattern_create",
                 {
                     "input": {
-                        "trackId": track_id,
                         "name": f"{track_name}_{role_key}",
-                        "startTime": 0.0,
-                        "duration": round(float(max_end), 4),
-                        "midiFile": mid_path.name,
                         "notes": pat_notes,
                     }
                 },
             )
+            pattern_id = _extract_entity_id(pat_res, "patternId", "id") or f"pat_{track_name}_{role_key}"
+            clip_res = self.call_tool(
+                "clip_create",
+                {
+                    "input": {
+                        "type": "midi",
+                        "trackId": track_id,
+                        "patternId": pattern_id,
+                        "position": 0,
+                    }
+                },
+            )
+            clip_id = _extract_entity_id(clip_res, "clipId", "id")
+
             created_patterns.append({
                 "role": role_key,
                 "trackId": track_id,
+                "patternId": pattern_id,
+                "clipId": clip_id,
                 "midi_file": mid_path.name,
                 "note_count": len(pat_notes),
                 "response": pat_res,
+            })
+            created_clips.append({
+                "role": role_key,
+                "trackId": track_id,
+                "patternId": pattern_id,
+                "clipId": clip_id,
+                "position": 0,
+                "response": clip_res,
             })
 
         return {
@@ -766,6 +832,7 @@ class MoisesMCPClient:
             "project_updated": project_updated,
             "created_tracks": created_tracks,
             "created_patterns": created_patterns,
+            "created_clips": created_clips,
         }
 
 
