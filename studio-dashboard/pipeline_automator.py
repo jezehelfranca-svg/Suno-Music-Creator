@@ -720,6 +720,44 @@ def transcribe_drum_hits(
         return [], 0.0 if downbeat_sec is None else downbeat_sec, bpm
 
     hits.sort(key=lambda h: h[0])
+
+    # De-bleed simultaneous cross-trigger hits (kick <-> snare within 18 ms)
+    drop = set()
+    for i, (ti, ri, vi) in enumerate(hits):
+        if ri not in ("kick", "snare") or i in drop:
+            continue
+        for j in range(i + 1, len(hits)):
+            tj, rj, vj = hits[j]
+            if tj - ti > 0.018:
+                break
+            if rj not in ("kick", "snare") or rj == ri or j in drop:
+                continue
+            if vi < vj * 0.65:
+                drop.add(i)
+                break
+            if vj < vi * 0.65:
+                drop.add(j)
+    if drop:
+        hits = [h for idx, h in enumerate(hits) if idx not in drop]
+
+    # Align remaining cross-role hits within 12 ms to the strongest hit's timestamp
+    aligned: List[Tuple[float, str, float]] = []
+    idx = 0
+    n_hits = len(hits)
+    while idx < n_hits:
+        t0 = hits[idx][0]
+        end = idx + 1
+        while end < n_hits and hits[end][0] - t0 <= 0.012:
+            end += 1
+        cluster = hits[idx:end]
+        if len({r for _, r, _ in cluster}) > 1:
+            anchor_t = max(cluster, key=lambda h: h[2])[0]
+            aligned.extend((anchor_t, r, v) for _, r, v in cluster)
+        else:
+            aligned.extend(cluster)
+        idx = end
+    hits = sorted(aligned, key=lambda h: h[0])
+
     if downbeat_sec is None:
         anchors = [t for t, r, v in hits if r in ("kick", "snare") and v >= 0.4]
         bpm, downbeat_sec = refine_tempo(anchors or [hits[0][0]], bpm)

@@ -1351,15 +1351,15 @@
               </select>
             </div>
             <div class="ctrl-row"><span>Layer blend</span><input type="range" id="hDrumsBlend" min="0" max="1" step="0.05"><span class="ctrl-val" id="hDrumsBlendVal"></span></div>
-            <div class="ctrl-row"><span>Keep cymbals</span><input type="range" id="hKeepCymbals" min="0" max="1" step="0.05"><span class="ctrl-val" id="hKeepCymbalsVal"></span></div>
+            <div class="ctrl-row"><span>Keep cymbals</span><input type="range" id="hKeepCymbals" min="0" max="1" step="0.05" value="0"><span class="ctrl-val" id="hKeepCymbalsVal">0%</span></div>
             <div class="hint">Replace mode keeps the original stem above 7 kHz (crashes, rides, air) at this level.</div>
           </div>
           <div class="human-card">
             <h4>Bass</h4>
             <div class="ctrl-row"><span>Mode</span>
               <select id="hBassMode">
+                <option value="replace" selected>Replace with synth bass</option>
                 <option value="layer">Layer synth with original</option>
-                <option value="replace">Replace with synth bass</option>
                 <option value="original">Keep original stem</option>
               </select>
             </div>
@@ -1900,8 +1900,8 @@
       ['target_lufs', 'hTargetLufs', v => `${v}`],
     ];
     const HUMAN_DEFAULTS = {
-      humanize: 0.5, swing: 0, drums_mode: 'replace', drums_blend: 0.5, keep_cymbals: 0.6,
-      bass_mode: 'layer', bass_blend: 0.4, vocals_db: 0, instruments_db: 0, drums_db: 0, bass_db: 0,
+      humanize: 0.5, swing: 0, drums_mode: 'replace', drums_blend: 0.5, keep_cymbals: 0.0,
+      bass_mode: 'replace', bass_blend: 0.4, vocals_db: 0, instruments_db: 0, drums_db: 0, bass_db: 0,
       target_lufs: -14, ceiling_dbtp: -1,
     };
 

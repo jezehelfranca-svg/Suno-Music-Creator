@@ -330,6 +330,26 @@ class TestHumanizedMix(unittest.TestCase):
             self.assertEqual(hm.pending_humanized(paths), [])  # blocked until inputs change
             self.assertEqual(pa.failures(paths).for_track("Empty")[0]["stage"], "humanized_mix")
 
+    def test_simultaneous_drum_hits_do_not_flam(self) -> None:
+        defaults = hm.HumanizeSettings()
+        self.assertEqual(defaults.keep_cymbals, 0.0)
+        self.assertEqual(defaults.bass_mode, "replace")
+
+        notes = [
+            {"start": 0.0, "dur": 0.1, "pitch": 36, "vel": 0.9},   # kick at beat 1
+            {"start": 0.0, "dur": 0.1, "pitch": 42, "vel": 0.6},   # hat at beat 1
+            {"start": 0.25, "dur": 0.1, "pitch": 42, "vel": 0.5},  # off-beat hat
+            {"start": 0.5, "dur": 0.1, "pitch": 38, "vel": 0.85},  # snare at beat 2
+            {"start": 0.5, "dur": 0.1, "pitch": 42, "vel": 0.6},   # hat at beat 2
+        ]
+        human = hm.humanize_notes({"drums": notes}, 120.0, 0.0, hm.HumanizeSettings(humanize=0.8), seed=42)["drums"]
+        kick_t = next(n["start"] for n in human if n["pitch"] == 36)
+        hat_at_kick_t = next(n["start"] for n in human if n["pitch"] == 42 and n["start"] < 0.15)
+        snare_t = next(n["start"] for n in human if n["pitch"] == 38)
+        hat_at_snare_t = next(n["start"] for n in human if n["pitch"] == 42 and n["start"] > 0.35)
+        self.assertLess(abs(hat_at_kick_t - kick_t), 1e-6)
+        self.assertLess(abs(hat_at_snare_t - snare_t), 1e-6)
+
 
 class TestFileOperations(unittest.TestCase):
     """Test wait_file_ready and atomic write helpers."""

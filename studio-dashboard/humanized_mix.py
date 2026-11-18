@@ -32,9 +32,11 @@ The model is statistical (seeded, repeatable); each seed is a different
 
 from __future__ import annotations
 
+import bisect
 from dataclasses import asdict, dataclass, field, fields
 import json
 import math
+import os
 from pathlib import Path
 import struct
 import time
@@ -66,8 +68,8 @@ class HumanizeSettings:
     swing: float = 0.0             # 0..1 of a full 16th-note triplet swing
     drums_mode: str = "replace"    # replace | layer | original
     drums_blend: float = 0.5       # layer mode: share of re-performed drums
-    keep_cymbals: float = 0.6      # replace mode: original drum stem above 7 kHz (crashes/rides/air)
-    bass_mode: str = "layer"       # replace | layer | original
+    keep_cymbals: float = 0.0      # replace mode: original drum stem above 7 kHz (crashes/rides/air)
+    bass_mode: str = "replace"     # replace | layer | original
     bass_blend: float = 0.4        # layer mode: share of synth bass
     vocals_db: float = 0.0
     instruments_db: float = 0.0
@@ -245,10 +247,10 @@ def drum_role(pitch: int) -> str:
 # Per-role feel, in milliseconds at humanize = 1.0
 ROLE_FEEL = {
     #          jitter  own-drift  backbeat lay-back  offbeat push
-    "kick":  (2.5,    2.0,       0.0,               0.0),
-    "snare": (3.5,    2.5,       12.0,              0.0),
-    "hat":   (4.5,    3.0,       0.0,              -4.0),
-    "bass":  (4.0,    3.0,       6.0,               0.0),
+    "kick":  (1.5,    1.2,       0.0,               0.0),
+    "snare": (2.0,    1.5,       5.0,               0.0),
+    "hat":   (2.2,    1.5,       0.0,              -1.5),
+    "bass":  (2.0,    1.5,       3.0,               0.0),
 }
 SIXTEENTH_ACCENT = {0: 0.08, 1: -0.10, 2: 0.03, 3: -0.07}
 
@@ -287,7 +289,7 @@ def humanize_notes(
     swing_delay = settings.swing * sixteenth / 3.0
 
     all_times = np.array(sorted({round(n["start"], 4) for notes in parts.values() for n in notes}))
-    band = _ou_series(all_times, sigma=amt * 0.006, tau=4.0, rng=rng)
+    band = _ou_series(all_times, sigma=amt * 0.0025, tau=4.0, rng=rng)
     band_at = dict(zip(all_times.tolist(), band.tolist()))
 
     out: Dict[str, List[Dict[str, Any]]] = {}
@@ -320,6 +322,32 @@ def humanize_notes(
             if part == "bass":
                 dur = max(0.04, dur * (1.0 + rng.normal(0.0, 0.08 * amt)))
             result.append({**n, "start": max(0.0, n["start"] + shift), "dur": dur, "vel": vel, "role": role})
+
+        if part == "drums":
+            # Lock any hat within 15 ms of a kick or snare to share the exact shifted onset (prevents flams).
+            ks_anchors = [
+                (notes[i]["start"], result[i]["start"])
+                for i, r in enumerate(roles)
+                if r in ("kick", "snare")
+            ]
+            if ks_anchors:
+                ks_times = [t for t, _ in ks_anchors]
+                for i, r in enumerate(roles):
+                    if r != "hat":
+                        continue
+                    orig_t = notes[i]["start"]
+                    pos = bisect.bisect_left(ks_times, orig_t)
+                    best_shifted = None
+                    best_dt = 0.015 + 1e-9
+                    for cand in (pos - 1, pos, pos + 1):
+                        if 0 <= cand < len(ks_anchors):
+                            dt = abs(ks_anchors[cand][0] - orig_t)
+                            if dt < best_dt:
+                                best_dt = dt
+                                best_shifted = ks_anchors[cand][1]
+                    if best_shifted is not None:
+                        result[i]["start"] = best_shifted
+
         out[part] = result
     return out
 
@@ -367,8 +395,34 @@ def db_to_gain(db: float) -> float:
 # Drum kit: one-shots sampled from the song's own drum stem
 # --------------------------------------------------------------------------
 
-ROLE_MAX_LEN = {"kick": 0.45, "snare": 0.40, "hat": 0.18}
+ROLE_MAX_LEN = {"kick": 0.28, "snare": 0.25, "hat": 0.14}
 ROLE_ISOLATION = {"kick": ("snare",), "snare": ("kick",), "hat": ("kick", "snare")}
+
+
+def _clean_one_shot(clip: np.ndarray, role: str, sr: int) -> np.ndarray:
+    """Apply role-specific band-cleaning filters to strip cross-drum bleed."""
+    clip = clip.astype(np.float32).copy()
+    if role == "kick":
+        sos = scipy.signal.butter(4, min(3500.0, sr * 0.45), btype="low", fs=sr, output="sos")
+        clip = scipy.signal.sosfilt(sos, clip, axis=0)
+    elif role == "snare":
+        sos_hp = scipy.signal.butter(4, min(130.0, sr * 0.45), btype="high", fs=sr, output="sos")
+        clip = scipy.signal.sosfilt(sos_hp, clip, axis=0)
+        if clip.shape[0] > int(sr * 0.040):
+            sos_lp = scipy.signal.butter(4, min(9000.0, sr * 0.45), btype="low", fs=sr, output="sos")
+            lp_tail = scipy.signal.sosfilt(sos_lp, clip, axis=0)
+            split = int(sr * 0.035)
+            ramp = max(1, int(sr * 0.002))
+            if split + ramp <= clip.shape[0]:
+                fade = np.linspace(0.0, 1.0, ramp, dtype=np.float32)[:, None]
+                clip[split:split + ramp] = clip[split:split + ramp] * (1.0 - fade) + lp_tail[split:split + ramp] * fade
+                clip[split + ramp:] = lp_tail[split + ramp:]
+            else:
+                clip[split:] = lp_tail[split:]
+    elif role == "hat":
+        sos = scipy.signal.butter(4, min(5000.0, sr * 0.40), btype="high", fs=sr, output="sos")
+        clip = scipy.signal.sosfilt(sos, clip, axis=0)
+    return clip
 
 
 def _shape_one_shot(clip: np.ndarray, sr: int) -> np.ndarray:
@@ -395,6 +449,7 @@ def extract_one_shots(
     song become round-robin variations.
     """
     kit: Dict[str, List[np.ndarray]] = {}
+    all_onsets = sorted(t_o for r_hits in onsets.values() for t_o, _ in r_hits)
     for role, hits in onsets.items():
         if role not in ROLE_MAX_LEN or not hits:
             continue
@@ -407,9 +462,13 @@ def extract_one_shots(
         for t, v in hits:
             if v < floor:
                 continue
-            nxt = next((s for s in same if s > t + 0.01), None)
+            i_same = bisect.bisect_right(same, t + 0.01)
+            nxt_same = same[i_same] if i_same < len(same) else None
+            i_any = bisect.bisect_right(all_onsets, t + 0.045)
+            nxt_any = all_onsets[i_any] if i_any < len(all_onsets) else None
+            nxt = min((x for x in (nxt_same, nxt_any) if x is not None), default=None)
             length = min(max_len, (nxt - t - 0.005) if nxt else max_len)
-            if length < max_len * 0.5:
+            if length < min(max_len * 0.45, 0.09):
                 continue
             if any(t + 0.004 < o < t + length for o in others) or any(t - 0.02 < o <= t + 0.004 for o in others if o != t):
                 continue
@@ -425,7 +484,8 @@ def extract_one_shots(
             a = max(0, int((t - 0.003) * sr))
             b = min(drum_audio.shape[0], int((t + length) * sr))
             if b - a > int(sr * 0.02):
-                shots.append(_shape_one_shot(drum_audio[a:b], sr))
+                cleaned = _clean_one_shot(drum_audio[a:b], role, sr)
+                shots.append(_shape_one_shot(cleaned, sr))
         if shots:
             kit[role] = shots
     return kit
@@ -594,13 +654,18 @@ def load_stem_buses(stems_dir: Path) -> Tuple[int, int, Dict[str, np.ndarray]]:
     return sr, n_frames, buses
 
 
+def _write_wav_atomic(path: Path, audio: np.ndarray, sr: int) -> None:
+    """Atomically write a 24-bit PCM WAV file via a .tmp.wav staging file."""
+    tmp = path.with_name(f".{path.stem}.tmp.wav")
+    sf.write(str(tmp), audio, sr, subtype="PCM_24")
+    os.replace(tmp, path)
+
+
 def write_render(paths: pa.PipelinePaths, name: str, audio: np.ndarray, sr: int, ffmpeg_bin: str) -> Path:
     """Atomically write a 24-bit render to 05_Mix_Renders and its Mix QA report."""
     paths.renders.mkdir(parents=True, exist_ok=True)
     out_wav = paths.renders / f"{name}.wav"
-    tmp = out_wav.with_name(f".{out_wav.stem}.tmp.wav")
-    sf.write(str(tmp), audio, sr, subtype="PCM_24")
-    tmp.replace(out_wav)
+    _write_wav_atomic(out_wav, audio, sr)
     pa.write_qa_report(out_wav, ffmpeg_bin=ffmpeg_bin)
     return out_wav
 
@@ -743,25 +808,58 @@ def render_humanized_mix(
         summary["drum_samples"] = {r: (len(kit[r]) if r in kit else 0) for r in ("kick", "snare", "hat")}
         for r in ("kick", "snare", "hat"):
             kit.setdefault(r, synth[r])
-        performed = render_drums(human["drums"], kit, sr, n_frames, rng)
+        drum_notes = human["drums"]
+        if settings.drums_mode == "layer":
+            # Keep humanized velocities but align note starts to original times so layering never flams.
+            aligned_settings = HumanizeSettings(**{**settings.to_dict(), "humanize": 0.0, "swing": 0.0})
+            aligned_drums = humanize_notes({"drums": parts["drums"]}, bpm, downbeat, aligned_settings, seed)["drums"]
+            drum_notes = [{**n, "vel": h["vel"]} for n, h in zip(aligned_drums, human["drums"])]
+        performed = render_drums(drum_notes, kit, sr, n_frames, rng)
         ref, got = active_rms(stem["drums"], sr), active_rms(performed, sr)
         if ref > 0 and got > 0:
             performed *= ref / got
-        sf.write(str(out_stems / f"{track}_Drums_Performed.wav"), performed, sr, subtype="PCM_24")
+        _write_wav_atomic(out_stems / f"{track}_Drums_Performed.wav", performed, sr)
         if settings.drums_mode == "replace":
-            air = scipy.signal.sosfilt(scipy.signal.butter(4, 7000, btype="high", fs=sr, output="sos"), stem["drums"], axis=0)
-            drums_bus = performed + settings.keep_cymbals * air.astype(np.float32)
+            if settings.keep_cymbals > 0:
+                air = scipy.signal.sosfilt(
+                    scipy.signal.butter(4, min(7000.0, sr * 0.45), btype="high", fs=sr, output="sos"),
+                    stem["drums"],
+                    axis=0,
+                )
+                all_stem_onsets = [t for hits in onsets.values() for t, _ in hits]
+                if not all_stem_onsets:
+                    all_stem_onsets = [n["start"] for n in parts["drums"]]
+                if all_stem_onsets:
+                    duck = np.ones(n_frames, dtype=np.float32)
+                    half_w = int(0.030 * sr)
+                    for t_on in all_stem_onsets:
+                        c = int(t_on * sr)
+                        lo = max(0, c - half_w)
+                        hi = min(n_frames, c + half_w)
+                        if hi > lo:
+                            duck[lo:hi] = 0.15
+                    duck = scipy.ndimage.uniform_filter1d(duck, size=max(1, int(sr * 0.005)))
+                    air = air * duck[:, None]
+                drums_bus = performed + settings.keep_cymbals * air.astype(np.float32)
+            else:
+                drums_bus = performed
         else:
             drums_bus = (1 - settings.drums_blend) * stem["drums"] + settings.drums_blend * performed
 
     # 3b. Bass
     bass_bus = stem["bass"]
     if human.get("bass") and settings.bass_mode != "original":
-        performed_bass = render_bass(human["bass"], sr, n_frames)
+        if settings.bass_mode == "layer":
+            # Render using original un-shifted start times (with humanized velocities) so layering reinforces in-phase.
+            orig_bass = sorted(parts["bass"], key=lambda n: n["start"])
+            bass_notes = [{**h, "start": orig["start"]} for orig, h in zip(orig_bass, human["bass"])]
+        else:
+            bass_notes = human["bass"]
+        performed_bass = render_bass(bass_notes, sr, n_frames)
         ref, got = active_rms(stem["bass"], sr), active_rms(performed_bass, sr)
         if ref > 0 and got > 0:
             performed_bass *= ref / got
-        sf.write(str(out_stems / f"{track}_Bass_Performed.wav"), performed_bass, sr, subtype="PCM_24")
+        _write_wav_atomic(out_stems / f"{track}_Bass_Performed.wav", performed_bass, sr)
         bass_bus = performed_bass if settings.bass_mode == "replace" else (
             (1 - settings.bass_blend) * stem["bass"] + settings.bass_blend * performed_bass)
 
