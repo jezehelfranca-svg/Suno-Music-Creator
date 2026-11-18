@@ -31,6 +31,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -54,6 +55,18 @@ ENV_BASE_DIR = "MUSIC_PIPELINE_DIR"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 FL64_EXE = os.environ.get("FL_STUDIO_EXE", "").strip() or r"C:\Program Files (x86)\Image-Line\FL Studio 2024\FL64.exe"
+
+
+def ml_studio_executable() -> Optional[str]:
+    configured = os.environ.get("ML_STUDIO_EXE", "").strip()
+    if configured:
+        exe = Path(configured).expanduser()
+        return str(exe) if exe.is_absolute() and exe.is_file() and os.access(exe, os.X_OK) else None
+    return shutil.which("mlstudio") or shutil.which("lemonstudio")
+
+
+VIDEO_EXPORT_LOCK = threading.Lock()
+VIDEO_SIZES = {"landscape": "1920x1080", "vertical": "1080x1920"}
 
 
 def _resolve_rendered_dir() -> Path:
@@ -482,7 +495,9 @@ def discover_tracks(paths: pipeline_automator.PipelinePaths) -> Dict[str, Any]:
                     if any(kw in f.name.lower() for kw in kw_list):
                         kind = k
                         break
-                track_info["prepped_stems"].append({"name": f.name, "kind": kind, "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
+                stat = f.stat()
+                track_info["prepped_stems"].append({"name": f.name, "kind": kind, "rel_path": rel(paths, f),
+                                                    "modified": stat.st_mtime, "size_mb": round(stat.st_size / 1048576, 2)})
 
             for f in vw(prep_dir / "Drum_Triggers"):
                 low = f.name.lower()
@@ -759,16 +774,17 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        if path in ("/", "/index.html"):
-            ui_index = SCRIPT_DIR / "ui" / "index.html"
+        if path in ("/", "/index.html", "/stem-workspace.js"):
+            filename = "stem-workspace.js" if path == "/stem-workspace.js" else "index.html"
+            ui_index = SCRIPT_DIR / "ui" / filename
             if not ui_index.is_file():
-                ui_index = self.server_paths.automation / "ui" / "index.html"
+                ui_index = self.server_paths.automation / "ui" / filename
             if not ui_index.is_file():
                 self.send_error(HTTPStatus.NOT_FOUND, "UI not found")
                 return
             body = ui_index.read_bytes()
             self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Type", "text/javascript; charset=utf-8" if filename.endswith(".js") else "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
             self.send_header("X-Frame-Options", "DENY")
@@ -781,6 +797,7 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
             with _STATE_LOCK:
                 busy, task, queued = IS_BUSY, CURRENT_TASK, QUEUED_JOBS
             self.send_json_response({
+                "ml_studio_available": bool(ml_studio_executable()),
                 "watcher_running": WATCHER_ENABLED,
                 "auto_humanize": AUTO_HUMANIZE,
                 "pid": os.getpid(),
@@ -820,7 +837,7 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
 
     def send_download(self, abs_target: Path, head_only: bool = False) -> None:
         mime_types = {
-            ".wav": "audio/wav", ".mid": "audio/midi", ".midi": "audio/midi", ".json": "application/json",
+            ".mp4": "video/mp4", ".wav": "audio/wav", ".mid": "audio/midi", ".midi": "audio/midi", ".json": "application/json",
             ".md": "text/markdown", ".txt": "text/plain", ".flp": "application/octet-stream",
         }
         ctype = mime_types.get(abs_target.suffix.lower(), "application/octet-stream")
@@ -1055,6 +1072,16 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
             self.send_json_response({"status": "ok", "message": f"Cleared failures for {track}; the watcher will retry"})
             return
 
+        if path in ("/api/export-video", "/api/open-ml-studio"):
+            track = self._track_param(body_json)
+            if track is None:
+                return
+            if path == "/api/export-video":
+                self._export_video(track, body_json)
+            else:
+                self._open_ml_studio(track)
+            return
+
         if path == "/api/open-flp":
             track = self._track_param(body_json)
             if track is None:
@@ -1092,6 +1119,61 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
             return
 
         self.send_error(HTTPStatus.NOT_FOUND, f"POST endpoint {path} not found")
+
+    def _open_ml_studio(self, track: str) -> None:
+        paths = self.server_paths
+        _, project = is_safe_path(paths.base, paths.fl_project / track / f"{track}.flp")
+        if not project or not project.is_file():
+            self.send_json_response({"message": "Prepare an FL project for this track first."}, HTTPStatus.NOT_FOUND)
+            return
+        exe = ml_studio_executable()
+        if not exe:
+            self.send_json_response({"message": "Set ML_STUDIO_EXE to the installed executable and restart the dashboard."}, HTTPStatus.SERVICE_UNAVAILABLE)
+            return
+        # Keep relative sample paths valid and preserve both the original and earlier takes.
+        copy = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=project.parent, prefix=f"{track}_ML_", suffix=".flp", delete=False) as out:
+                copy = Path(out.name)
+                with project.open("rb") as source:
+                    shutil.copyfileobj(source, out)
+            subprocess.Popen([exe, str(copy)], shell=False)
+        except OSError as exc:
+            if copy:
+                copy.unlink(missing_ok=True)
+            self.send_json_response({"message": f"Could not open the working copy: {exc}"}, HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
+        self.send_json_response({"status": "ok", "message": f"Opened {copy.name} in ML Studio."})
+
+    def _export_video(self, track: str, body: Dict[str, Any]) -> None:
+        paths = self.server_paths
+        orientation = str(body.get("orientation", ""))
+        render = next((wav for wav in renders_for_track(paths, track) if wav.name == body.get("render")), None)
+        if not render or not is_safe_path(paths.base, render)[0] or not render.is_file():
+            self.send_json_response({"message": "Select a mix render belonging to this track."}, HTTPStatus.NOT_FOUND)
+            return
+        if orientation not in VIDEO_SIZES:
+            self.send_json_response({"message": "Choose landscape or vertical."}, HTTPStatus.BAD_REQUEST)
+            return
+        if not VIDEO_EXPORT_LOCK.acquire(blocking=False):
+            self.send_json_response({"message": "A video export is already running."}, HTTPStatus.CONFLICT)
+            return
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp) / f"{render.stem}_{orientation}.mp4"
+                graph = f"[0:a]showwaves=s={VIDEO_SIZES[orientation]}:mode=cline:colors=0x53e0d3:rate=30,format=yuv420p[v]"
+                subprocess.run([self.ffmpeg_bin, "-nostdin", "-v", "error", "-f", "wav", "-i", str(render),
+                                "-filter_complex", graph, "-map", "[v]", "-map", "0:a:0",
+                                "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k",
+                                "-movflags", "+faststart", str(output)], check=True, capture_output=True, timeout=3600)
+                self.send_download(output)
+        except FileNotFoundError:
+            self.send_json_response({"message": "Install FFmpeg or set --ffmpeg to its path."}, HTTPStatus.SERVICE_UNAVAILABLE)
+        except (subprocess.SubprocessError, OSError) as exc:
+            log.warning("Video export failed for %s: %s", track, exc)
+            self.send_json_response({"message": "MP4 export failed. Check the WAV and FFmpeg H.264/AAC support."}, HTTPStatus.INTERNAL_SERVER_ERROR)
+        finally:
+            VIDEO_EXPORT_LOCK.release()
 
     def _handle_upload(self, query: Dict[str, List[str]], content_length: int, content_type: str) -> None:
         """Handle raw binary streaming upload and backward-compatible JSON base64 upload."""
@@ -1173,7 +1255,11 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
         if target == "inbox":
             dest_dir = paths.inbox
         elif target == "moises":
-            dest_dir = paths.stems / sanitize_track_name(track or stem_name)
+            # Keep an existing track's exact name (including spaces) when adding stems.
+            existing_name = bool(track and Path(track).name == track and track not in (".", "..")
+                                 and chr(0) not in track and "/" not in track and "\\" not in track
+                                 and any((root / track).is_dir() for root in (paths.stems, paths.prepped, paths.fl_project)))
+            dest_dir = paths.stems / (track if existing_name else sanitize_track_name(track or stem_name))
         elif target == "renders":
             dest_dir = paths.renders
         else:
@@ -1191,7 +1277,7 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
         dest_dir = final_wav_path.parent
         dest_dir.mkdir(parents=True, exist_ok=True)
 
-        ts_ms = int(time.time() * 1000)
+        ts_ms = time.time_ns()
         tmp_in = dest_dir / f".upload_{ts_ms}_{stem_name}{ext}.tmp"
         tmp_wav = dest_dir / f".upload_{ts_ms}_{stem_name}.tmp.wav"
 
@@ -1234,9 +1320,10 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
                 pipeline_automator.failures(paths).clear("demucs", track_name)
                 os.replace(tmp_wav, final_wav_path)
             elif target == "moises":
-                track_name = sanitize_track_name(track or final_wav_path.stem)
-                os.replace(tmp_wav, final_wav_path)
-                invalidate_track_outputs(paths, track_name)
+                track_name = dest_dir.name
+                with PROCESSING_LOCK:
+                    os.replace(tmp_wav, final_wav_path)
+                    invalidate_track_outputs(paths, track_name)
             else:  # renders
                 track_name = render_track_name(final_wav_path.stem)
                 os.replace(tmp_wav, final_wav_path)
