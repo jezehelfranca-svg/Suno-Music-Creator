@@ -405,6 +405,8 @@ class TestUploadAndDiscoveryDirectives(unittest.TestCase):
         with wave.open(str(promoted), "rb") as wf:
             self.assertEqual(wf.getsampwidth(), 3)  # 24-bit PCM
         self.assertFalse((stems_dir / "My_Band_vocals.wav").exists())
+        backups = list(stems_dir.glob(".previous-stems-*/My_Band_vocals.wav"))
+        self.assertEqual([p.read_bytes() for p in backups], [b"old_vox"])
         self.assertTrue((stems_dir / "My_Band_drums.wav").exists())
         self.assertFalse((prep_dir / ".done").exists())
         self.assertFalse((prep_dir / "MIDI" / ".midi_done").exists())

@@ -46,7 +46,7 @@ The goal: turn the AI-separated stems into a mix where the rhythm section sounds
 
    The performance is saved as `*_FPC_Drums_Humanized.mid` and `*_Bass_Humanized.mid` for FL Studio.
 3. **Re-play it.** Drums are re-triggered from one-shots cut out of **this song's own drum stem**. Only cleanly isolated hits are used, found via the trigger WAVs, with up to 4 round-robin variations per drum. Synthesized hits are a fallback only. Bass is played by a small additive synth. Each part is level-matched to the original stem and also written to `03_Prepped_Stems/<Track>/Humanized_Stems/` so you can drag it into FL Studio.
-4. **Mix & master.** Drums can *replace* the original (keeping the original's cymbals and air above 7 kHz), *layer* with it, or stay *original*. Bass works the same way. The result is normalised to a loudness target (default -14 LUFS) through a true-peak-aware limiter (ceiling -1 dBTP). The rough mix uses the same mastering, so the dashboard's **A/B Listen** compares them at equal loudness.
+4. **Mix & master.** Drums can *replace* the original (optionally blending the original drum audio above 7 kHz, off by default), *layer* with it, or stay *original*. Bass works the same way. The result is normalised to a loudness target (default -14 LUFS) through a true-peak-aware limiter (ceiling -1 dBTP). Layer mode preserves source MIDI onsets in both the WAV and the exported MIDI. **Compare renders** plays each saved file at its own level. Check the measured LUFS before comparing takes.
 
 In the dashboard, the **Humanized Mix** tab has sliders for humanize amount, swing, drum/bass mode and blend, per-bus levels and target loudness:
 - **Render** reuses the current take.

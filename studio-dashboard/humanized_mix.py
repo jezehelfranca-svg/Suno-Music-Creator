@@ -297,7 +297,7 @@ def humanize_notes(
         notes = sorted(notes, key=lambda n: n["start"])
         roles = [drum_role(n["pitch"]) if part == "drums" else "bass" for n in notes]
         times = np.array([n["start"] for n in notes])
-        own = {r: _ou_series(times, sigma=ROLE_FEEL[r][1] * amt / 1000.0, tau=1.5, rng=rng) for r in set(roles)}
+        own = {r: _ou_series(times, sigma=ROLE_FEEL[r][1] * amt / 1000.0, tau=1.5, rng=rng) for r in sorted(set(roles))}
         last_vel: Dict[int, float] = {}
         result = []
         for i, (n, role) in enumerate(zip(notes, roles)):
@@ -323,7 +323,10 @@ def humanize_notes(
                 dur = max(0.04, dur * (1.0 + rng.normal(0.0, 0.08 * amt)))
             result.append({**n, "start": max(0.0, n["start"] + shift), "dur": dur, "vel": vel, "role": role})
 
-        if part == "drums":
+        if getattr(settings, f"{part}_mode") == "layer":
+            for note, source in zip(result, notes):
+                note["start"] = source["start"]
+        elif part == "drums" and (amt or settings.swing):
             # Lock any hat within 15 ms of a kick or snare to share the exact shifted onset (prevents flams).
             ks_anchors = [
                 (notes[i]["start"], result[i]["start"])
@@ -470,7 +473,7 @@ def extract_one_shots(
             length = min(max_len, (nxt - t - 0.005) if nxt else max_len)
             if length < min(max_len * 0.45, 0.09):
                 continue
-            if any(t + 0.004 < o < t + length for o in others) or any(t - 0.02 < o <= t + 0.004 for o in others if o != t):
+            if any(t - 0.02 < other < t + length for other in others):
                 continue
             candidates.append((t, v, length))
         if not candidates:
@@ -629,12 +632,7 @@ def master(audio: np.ndarray, sr: int, target_lufs: float, ceiling_dbtp: float) 
 def classify_stems(audio_stems_dir: Path) -> Dict[str, List[Path]]:
     groups: Dict[str, List[Path]] = {"vocals": [], "drums": [], "bass": [], "instruments": []}
     for wav in pa.visible_wavs(audio_stems_dir):
-        low = wav.name.lower()
-        kind = "instruments"
-        for k, kws in pa.STEM_KEYWORDS:
-            if any(kw in low for kw in kws):
-                kind = k
-                break
+        kind = pa.stem_kind(wav, audio_stems_dir.parent.name)
         groups[kind].append(wav)
     return groups
 
@@ -779,6 +777,8 @@ def render_humanized_mix(
         parts["drums"], bpm = read_smf(drums_mid)
     if bass_mid.is_file():
         parts["bass"], _ = read_smf(bass_mid)
+    if not any(parts.values()):
+        raise ValueError("No playable drum or bass MIDI notes for this track")
     downbeat = float(meta.get("downbeat_sec") or 0.0)
 
     # 2. Humanize and save the performance for FL Studio
@@ -808,13 +808,7 @@ def render_humanized_mix(
         summary["drum_samples"] = {r: (len(kit[r]) if r in kit else 0) for r in ("kick", "snare", "hat")}
         for r in ("kick", "snare", "hat"):
             kit.setdefault(r, synth[r])
-        drum_notes = human["drums"]
-        if settings.drums_mode == "layer":
-            # Keep humanized velocities but align note starts to original times so layering never flams.
-            aligned_settings = HumanizeSettings(**{**settings.to_dict(), "humanize": 0.0, "swing": 0.0})
-            aligned_drums = humanize_notes({"drums": parts["drums"]}, bpm, downbeat, aligned_settings, seed)["drums"]
-            drum_notes = [{**n, "vel": h["vel"]} for n, h in zip(aligned_drums, human["drums"])]
-        performed = render_drums(drum_notes, kit, sr, n_frames, rng)
+        performed = render_drums(human["drums"], kit, sr, n_frames, rng)
         ref, got = active_rms(stem["drums"], sr), active_rms(performed, sr)
         if ref > 0 and got > 0:
             performed *= ref / got
@@ -849,13 +843,7 @@ def render_humanized_mix(
     # 3b. Bass
     bass_bus = stem["bass"]
     if human.get("bass") and settings.bass_mode != "original":
-        if settings.bass_mode == "layer":
-            # Render using original un-shifted start times (with humanized velocities) so layering reinforces in-phase.
-            orig_bass = sorted(parts["bass"], key=lambda n: n["start"])
-            bass_notes = [{**h, "start": orig["start"]} for orig, h in zip(orig_bass, human["bass"])]
-        else:
-            bass_notes = human["bass"]
-        performed_bass = render_bass(bass_notes, sr, n_frames)
+        performed_bass = render_bass(human["bass"], sr, n_frames)
         ref, got = active_rms(stem["bass"], sr), active_rms(performed_bass, sr)
         if ref > 0 and got > 0:
             performed_bass *= ref / got

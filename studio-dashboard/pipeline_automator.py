@@ -34,6 +34,7 @@ import signal
 import struct
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -310,6 +311,14 @@ class PipelinePaths:
     def ensure_dirs(self) -> None:
         for d in [self.inbox, self.stems, self.prepped, self.fl_project, self.renders, self.templates, self.automation, self.logs]:
             d.mkdir(parents=True, exist_ok=True)
+
+
+def stem_kind(wav: Path, track: str) -> str:
+    name = wav.stem.lower().removeprefix(track.lower() + "_")
+    for kind, keywords in STEM_KEYWORDS:
+        if any(keyword in name for keyword in keywords):
+            return kind
+    return "instruments"
 
 
 def visible_wavs(folder: Path) -> List[Path]:
@@ -705,7 +714,7 @@ def transcribe_drum_hits(
     Returns (notes, downbeat_sec, bpm).
     """
     roles = (("kick", "*Kick_Trigger.wav"), ("snare", "*Snare_Trigger.wav"), ("hat", "*Hat_Trigger.wav"))
-    hits: List[Tuple[float, str, float]] = []
+    candidates: List[Tuple[float, str, float, float]] = []
     for role, pattern in roles:
         for wav in sorted(triggers_dir.glob(pattern)):
             try:
@@ -713,21 +722,25 @@ def transcribe_drum_hits(
             except Exception as exc:
                 log.warning("[%s] Failed reading trigger %s: %s", track_name, wav.name, exc)
                 continue
-            onsets, strength = detect_onsets(np.mean(audio, axis=1), sr)
-            hits.extend((idx / sr, role, float(v)) for idx, v in zip(onsets, strength))
+            mono = np.mean(audio, axis=1)
+            onsets, strength = detect_onsets(mono, sr)
+            for idx, velocity in zip(onsets, strength):
+                attack = mono[idx:idx + max(1, round(sr * 0.035))]
+                level = float(np.max(np.abs(attack)))
+                candidates.append((idx / sr, role, float(velocity), level))
 
-    if not hits:
+    if not candidates:
         return [], 0.0 if downbeat_sec is None else downbeat_sec, bpm
 
-    hits.sort(key=lambda h: h[0])
+    candidates.sort(key=lambda h: h[0])
 
     # De-bleed simultaneous cross-trigger hits (kick <-> snare within 18 ms)
     drop = set()
-    for i, (ti, ri, vi) in enumerate(hits):
+    for i, (ti, ri, _, vi) in enumerate(candidates):
         if ri not in ("kick", "snare") or i in drop:
             continue
-        for j in range(i + 1, len(hits)):
-            tj, rj, vj = hits[j]
+        for j in range(i + 1, len(candidates)):
+            tj, rj, _, vj = candidates[j]
             if tj - ti > 0.018:
                 break
             if rj not in ("kick", "snare") or rj == ri or j in drop:
@@ -737,8 +750,7 @@ def transcribe_drum_hits(
                 break
             if vj < vi * 0.65:
                 drop.add(j)
-    if drop:
-        hits = [h for idx, h in enumerate(hits) if idx not in drop]
+    hits = [(t, role, velocity) for idx, (t, role, velocity, _) in enumerate(candidates) if idx not in drop]
 
     # Align remaining cross-role hits within 12 ms to the strongest hit's timestamp
     aligned: List[Tuple[float, str, float]] = []
@@ -1247,10 +1259,35 @@ def inbox_groups(paths: PipelinePaths) -> Tuple[Dict[str, List[Path]], List[Path
     for wav in visible_wavs(paths.inbox):
         match = INBOX_STEM_PATTERN.match(wav.stem)
         if match:
-            groups.setdefault(match.group(1).strip(), []).append(wav)
+            track = match.group(1).strip()
+            if track and track not in (".", ".."):
+                groups.setdefault(track, []).append(wav)
         else:
             solitary.append(wav)
     return groups, solitary
+
+
+def invalidate_track_outputs(paths: PipelinePaths, track: str, renders: bool = True) -> None:
+    """Remove done-markers (and optionally generated mixes + reports) so a track rebuilds cleanly."""
+    prep = paths.prepped / track
+    (prep / ".done").unlink(missing_ok=True)
+    (prep / "MIDI" / ".midi_done").unlink(missing_ok=True)
+    if renders:
+        for suffix in ("_RoughMix", "_Humanized"):
+            wav = paths.renders / f"{track}{suffix}.wav"
+            wav.unlink(missing_ok=True)
+            qa_report_path(wav).unlink(missing_ok=True)
+    failures(paths).clear(track=track)
+    for suffix in ("_RoughMix", "_Humanized"):
+        failures(paths).clear(track=f"{track}{suffix}")
+
+
+def routed_stem_changed(source: Path, destination: Path) -> bool:
+    if not destination.exists():
+        return True
+    src, dst = source.stat(), destination.stat()
+    # copy2 preserves source timestamps. A newer destination may be a manual import.
+    return src.st_mtime_ns > dst.st_mtime_ns or (src.st_mtime_ns == dst.st_mtime_ns and src.st_size != dst.st_size)
 
 
 def pending_inbox(paths: PipelinePaths) -> List[str]:
@@ -1261,7 +1298,7 @@ def pending_inbox(paths: PipelinePaths) -> List[str]:
     for track, files in groups.items():
         for src in files:
             dest = paths.stems / track / src.name
-            if not dest.exists() or dest.stat().st_size != src.stat().st_size:
+            if routed_stem_changed(src, dest):
                 pending.append(track)
                 break
     for mix in solitary:
@@ -1290,12 +1327,17 @@ def process_inbox(paths: PipelinePaths) -> int:
             continue
         dest_dir = paths.stems / track_name
         dest_dir.mkdir(parents=True, exist_ok=True)
-        for src in files:
-            dest = dest_dir / src.name
-            if not dest.exists() or dest.stat().st_size != src.stat().st_size:
-                shutil.copy2(src, dest)
-                log.info("[%s] Routed inbox stem %s -> %s", track_name, src.name, dest_dir)
+        changed = [src for src in files if routed_stem_changed(src, dest_dir / src.name)]
+        if not changed:
+            continue
+        with tempfile.TemporaryDirectory(dir=dest_dir) as staging:
+            for src in changed:
+                shutil.copy2(src, Path(staging) / src.name)
+            for src in changed:
+                os.replace(Path(staging) / src.name, dest_dir / src.name)
                 processed_count += 1
+            invalidate_track_outputs(paths, track_name)
+            log.info("[%s] Routed %d inbox stems", track_name, len(changed))
 
     for mix_wav in solitary:
         track_name = mix_wav.stem
@@ -1416,21 +1458,23 @@ def _midi_for_track(paths: PipelinePaths, track_dir: Path, preset: str) -> None:
     drum_triggers_dir = track_dir / "Drum_Triggers"
 
     log.info("[%s] Starting BPM/Key detection and MIDI generation...", track_name)
-    drum_prep = sorted(audio_stems_dir.glob("*drum*_prep.wav"))
-    bass_prep = sorted(audio_stems_dir.glob("*bass*_prep.wav"))
+    stems = visible_wavs(audio_stems_dir)
+    drum_prep = [p for p in stems if stem_kind(p, track_name) == "drums"]
+    bass_prep = [p for p in stems if stem_kind(p, track_name) == "bass"]
     kick_trig = sorted(drum_triggers_dir.glob("*Kick_Trigger.wav"))
 
     bpm_ref = drum_prep[0] if drum_prep else (kick_trig[0] if kick_trig else (bass_prep[0] if bass_prep else None))
     bpm = estimate_bpm_from_audio(bpm_ref) if bpm_ref else 120.0
     log.info("[%s] Estimated BPM: %.1f", track_name, bpm)
 
-    inst_prep = sorted(audio_stems_dir.glob("*instrument*_prep.wav")) + sorted(audio_stems_dir.glob("*other*_prep.wav"))
+    inst_prep = [p for p in stems if stem_kind(p, track_name) == "instruments"]
     key_ref = inst_prep[0] if inst_prep else (bass_prep[0] if bass_prep else bpm_ref)
     key_name, scale_notes = estimate_key_from_audio(key_ref) if key_ref else ("C Major", ["C", "D", "E", "F", "G", "A", "B"])
     log.info("[%s] Estimated Key: %s (Scale: %s)", track_name, key_name, ", ".join(scale_notes))
 
     downbeat = 0.0
     drums_mid = midi_dir / f"{track_name}_FPC_Drums.mid"
+    notes = []
     if drum_triggers_dir.exists():
         notes, downbeat, bpm = transcribe_drum_hits(track_name, drum_triggers_dir, bpm)
         log.info("[%s] Tempo fitted to drum hits: %.2f BPM, downbeat at %.3f s", track_name, bpm, downbeat)
@@ -1440,8 +1484,14 @@ def _midi_for_track(paths: PipelinePaths, track_dir: Path, preset: str) -> None:
         else:
             log.warning("[%s] No drum trigger transients detected in %s", track_name, drum_triggers_dir)
 
+    if not notes and drums_mid.exists():
+        drums_mid.rename(drums_mid.with_suffix(f".{time.time_ns()}.bak"))
+    bass_mid = midi_dir / f"{track_name}_Bass.mid"
     if bass_prep:
-        generate_bass_midi(track_name, bass_prep[0], bpm, midi_dir / f"{track_name}_Bass.mid")
+        if not generate_bass_midi(track_name, bass_prep[0], bpm, bass_mid):
+            raise RuntimeError(f"Bass MIDI transcription failed for {track_name}")
+    elif bass_mid.exists():
+        bass_mid.rename(bass_mid.with_suffix(f".{time.time_ns()}.bak"))
 
     fl_proj_path = paths.fl_project / track_name / f"{track_name}.flp"
     metadata: Dict[str, Any] = {
