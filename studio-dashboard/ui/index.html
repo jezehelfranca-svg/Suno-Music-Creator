@@ -865,6 +865,78 @@
     /* ---------------------------------------------------------------------- */
     /* Log Terminal Drawer */
     /* ---------------------------------------------------------------------- */
+    .failure-banner {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 61, 0, 0.5);
+      background: rgba(255, 61, 0, 0.08);
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      color: var(--text-main);
+    }
+    .failure-banner pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 6px 0;
+      max-height: 120px;
+      overflow: auto;
+    }
+    .human-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .human-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+    .human-card h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--neon-cyan);
+      margin-bottom: 10px;
+    }
+    .ctrl-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 52px;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .ctrl-row input[type=range] { width: 100%; accent-color: var(--fl-orange); }
+    .ctrl-row select {
+      grid-column: 2 / 4;
+      background: var(--bg-darker);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+    }
+    .ctrl-val { font-family: var(--font-mono); color: var(--text-main); text-align: right; }
+    .ab-row {
+      display: grid;
+      grid-template-columns: 150px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .ab-row:last-child { border-bottom: none; }
+    .hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+    @media (max-width: 700px) {
+      .ab-row { grid-template-columns: 1fr; }
+    }
+
     .log-drawer {
       background: var(--bg-darker);
       border-top: 1px solid var(--border);
@@ -977,6 +1049,10 @@
         <span id="watcherBtnIcon">&bull;</span>
         <span id="watcherBtnText">Pause Watcher</span>
       </button>
+
+      <label class="preset-selector" title="Render a Humanized Mix automatically when a track's MIDI is ready">
+        <input type="checkbox" id="autoHumanizeCheck" data-action="toggle-auto-humanize"> Auto Humanize
+      </label>
 
       <button class="btn btn-primary" onclick="runPipelineOnce()">
         &#9889; Run Pass Now
@@ -1102,7 +1178,11 @@
           <button class="btn btn-cyan" onclick="generateRoughMix()">
             &#127915; Generate Rough Mix &amp; QA
           </button>
+          <button class="btn btn-primary" onclick="renderHumanized(false)">
+            &#129345; Render Humanized Mix
+          </button>
         </div>
+        <div id="failureBanner"></div>
       </div>
 
       <!-- Tab Navigation -->
@@ -1112,6 +1192,9 @@
         </button>
         <button class="tab-btn" onclick="switchTab('midiTab', this)">
           &#127929; MIDI &amp; FL Scripts
+        </button>
+        <button class="tab-btn" onclick="switchTab('humanTab', this)">
+          &#129345; Humanized Mix
         </button>
         <button class="tab-btn" onclick="switchTab('mixQaTab', this)">
           &#127926; Mix QA &amp; Loudness Analyzer
@@ -1189,7 +1272,76 @@
         </div>
       </div>
 
-      <!-- Tab 3: Mix QA & Loudness Analyzer -->
+      <!-- Tab 3: Humanized Mix -->
+      <div id="humanTab" class="tab-pane">
+        <div class="deck-header">
+          <div class="deck-title">Humanized Mix: drums &amp; bass re-performed from MIDI</div>
+        </div>
+        <p class="hint" style="margin-bottom:14px;">
+          Drums are re-triggered from hits sampled out of this song's own drum stem, and bass is played by a synth.
+          Both follow the transcribed MIDI with a human timing &amp; velocity model: shared band drift, per-player drift and jitter,
+          snare/bass lay-back, hats pushed slightly ahead, optional swing.
+          Each <em>take</em> (seed) is a different performance. If you edit the <code>*_FPC_Drums.mid</code> / <code>*_Bass.mid</code> files in FL Studio and save them back, the next render follows your edit.
+        </p>
+
+        <div class="human-card" style="margin-bottom:18px;">
+          <h4>A/B Listen (equal loudness)</h4>
+          <div id="abPlayers"><div class="hint">No mixes yet.</div></div>
+        </div>
+
+        <div class="human-grid">
+          <div class="human-card">
+            <h4>Performance Feel</h4>
+            <div class="ctrl-row"><span>Humanize</span><input type="range" id="hHumanize" min="0" max="1" step="0.05"><span class="ctrl-val" id="hHumanizeVal"></span></div>
+            <div class="ctrl-row"><span>Swing (16ths)</span><input type="range" id="hSwing" min="0" max="1" step="0.05"><span class="ctrl-val" id="hSwingVal"></span></div>
+            <div class="hint">0 = quantized machine. 0.5 = tight session player. 1 = loose live feel.</div>
+          </div>
+          <div class="human-card">
+            <h4>Drums</h4>
+            <div class="ctrl-row"><span>Mode</span>
+              <select id="hDrumsMode">
+                <option value="replace">Replace with re-performed kit</option>
+                <option value="layer">Layer with original</option>
+                <option value="original">Keep original stem</option>
+              </select>
+            </div>
+            <div class="ctrl-row"><span>Layer blend</span><input type="range" id="hDrumsBlend" min="0" max="1" step="0.05"><span class="ctrl-val" id="hDrumsBlendVal"></span></div>
+            <div class="ctrl-row"><span>Keep cymbals</span><input type="range" id="hKeepCymbals" min="0" max="1" step="0.05"><span class="ctrl-val" id="hKeepCymbalsVal"></span></div>
+            <div class="hint">Replace mode keeps the original stem above 7 kHz (crashes, rides, air) at this level.</div>
+          </div>
+          <div class="human-card">
+            <h4>Bass</h4>
+            <div class="ctrl-row"><span>Mode</span>
+              <select id="hBassMode">
+                <option value="layer">Layer synth with original</option>
+                <option value="replace">Replace with synth bass</option>
+                <option value="original">Keep original stem</option>
+              </select>
+            </div>
+            <div class="ctrl-row"><span>Layer blend</span><input type="range" id="hBassBlend" min="0" max="1" step="0.05"><span class="ctrl-val" id="hBassBlendVal"></span></div>
+          </div>
+          <div class="human-card">
+            <h4>Mix &amp; Master</h4>
+            <div class="ctrl-row"><span>Vocals</span><input type="range" id="hVocalsDb" min="-12" max="6" step="0.5"><span class="ctrl-val" id="hVocalsDbVal"></span></div>
+            <div class="ctrl-row"><span>Instruments</span><input type="range" id="hInstrumentsDb" min="-12" max="6" step="0.5"><span class="ctrl-val" id="hInstrumentsDbVal"></span></div>
+            <div class="ctrl-row"><span>Drums</span><input type="range" id="hDrumsDb" min="-12" max="6" step="0.5"><span class="ctrl-val" id="hDrumsDbVal"></span></div>
+            <div class="ctrl-row"><span>Bass</span><input type="range" id="hBassDb" min="-12" max="6" step="0.5"><span class="ctrl-val" id="hBassDbVal"></span></div>
+            <div class="ctrl-row"><span>Target LUFS</span><input type="range" id="hTargetLufs" min="-18" max="-8" step="0.5"><span class="ctrl-val" id="hTargetLufsVal"></span></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+          <button class="btn btn-primary" onclick="renderHumanized(false)">&#129345; Render (same take)</button>
+          <button class="btn btn-cyan" onclick="renderHumanized(true)">&#127922; New Take (new seed)</button>
+          <button class="btn" onclick="resetHumanizeControls()">Reset to defaults</button>
+          <span class="hint" id="humanSeedInfo" style="align-self:center;"></span>
+        </div>
+
+        <div class="deck-header"><div class="deck-title">Re-performed Stems (for FL Studio)</div></div>
+        <div id="performedGrid" class="audio-grid"></div>
+      </div>
+
+      <!-- Tab 4: Mix QA & Loudness Analyzer -->
       <div id="mixQaTab" class="tab-pane">
         <div id="mixQaEmpty" style="display:none;padding:40px;text-align:center;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);">
           <div style="font-size:32px;margin-bottom:8px;">&#127915;</div>
@@ -1201,9 +1353,7 @@
         <div id="mixQaContent">
           <!-- Audio Player for Rough Mix -->
           <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
-            <div style="font-weight:700;font-size:13px;color:#fff;min-width:140px;">
-              &#127926; Rough Mix Audio:
-            </div>
+            <select id="qaRenderSelect" data-action="select-qa-render" style="background:var(--bg-darker);border:1px solid var(--border);color:#fff;border-radius:var(--radius-sm);padding:6px;max-width:260px;"></select>
             <audio id="roughMixAudio" controls preload="metadata" style="flex:1;"></audio>
             <button id="downloadRoughMixBtn" class="btn" onclick="downloadCurrentRoughMix()">
               &#128229; Download Mix .wav
@@ -1214,28 +1364,28 @@
           <div class="qa-metrics-grid">
             <div class="qa-metric-card">
               <div class="qa-metric-label">Integrated Loudness</div>
-              <div id="qaLufs" class="qa-metric-val">-26.4 LUFS</div>
-              <div class="qa-metric-target">Target: -10.0 to -12.0 LUFS</div>
+              <div id="qaLufs" class="qa-metric-val">--</div>
+              <div class="qa-metric-target">Target: -14.0 to -9.0 LUFS</div>
             </div>
             <div class="qa-metric-card">
               <div class="qa-metric-label">True Peak</div>
-              <div id="qaTruePeak" class="qa-metric-val">-14.0 dBTP</div>
+              <div id="qaTruePeak" class="qa-metric-val">--</div>
               <div class="qa-metric-target">Ceiling: &le; -1.0 dBTP</div>
             </div>
             <div class="qa-metric-card">
               <div class="qa-metric-label">Crest Factor</div>
-              <div id="qaCrest" class="qa-metric-val">14.7 dB</div>
-              <div class="qa-metric-target">Target: 10.0 to 14.0 dB</div>
+              <div id="qaCrest" class="qa-metric-val">--</div>
+              <div class="qa-metric-target">Target: 8.0 to 16.0 dB</div>
             </div>
             <div class="qa-metric-card">
               <div class="qa-metric-label">Loudness Range (LRA)</div>
-              <div id="qaLra" class="qa-metric-val">3.9 LU</div>
-              <div class="qa-metric-target">Standard: 6.0 to 10.0 LU</div>
+              <div id="qaLra" class="qa-metric-val">--</div>
+              <div class="qa-metric-target">Typical: 4.0 to 12.0 LU</div>
             </div>
           </div>
 
           <!-- 5-Band Spectral Grid -->
-          <div class="deck-title" style="margin-bottom:10px;">5-Band Spectral &amp; Pocket Diagnosis</div>
+          <div class="deck-title" style="margin-bottom:10px;">5-Band Spectral &amp; Stereo Diagnosis <span id="qaMethod" class="hint" style="text-transform:none;letter-spacing:0;font-weight:400;"></span></div>
           <div id="spectralBandsGrid" class="spectral-bands-grid">
             <!-- Bands rendered dynamically -->
           </div>
@@ -1287,8 +1437,9 @@
 
   <!-- Client-Side Dashboard Script -->
   <script>
-    let state = {
+    const state = {
       watcher_running: true,
+      auto_humanize: true,
       preset: 'gentle',
       is_busy: false,
       current_task: 'Idle',
@@ -1296,30 +1447,85 @@
       available_rendered: [],
       selectedTrackName: null,
       syncPlay: false,
+      qaRenderPath: null,          // which render the Mix QA tab shows (null = best available)
+      humanFormTrack: null,        // track whose settings are loaded into the Humanize form
+      humanFormDirty: false,       // user has touched the form since it was loaded
     };
+
+    // Fingerprints of what's currently on screen. A section is only rebuilt when
+    // its data actually changed, so polling never interrupts a playing <audio>.
+    const rendered = {};
+
+    function changed(section, data) {
+      const fp = JSON.stringify(data);
+      if (rendered[section] === fp) return false;
+      rendered[section] = fp;
+      return true;
+    }
+
+    function isAnyAudioPlaying(container) {
+      return Array.from(container.querySelectorAll('audio')).some(a => !a.paused && !a.ended);
+    }
 
     // --------------------------------------------------------------------------
     // Initialization & Polling Loops
     // --------------------------------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
+      initHumanizeControls();
+      document.body.addEventListener('click', onDelegatedClick);
+      document.body.addEventListener('change', onDelegatedChange);
       fetchStatus();
       fetchTracks();
       setInterval(fetchStatus, 3000);
       setInterval(fetchTracks, 5000);
     });
 
+    // All dynamic buttons carry data-* attributes instead of inline onclick
+    // strings, so track names with quotes or markup can't break or inject code.
+    function onDelegatedClick(e) {
+      const el = e.target.closest('[data-action]');
+      if (!el) return;
+      const action = el.dataset.action;
+      if (action === 'select-track') selectTrack(el.dataset.track);
+      else if (action === 'import-rendered') importRenderedSet(el.dataset.base);
+      else if (action === 'copy-move') copyToClipboard(el.dataset.text || '');
+      else if (action === 'open-folder') openPipelineFolder(el.dataset.path || '');
+      else if (action === 'clear-failure') clearFailure(el.dataset.track);
+    }
+
+    function onDelegatedChange(e) {
+      const el = e.target.closest('[data-action]');
+      if (!el) return;
+      const action = el.dataset.action;
+      if (action === 'toggle-fix') toggleFixDone(el.dataset.track, parseInt(el.dataset.idx, 10), el.checked);
+      else if (action === 'select-qa-render') { state.qaRenderPath = el.value; renderMixQa(currentTrack(), true); }
+      else if (action === 'toggle-auto-humanize') setAutoHumanize(el.checked);
+    }
+
+    async function postJson(url, body) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {})
+      });
+      let data = {};
+      try { data = await res.json(); } catch (e) { /* non-JSON error page */ }
+      if (!res.ok && !data.message) data.message = `${res.status} ${res.statusText}`;
+      return { ok: res.ok, status: res.status, data };
+    }
+
     async function fetchStatus() {
       try {
         const res = await fetch('/api/status');
         if (!res.ok) return;
         const data = await res.json();
-        
+
         state.watcher_running = data.watcher_running;
+        state.auto_humanize = data.auto_humanize;
         state.preset = data.preset;
         state.is_busy = data.is_busy;
         state.current_task = data.current_task;
 
-        // Header elements
         const statusPill = document.getElementById('statusPill');
         const statusPillText = document.getElementById('statusPillText');
         const watcherBtnText = document.getElementById('watcherBtnText');
@@ -1327,28 +1533,28 @@
 
         if (data.watcher_running) {
           statusPill.className = 'status-pill';
-          statusPillText.textContent = `WATCHER ACTIVE \u2022 PID ${data.pid}`;
+          statusPillText.textContent = `WATCHER ACTIVE • PID ${data.pid}`;
           watcherBtnText.textContent = 'Pause Watcher';
-          watcherBtnIcon.innerHTML = '&bull;';
+          watcherBtnIcon.textContent = '•';
         } else {
           statusPill.className = 'status-pill paused';
           statusPillText.textContent = 'WATCHER PAUSED';
           watcherBtnText.textContent = 'Start Watcher';
-          watcherBtnIcon.innerHTML = '&#9654;';
+          watcherBtnIcon.textContent = '▶';
         }
+        document.getElementById('autoHumanizeCheck').checked = !!data.auto_humanize;
 
         const busyInd = document.getElementById('busyIndicator');
         const busyText = document.getElementById('busyText');
-        if (data.is_busy) {
+        if (data.is_busy || data.queued_jobs) {
           busyInd.style.display = 'inline-flex';
-          busyText.textContent = data.current_task || 'Processing...';
+          busyText.textContent = (data.current_task || 'Processing...') + (data.queued_jobs ? ` (+${data.queued_jobs} queued)` : '');
         } else {
           busyInd.style.display = 'none';
         }
 
         document.getElementById('presetSelect').value = data.preset || 'gentle';
 
-        // KPI Counts
         if (data.counts) {
           document.getElementById('kpiInbox').textContent = data.counts.inbox ?? 0;
           document.getElementById('kpiMoises').textContent = data.counts.moises_stems ?? 0;
@@ -1358,7 +1564,6 @@
           document.getElementById('kpiRenderedSets').textContent = data.counts.available_rendered_sets ?? 0;
         }
 
-        // Render logs
         renderLogs(data.logs || []);
       } catch (err) {
         console.error("fetchStatus failed:", err);
@@ -1373,28 +1578,29 @@
         state.tracks = data.tracks || [];
         state.available_rendered = data.available_rendered || [];
 
-        renderTrackList();
-        renderRenderedImportList();
-
-        // Default to Venus_in_Versace or first track if not set
-        if (!state.selectedTrackName && state.tracks.length > 0) {
-          const venus = state.tracks.find(t => t.name.toLowerCase().includes("venus"));
-          state.selectedTrackName = venus ? venus.name : state.tracks[0].name;
+        if (!state.selectedTrackName || !currentTrack()) {
+          state.selectedTrackName = state.tracks.length ? state.tracks[0].name : null;
         }
 
+        renderTrackList();
+        renderRenderedImportList();
         renderSelectedTrack();
       } catch (err) {
         console.error("fetchTracks failed:", err);
       }
     }
 
+    function currentTrack() {
+      return state.tracks.find(t => t.name === state.selectedTrackName) || null;
+    }
+
     // --------------------------------------------------------------------------
     // Render Functions
     // --------------------------------------------------------------------------
     function renderLogs(lines) {
+      if (!changed('logs', lines)) return;
       const term = document.getElementById('terminal');
       const autoScroll = document.getElementById('autoScrollCheck').checked;
-      
       term.innerHTML = lines.map(line => {
         let cls = '';
         if (line.includes('[ERROR]') || line.includes('error:')) cls = 'log-line-error';
@@ -1402,13 +1608,16 @@
         else if (line.includes('[INFO]')) cls = 'log-line-info';
         return `<div class="${cls}">${escapeHtml(line)}</div>`;
       }).join('');
+      if (autoScroll) term.scrollTop = term.scrollHeight;
+    }
 
-      if (autoScroll) {
-        term.scrollTop = term.scrollHeight;
-      }
+    function isReadyStatus(status) {
+      return status.includes('Prepped') || status.includes('Audited') || status.includes('Humanized');
     }
 
     function renderTrackList() {
+      const view = state.tracks.map(t => [t.name, t.status, t.metadata && t.metadata.estimated_bpm, t.metadata && t.metadata.estimated_key]);
+      if (!changed('trackList', [view, state.selectedTrackName])) return;
       const listEl = document.getElementById('trackList');
       document.getElementById('trackCountBadge').textContent = state.tracks.length;
 
@@ -1416,13 +1625,14 @@
         const activeClass = (t.name === state.selectedTrackName) ? 'active' : '';
         const bpm = t.metadata && t.metadata.estimated_bpm ? `${t.metadata.estimated_bpm} BPM` : '';
         const key = t.metadata && t.metadata.estimated_key ? t.metadata.estimated_key : '';
-        const statusClass = t.status.includes('Prepped') || t.status.includes('Audited') ? '' : 'pending';
-
+        const failed = t.status.startsWith('Failed');
+        const statusClass = isReadyStatus(t.status) ? '' : 'pending';
+        const statusStyle = failed ? 'style="background:rgba(255,61,0,0.2);color:var(--danger-red);"' : '';
         return `
-          <div class="track-card ${activeClass}" onclick="selectTrack('${escapeHtml(t.name)}')">
+          <div class="track-card ${activeClass}" data-action="select-track" data-track="${escapeHtml(t.name)}">
             <div class="track-card-header">
               <span class="track-card-name" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</span>
-              <span class="badge badge-status ${statusClass}">${escapeHtml(t.status)}</span>
+              <span class="badge badge-status ${statusClass}" ${statusStyle}>${escapeHtml(t.status)}</span>
             </div>
             <div class="track-card-meta">
               ${bpm ? `<span class="badge badge-bpm">${escapeHtml(bpm)}</span>` : ''}
@@ -1434,6 +1644,7 @@
     }
 
     function renderRenderedImportList() {
+      if (!changed('importList', state.available_rendered)) return;
       const container = document.getElementById('importList');
       document.getElementById('renderedCountBadge').textContent = state.available_rendered.length;
 
@@ -1441,15 +1652,14 @@
         const btnText = item.already_imported ? '&#128260; Re-Import' : '&#9889; Import &amp; Auto-Prep';
         const btnClass = item.already_imported ? 'btn' : 'btn btn-cyan';
         const statusPill = item.already_imported ? '<span class="badge badge-status">Imported</span>' : '';
-
         return `
           <div class="import-item">
             <div class="import-item-header">
               <div class="import-item-title">${escapeHtml(item.track_name)}</div>
               ${statusPill}
             </div>
-            <div class="import-item-stems">4 Stems: bass, drums, instruments, vocals</div>
-            <button class="${btnClass}" style="padding:4px 8px;font-size:11px;" onclick="importRenderedSet('${escapeHtml(item.track_name)}')">
+            <div class="import-item-stems">${item.stem_count} Stems: ${escapeHtml(item.stems.join(', '))}</div>
+            <button class="${btnClass}" style="padding:4px 8px;font-size:11px;" data-action="import-rendered" data-base="${escapeHtml(item.track_name)}">
               ${btnText}
             </button>
           </div>
@@ -1457,207 +1667,318 @@
       }).join('');
     }
 
+    function audioCard(file, pillText, pillClass, footerLeft) {
+      return `
+        <div class="audio-card">
+          <div class="audio-card-header">
+            <span class="audio-card-title" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
+            <span class="kind-pill ${pillClass}">${escapeHtml(pillText)}</span>
+          </div>
+          <audio controls preload="metadata" src="/api/audio?path=${encodeURIComponent(file.rel_path)}" onplay="onAudioPlay(this)"></audio>
+          <div class="audio-card-footer">
+            <span>${footerLeft}</span>
+            <a class="btn" style="padding:2px 8px;font-size:10px;" href="/api/download?path=${encodeURIComponent(file.rel_path)}">&#128229; Download</a>
+          </div>
+        </div>
+      `;
+    }
+
+    // Rebuild a grid only when its file list changed and nothing in it is playing.
+    function renderGrid(id, items, html, emptyHtml) {
+      const el = document.getElementById(id);
+      if (rendered[id] === JSON.stringify(items)) return;
+      if (isAnyAudioPlaying(el)) return;  // try again on the next poll
+      rendered[id] = JSON.stringify(items);
+      el.innerHTML = items && items.length ? html() : emptyHtml;
+    }
+
     function renderSelectedTrack() {
-      const track = state.tracks.find(t => t.name === state.selectedTrackName);
+      const track = currentTrack();
       if (!track) {
         document.getElementById('inspectorTitle').textContent = "Select or Import a Track";
         return;
       }
 
       document.getElementById('inspectorTitle').textContent = track.name;
-      const bpm = track.metadata && track.metadata.estimated_bpm ? `${track.metadata.estimated_bpm} BPM` : '120.0 BPM (Est)';
-      const key = track.metadata && track.metadata.estimated_key ? track.metadata.estimated_key : 'Detecting...';
-      const preset = track.metadata && track.metadata.preset ? track.metadata.preset : state.preset;
-
-      document.getElementById('badgeBpm').textContent = bpm;
-      document.getElementById('badgeKey').textContent = key;
-      document.getElementById('badgePreset').textContent = `Preset: ${preset}`;
+      const meta = track.metadata || {};
+      document.getElementById('badgeBpm').textContent = meta.estimated_bpm ? `${meta.estimated_bpm} BPM` : '-- BPM';
+      document.getElementById('badgeKey').textContent = meta.estimated_key || 'Detecting...';
+      document.getElementById('badgePreset').textContent = `Preset: ${meta.preset || state.preset}`;
       const badgeStatus = document.getElementById('badgeStatus');
       badgeStatus.textContent = track.status;
-      const isReady = track.status.includes('Prepped & Ready') || track.status.includes('Audited');
-      badgeStatus.className = isReady ? 'badge badge-status' : 'badge badge-status pending';
+      badgeStatus.className = isReadyStatus(track.status) ? 'badge badge-status' : 'badge badge-status pending';
 
-      // Scale notes pills
       const scaleEl = document.getElementById('scalePills');
-      if (track.metadata && track.metadata.scale_notes && track.metadata.scale_notes.length) {
-        scaleEl.innerHTML = track.metadata.scale_notes.map(n => `<span class="scale-pill">${escapeHtml(n)}</span>`).join('');
-      } else {
-        scaleEl.innerHTML = '';
+      if (changed('scale', [track.name, meta.scale_notes])) {
+        scaleEl.innerHTML = (meta.scale_notes || []).map(n => `<span class="scale-pill">${escapeHtml(n)}</span>`).join('');
       }
 
-      // 1. Render Audio Stems
-      const stemsGrid = document.getElementById('stemsGrid');
-      const isProcessingStems = track.status === 'Splitting Stems (Demucs)...' || track.status === 'Prepping Stems...';
-      const progressBanner = isProcessingStems
-        ? `<div style="grid-column: 1 / -1; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.35); color: var(--neon-cyan); padding: 14px 18px; border-radius: var(--radius-md); font-size: 13px; display: flex; align-items: center; gap: 10px;">
-             <span>&#9203; Processing &ldquo;${escapeHtml(track.name)}&rdquo; (${escapeHtml(track.status)}) &mdash; Stems, Triggers, MIDI, and Mix QA will appear automatically as each stage completes...</span>
-           </div>`
-        : '';
+      renderFailures(track);
 
-      if (track.prepped_stems && track.prepped_stems.length) {
-        stemsGrid.innerHTML = progressBanner + track.prepped_stems.map(s => {
-          const kindClass = `kind-${s.kind}`;
-          return `
-            <div class="audio-card">
-              <div class="audio-card-header">
-                <span class="audio-card-title" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</span>
-                <span class="kind-pill ${kindClass}">${escapeHtml(s.kind)}</span>
-              </div>
-              <audio controls preload="metadata" src="/api/audio?path=${encodeURIComponent(s.rel_path)}" onplay="onAudioPlay(this)"></audio>
-              <div class="audio-card-footer">
-                <span>${s.size_mb} MB &bull; 24-bit PCM</span>
-                <a class="btn" style="padding:2px 8px;font-size:10px;" href="/api/download?path=${encodeURIComponent(s.rel_path)}">&#128229; Download</a>
-              </div>
+      // 1. Prepped stems (+ progress banner while the pipeline works on it)
+      const inProgress = !isReadyStatus(track.status) && !track.status.startsWith('Failed');
+      const banner = inProgress ? `
+        <div style="grid-column:1/-1;padding:10px 14px;background:rgba(255,171,0,0.08);border:1px solid rgba(255,171,0,0.35);border-radius:var(--radius-md);font-size:12px;color:var(--warn-amber);">
+          &#9203; Processing &ldquo;${escapeHtml(track.name)}&rdquo; (${escapeHtml(track.status)}) &mdash; stems, triggers, MIDI and mixes appear as each stage completes...
+        </div>` : '';
+      renderGrid('stemsGrid', [track.name, track.prepped_stems, banner],
+        () => banner + track.prepped_stems.map(s => audioCard(s, s.kind, `kind-${s.kind}`, `${s.size_mb} MB &bull; 24-bit PCM`)).join(''),
+        banner || `<div style="color:var(--text-muted);font-size:12px;">No prepped stems found for ${escapeHtml(track.name)}. Click "Re-Process Track".</div>`);
+
+      // 2. Drum triggers
+      renderGrid('triggersGrid', [track.name, track.drum_triggers],
+        () => track.drum_triggers.map(t => audioCard(t, t.band, 'kind-trigger', `Band: ${escapeHtml(t.band)}`)).join(''),
+        `<div style="color:var(--text-muted);font-size:12px;">No drum trigger WAVs found.</div>`);
+
+      // 3. MIDI
+      renderGrid('midiGrid', [track.name, track.midi_files],
+        () => track.midi_files.map(m => `
+          <div class="audio-card">
+            <div class="audio-card-header">
+              <span class="audio-card-title" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
+              <span class="kind-pill kind-bass">${escapeHtml(m.role)}</span>
             </div>
-          `;
-        }).join('');
-      } else if (isProcessingStems) {
-        stemsGrid.innerHTML = progressBanner;
-      } else {
-        stemsGrid.innerHTML = `<div style="color:var(--text-muted);font-size:12px;">No prepped stems found for ${escapeHtml(track.name)}. Click "Re-Process Track".</div>`;
-      }
-
-      // 2. Render Drum Triggers
-      const triggersGrid = document.getElementById('triggersGrid');
-      if (track.drum_triggers && track.drum_triggers.length) {
-        triggersGrid.innerHTML = track.drum_triggers.map(trig => {
-          return `
-            <div class="audio-card">
-              <div class="audio-card-header">
-                <span class="audio-card-title" title="${escapeHtml(trig.name)}">${escapeHtml(trig.name)}</span>
-                <span class="kind-pill kind-trigger">${escapeHtml(trig.band)}</span>
-              </div>
-              <audio controls preload="metadata" src="/api/audio?path=${encodeURIComponent(trig.rel_path)}" onplay="onAudioPlay(this)"></audio>
-              <div class="audio-card-footer">
-                <span>Band: ${escapeHtml(trig.band)}</span>
-                <a class="btn" style="padding:2px 8px;font-size:10px;" href="/api/download?path=${encodeURIComponent(trig.rel_path)}">&#128229; Download</a>
-              </div>
+            <div style="font-size:11px;color:var(--text-muted);margin:8px 0;">Standard MIDI File &bull; 96 PPQ &bull; ${m.size_kb} KB</div>
+            <div class="audio-card-footer">
+              <a class="btn btn-primary" style="padding:4px 10px;font-size:11px;" href="/api/download?path=${encodeURIComponent(m.rel_path)}">&#128229; Download .mid</a>
+              <button class="btn" style="padding:4px 10px;font-size:11px;" data-action="open-folder" data-path="03_Prepped_Stems/${escapeHtml(track.name)}/MIDI">Show in Folder</button>
             </div>
-          `;
-        }).join('');
-      } else {
-        triggersGrid.innerHTML = `<div style="color:var(--text-muted);font-size:12px;">No drum trigger WAVs found.</div>`;
-      }
+          </div>`).join(''),
+        `<div style="color:var(--text-muted);font-size:12px;">No MIDI files generated yet.</div>`);
 
-      // 3. Render MIDI Tab
-      const midiGrid = document.getElementById('midiGrid');
-      if (track.midi_files && track.midi_files.length) {
-        midiGrid.innerHTML = track.midi_files.map(m => {
-          return `
-            <div class="audio-card">
-              <div class="audio-card-header">
-                <span class="audio-card-title" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
-                <span class="kind-pill kind-bass">${escapeHtml(m.role)}</span>
-              </div>
-              <div style="font-size:11px;color:var(--text-muted);margin:8px 0;">
-                Standard MIDI File Format 0/1 &bull; 96 PPQ &bull; ${m.size_kb} KB
-              </div>
-              <div class="audio-card-footer">
-                <a class="btn btn-primary" style="padding:4px 10px;font-size:11px;" href="/api/download?path=${encodeURIComponent(m.rel_path)}">
-                  &#128229; Download .mid
-                </a>
-                <button class="btn" style="padding:4px 10px;font-size:11px;" onclick="openFolder('03_Prepped_Stems/${encodeURIComponent(track.name)}/MIDI')">
-                  Show in Explorer
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } else {
-        midiGrid.innerHTML = `<div style="color:var(--text-muted);font-size:12px;">No MIDI files generated yet.</div>`;
-      }
-
-      // 4. Render Mix QA Tab
-      renderMixQa(track);
+      renderHumanTab(track);
+      renderMixQa(track, false);
     }
 
-    function renderMixQa(track) {
+    function renderFailures(track) {
+      if (!changed('failures', [track.name, track.failures])) return;
+      const el = document.getElementById('failureBanner');
+      if (!track.failures || !track.failures.length) { el.innerHTML = ''; return; }
+      el.innerHTML = `
+        <div class="failure-banner">
+          ${track.failures.map(f => `
+            <div><strong style="color:var(--danger-red);">&#9888; ${escapeHtml(f.stage_label)} failed</strong>
+              <span class="hint">(${escapeHtml(f.failed_at || '')}, attempt ${f.attempts || 1})</span></div>
+            <pre>${escapeHtml(f.error || '')}</pre>`).join('')}
+          <div class="hint">The watcher won't retry this until the input files change. Fix the cause, then:</div>
+          <button class="btn" style="margin-top:6px;padding:4px 10px;font-size:11px;" data-action="clear-failure" data-track="${escapeHtml(track.name)}">&#128260; Retry now</button>
+        </div>`;
+    }
+
+    // --------------------------------------------------------------------------
+    // Humanized Mix tab
+    // --------------------------------------------------------------------------
+    const HUMAN_CONTROLS = [
+      // [settings key, element id, formatter]
+      ['humanize', 'hHumanize', v => `${Math.round(v * 100)}%`],
+      ['swing', 'hSwing', v => `${Math.round(v * 100)}%`],
+      ['drums_blend', 'hDrumsBlend', v => `${Math.round(v * 100)}%`],
+      ['keep_cymbals', 'hKeepCymbals', v => `${Math.round(v * 100)}%`],
+      ['bass_blend', 'hBassBlend', v => `${Math.round(v * 100)}%`],
+      ['vocals_db', 'hVocalsDb', v => `${v > 0 ? '+' : ''}${v} dB`],
+      ['instruments_db', 'hInstrumentsDb', v => `${v > 0 ? '+' : ''}${v} dB`],
+      ['drums_db', 'hDrumsDb', v => `${v > 0 ? '+' : ''}${v} dB`],
+      ['bass_db', 'hBassDb', v => `${v > 0 ? '+' : ''}${v} dB`],
+      ['target_lufs', 'hTargetLufs', v => `${v}`],
+    ];
+    const HUMAN_DEFAULTS = {
+      humanize: 0.5, swing: 0, drums_mode: 'replace', drums_blend: 0.5, keep_cymbals: 0.6,
+      bass_mode: 'layer', bass_blend: 0.4, vocals_db: 0, instruments_db: 0, drums_db: 0, bass_db: 0,
+      target_lufs: -14, ceiling_dbtp: -1,
+    };
+
+    function initHumanizeControls() {
+      HUMAN_CONTROLS.forEach(([, id, fmt]) => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', () => {
+          document.getElementById(id + 'Val').textContent = fmt(parseFloat(el.value));
+          state.humanFormDirty = true;
+          updateModeVisibility();
+        });
+      });
+      ['hDrumsMode', 'hBassMode'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+        state.humanFormDirty = true;
+        updateModeVisibility();
+      }));
+      loadHumanizeForm(HUMAN_DEFAULTS);
+    }
+
+    function loadHumanizeForm(settings) {
+      const s = Object.assign({}, HUMAN_DEFAULTS, settings || {});
+      HUMAN_CONTROLS.forEach(([key, id, fmt]) => {
+        document.getElementById(id).value = s[key];
+        document.getElementById(id + 'Val').textContent = fmt(parseFloat(s[key]));
+      });
+      document.getElementById('hDrumsMode').value = s.drums_mode;
+      document.getElementById('hBassMode').value = s.bass_mode;
+      updateModeVisibility();
+    }
+
+    function readHumanizeForm() {
+      const out = {};
+      HUMAN_CONTROLS.forEach(([key, id]) => { out[key] = parseFloat(document.getElementById(id).value); });
+      out.drums_mode = document.getElementById('hDrumsMode').value;
+      out.bass_mode = document.getElementById('hBassMode').value;
+      return out;
+    }
+
+    function updateModeVisibility() {
+      const dm = document.getElementById('hDrumsMode').value;
+      const bm = document.getElementById('hBassMode').value;
+      document.getElementById('hDrumsBlend').closest('.ctrl-row').style.opacity = dm === 'layer' ? 1 : 0.35;
+      document.getElementById('hKeepCymbals').closest('.ctrl-row').style.opacity = dm === 'replace' ? 1 : 0.35;
+      document.getElementById('hBassBlend').closest('.ctrl-row').style.opacity = bm === 'layer' ? 1 : 0.35;
+    }
+
+    function resetHumanizeControls() {
+      loadHumanizeForm(HUMAN_DEFAULTS);
+      state.humanFormDirty = true;
+    }
+
+    function renderHumanTab(track) {
+      // Load this track's saved settings into the form once (don't clobber edits in progress)
+      if (state.humanFormTrack !== track.name || !state.humanFormDirty) {
+        if (state.humanFormTrack !== track.name) state.humanFormDirty = false;
+        state.humanFormTrack = track.name;
+        if (!state.humanFormDirty) loadHumanizeForm(track.humanize || HUMAN_DEFAULTS);
+      }
+      const h = track.humanize || {};
+      const last = h.last_render;
+      const info = document.getElementById('humanSeedInfo');
+      info.textContent = last
+        ? `Last render: take #${last.seed} • ${last.notes ? Object.entries(last.notes).map(([k, v]) => `${v} ${k} notes`).join(', ') : ''} • ${last.loudness && last.loudness.lufs != null ? last.loudness.lufs.toFixed(1) + ' LUFS' : ''} • ${last.rendered_at || ''}`
+          + (last.drum_samples ? ` • kit sampled from stem: ${Object.entries(last.drum_samples).map(([k, v]) => `${k} ${v || 'synth'}`).join(', ')}` : '')
+        : 'Not rendered yet.';
+
+      // A/B players
+      const rough = (track.renders || []).find(r => r.kind === 'rough');
+      const human = (track.renders || []).find(r => r.kind === 'humanized');
+      const exports = (track.renders || []).filter(r => r.kind === 'render');
+      const rows = [
+        rough && ['Original (rough mix)', rough],
+        human && ['Humanized mix', human],
+        ...exports.map(r => ['FL export: ' + r.name, r]),
+      ].filter(Boolean);
+      renderGrid('abPlayers', [track.name, rows.map(([l, r]) => [l, r.rel_path, r.modified])],
+        () => rows.map(([label, r]) => {
+          const lufs = r.qa && r.qa.integrated_lufs != null ? `${r.qa.integrated_lufs.toFixed(1)} LUFS` : '';
+          return `
+            <div class="ab-row">
+              <div><strong>${escapeHtml(label)}</strong><div class="hint">${escapeHtml(lufs)}</div></div>
+              <audio controls preload="metadata" style="width:100%;" src="/api/audio?path=${encodeURIComponent(r.rel_path)}&v=${Math.round(r.modified)}" onplay="onAudioPlay(this)"></audio>
+              <a class="btn" style="padding:2px 8px;font-size:10px;" href="/api/download?path=${encodeURIComponent(r.rel_path)}">&#128229; .wav</a>
+            </div>`;
+        }).join(''),
+        `<div class="hint">No mixes yet. They appear after MIDI is generated, or click "Render Humanized Mix".</div>`);
+
+      renderGrid('performedGrid', [track.name, track.performed_stems, last && last.rendered_at],
+        () => track.performed_stems.map(s => audioCard(s, s.kind, `kind-${s.kind}`, `${s.size_mb} MB &bull; drag into FL Studio`)).join(''),
+        `<div style="color:var(--text-muted);font-size:12px;">No re-performed stems yet.</div>`);
+    }
+
+    async function renderHumanized(newTake) {
+      const track = currentTrack();
+      if (!track) return;
+      const settings = readHumanizeForm();
+      if (!newTake && track.humanize && track.humanize.seed != null) settings.seed = track.humanize.seed;
+      showToast(newTake ? `Rendering a new take for ${track.name}...` : `Rendering humanized mix for ${track.name}...`);
+      try {
+        const { data } = await postJson('/api/humanize', { track: track.name, settings, new_take: !!newTake });
+        showToast(data.message || 'Humanized mix queued');
+        state.humanFormDirty = false;
+        fetchStatus();
+      } catch (err) {
+        showToast('Error starting humanized mix');
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // Mix QA tab
+    // --------------------------------------------------------------------------
+    function fmtMetric(v, unit) {
+      return (v === null || v === undefined) ? 'n/a' : `${v.toFixed(1)} ${unit}`;
+    }
+
+    function renderMixQa(track, force) {
+      if (!track) return;
       const emptyBox = document.getElementById('mixQaEmpty');
       const contentBox = document.getElementById('mixQaContent');
-
-      if (!track.mix_qa) {
+      const withQa = (track.renders || []).filter(r => r.qa);
+      if (!withQa.length) {
         emptyBox.style.display = 'block';
         contentBox.style.display = 'none';
+        rendered.mixQa = null;
         return;
       }
-
       emptyBox.style.display = 'none';
       contentBox.style.display = 'block';
-      const qa = track.mix_qa;
 
-      // Audio Player
+      let chosen = withQa.find(r => r.rel_path === state.qaRenderPath) || withQa[0];
+      state.qaRenderPath = chosen.rel_path;
+      const key = [track.name, withQa.map(r => [r.rel_path, r.modified]), chosen.rel_path];
+      if (!force && !changed('mixQa', key)) return;
+      rendered.mixQa = JSON.stringify(key);
+
+      const kindLabel = { humanized: 'Humanized mix', rough: 'Rough mix (original)', render: 'FL export' };
+      const sel = document.getElementById('qaRenderSelect');
+      sel.innerHTML = withQa.map(r => `<option value="${escapeHtml(r.rel_path)}">${escapeHtml((kindLabel[r.kind] || r.kind) + ': ' + r.name)}</option>`).join('');
+      sel.value = chosen.rel_path;
+
+      const qa = chosen.qa;
       const audioEl = document.getElementById('roughMixAudio');
-      if (qa.audio_rel_path) {
-        audioEl.src = `/api/audio?path=${encodeURIComponent(qa.audio_rel_path)}`;
-      } else {
-        audioEl.removeAttribute('src');
-      }
+      const src = `/api/audio?path=${encodeURIComponent(chosen.rel_path)}&v=${Math.round(chosen.modified)}`;
+      if (audioEl.getAttribute('src') !== src && audioEl.paused) audioEl.setAttribute('src', src);
 
-      // Loudness Gauges
-      document.getElementById('qaLufs').textContent = qa.integrated_lufs !== null ? `${qa.integrated_lufs.toFixed(1)} LUFS` : '--';
-      document.getElementById('qaTruePeak').textContent = qa.true_peak_dbtp !== null ? `${qa.true_peak_dbtp.toFixed(1)} dBTP` : '--';
-      document.getElementById('qaCrest').textContent = qa.crest_factor_db !== null ? `${qa.crest_factor_db.toFixed(1)} dB` : '--';
-      document.getElementById('qaLra').textContent = qa.lra_lu !== null ? `${qa.lra_lu.toFixed(1)} LU` : '--';
+      document.getElementById('qaLufs').textContent = fmtMetric(qa.integrated_lufs, 'LUFS');
+      document.getElementById('qaTruePeak').textContent = fmtMetric(qa.true_peak_dbtp, 'dBTP');
+      document.getElementById('qaCrest').textContent = fmtMetric(qa.crest_factor_db, 'dB');
+      document.getElementById('qaLra').textContent = fmtMetric(qa.lra_lu, 'LU');
+      document.getElementById('qaMethod').textContent = qa.loudness_method ? `(loudness: ${qa.loudness_method})` : '';
 
-      // Spectral Bands
       const bandsGrid = document.getElementById('spectralBandsGrid');
-      if (qa.bands && qa.bands.length) {
-        bandsGrid.innerHTML = qa.bands.map(b => {
-          let statusCls = 'kind-instruments';
-          if (b.status.toLowerCase().includes('elevated') || b.status.toLowerCase().includes('masking')) statusCls = 'kind-drums';
-          return `
-            <div class="spectral-band-card">
-              <div class="spectral-band-title">${escapeHtml(b.title)}</div>
-              <span class="spectral-band-status ${statusCls}">${escapeHtml(b.status)}</span>
-              ${b.hotspot ? `<div class="spectral-band-hotspot">&#9201; Hotspot: ${escapeHtml(b.hotspot)}</div>` : ''}
-            </div>
-          `;
-        }).join('');
-      } else {
-        bandsGrid.innerHTML = '';
-      }
+      bandsGrid.innerHTML = (qa.bands || []).map(b => {
+        const st = b.status.toLowerCase();
+        const statusCls = /elevated|masking|accentuation|heavy|risk/.test(st) ? 'kind-drums' : 'kind-instruments';
+        return `
+          <div class="spectral-band-card">
+            <div class="spectral-band-title">${escapeHtml(b.title)}</div>
+            <span class="spectral-band-status ${statusCls}">${escapeHtml(b.status)}</span>
+            ${b.hotspot ? `<div class="spectral-band-hotspot">&#9201; Hotspot: ${escapeHtml(b.hotspot)}</div>` : ''}
+          </div>`;
+      }).join('');
 
-      // Fix Table
       const fixBody = document.getElementById('fixTableBody');
-      const storageKey = `fixes_done_${track.name}`;
-      const completedSet = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
-
+      const storageKey = `fixes_done_${chosen.rel_path}`;
+      const completedSet = new Set(readStorage(storageKey));
       if (qa.fixes && qa.fixes.length) {
         fixBody.innerHTML = qa.fixes.map((fix, idx) => {
           const isDone = completedSet.has(idx);
-          const trClass = isDone ? 'completed' : '';
           return `
-            <tr class="${trClass}" id="fixRow_${idx}">
-              <td>
-                <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleFixDone('${escapeHtml(track.name)}', ${idx}, this.checked)">
-              </td>
+            <tr class="${isDone ? 'completed' : ''}" id="fixRow_${idx}">
+              <td><input type="checkbox" ${isDone ? 'checked' : ''} data-action="toggle-fix" data-track="${escapeHtml(chosen.rel_path)}" data-idx="${idx}"></td>
               <td><span class="time-pill">${escapeHtml(fix.timestamp || '00:00')}</span></td>
-              <td><strong>${escapeHtml(fix.element || 'Master Bus')}</strong></td>
+              <td><strong>${escapeHtml(fix.element || 'Mix')}</strong></td>
               <td>${escapeHtml(fix.issue || '')}</td>
               <td><span class="fl-move-code">${escapeHtml(fix.move || '')}</span></td>
-              <td>
-                <button class="btn" style="padding:2px 8px;font-size:10px;" onclick="copyToClipboard('${escapeHtml(fix.move)}')">Copy Move</button>
-              </td>
-            </tr>
-          `;
+              <td><button class="btn" style="padding:2px 8px;font-size:10px;" data-action="copy-move" data-text="${escapeHtml(fix.move || '')}">Copy Move</button></td>
+            </tr>`;
         }).join('');
       } else {
         fixBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No fixes listed in QA report.</td></tr>`;
       }
     }
 
-    function toggleFixDone(trackName, index, isDone) {
-      const storageKey = `fixes_done_${trackName}`;
-      const completedSet = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
-      if (isDone) completedSet.add(index);
-      else completedSet.delete(index);
-      localStorage.setItem(storageKey, JSON.stringify(Array.from(completedSet)));
+    function readStorage(key) {
+      try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
+    }
 
+    function toggleFixDone(storageId, index, isDone) {
+      const storageKey = `fixes_done_${storageId}`;
+      const completedSet = new Set(readStorage(storageKey));
+      if (isDone) completedSet.add(index); else completedSet.delete(index);
+      try { localStorage.setItem(storageKey, JSON.stringify(Array.from(completedSet))); } catch (e) { /* storage blocked */ }
       const row = document.getElementById(`fixRow_${index}`);
-      if (row) {
-        if (isDone) row.classList.add('completed');
-        else row.classList.remove('completed');
-      }
+      if (row) row.classList.toggle('completed', isDone);
     }
 
     // --------------------------------------------------------------------------
@@ -1665,6 +1986,7 @@
     // --------------------------------------------------------------------------
     function selectTrack(trackName) {
       state.selectedTrackName = trackName;
+      state.qaRenderPath = null;
       renderTrackList();
       renderSelectedTrack();
     }
@@ -1679,12 +2001,7 @@
     async function toggleWatcher() {
       const targetState = !state.watcher_running;
       try {
-        const res = await fetch('/api/watcher', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ running: targetState, preset: state.preset })
-        });
-        const data = await res.json();
+        await postJson('/api/watcher', { running: targetState, preset: state.preset });
         showToast(targetState ? "Watcher Activated" : "Watcher Paused");
         fetchStatus();
       } catch (err) {
@@ -1692,14 +2009,20 @@
       }
     }
 
+    async function setAutoHumanize(on) {
+      try {
+        await postJson('/api/watcher', { auto_humanize: on });
+        showToast(on ? 'New tracks will get a Humanized Mix automatically' : 'Auto Humanize off');
+        fetchStatus();
+      } catch (err) {
+        showToast('Error updating Auto Humanize');
+      }
+    }
+
     async function updatePreset() {
       const val = document.getElementById('presetSelect').value;
       try {
-        await fetch('/api/watcher', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ running: state.watcher_running, preset: val })
-        });
+        await postJson('/api/watcher', { running: state.watcher_running, preset: val });
         showToast(`Tonal Preset set to: ${val}`);
         fetchStatus();
       } catch (err) {
@@ -1710,17 +2033,8 @@
     async function runPipelineOnce() {
       showToast("Starting Pipeline Single Pass...");
       try {
-        const res = await fetch('/api/run-once', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ preset: state.preset })
-        });
-        const data = await res.json();
-        if (data.status === 'started') {
-          showToast("Pipeline pass active in background");
-        } else if (data.status === 'busy') {
-          showToast(data.message);
-        }
+        const { data } = await postJson('/api/run-once', { preset: state.preset });
+        showToast(data.status === 'started' ? "Pipeline pass active in background" : (data.message || 'Busy'));
         fetchStatus();
       } catch (err) {
         showToast("Error running pipeline");
@@ -1729,16 +2043,10 @@
 
     async function openCurrentTrackFlp() {
       if (!state.selectedTrackName) return;
-      showToast(`Launching FL Studio 2024 for ${state.selectedTrackName}...`);
+      showToast(`Launching FL Studio for ${state.selectedTrackName}...`);
       try {
-        const res = await fetch('/api/open-flp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ track: state.selectedTrackName })
-        });
-        const data = await res.json();
-        if (data.status === 'ok') showToast("FL Studio 2024 Launched");
-        else showToast(data.message);
+        const { data } = await postJson('/api/open-flp', { track: state.selectedTrackName });
+        showToast(data.status === 'ok' ? "FL Studio Launched" : data.message);
       } catch (err) {
         showToast("Error launching FL Studio");
       }
@@ -1746,11 +2054,8 @@
 
     async function openPipelineFolder(relPath) {
       try {
-        await fetch('/api/open-folder', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rel_path: relPath })
-        });
+        const { ok, data } = await postJson('/api/open-folder', { rel_path: relPath });
+        if (!ok) showToast(data.message || 'Could not open folder');
       } catch (err) {
         showToast("Error opening folder");
       }
@@ -1765,12 +2070,7 @@
       if (!state.selectedTrackName) return;
       showToast(`Re-processing ${state.selectedTrackName}...`);
       try {
-        const res = await fetch('/api/reprocess', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ track: state.selectedTrackName, preset: state.preset })
-        });
-        const data = await res.json();
+        const { data } = await postJson('/api/reprocess', { track: state.selectedTrackName, preset: state.preset });
         showToast(data.message || "Re-processing started");
         fetchStatus();
       } catch (err) {
@@ -1778,15 +2078,20 @@
       }
     }
 
+    async function clearFailure(trackName) {
+      try {
+        const { data } = await postJson('/api/clear-failure', { track: trackName });
+        showToast(data.message || 'Retrying');
+        fetchTracks();
+      } catch (err) {
+        showToast('Error clearing failure');
+      }
+    }
+
     async function importRenderedSet(baseName) {
       showToast(`Importing ${baseName} from FL Rendered folder...`);
       try {
-        const res = await fetch('/api/import-rendered', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base_name: baseName, preset: state.preset })
-        });
-        const data = await res.json();
+        const { data } = await postJson('/api/import-rendered', { base_name: baseName, preset: state.preset });
         showToast(data.message || "Import & prep active");
         fetchStatus();
         fetchTracks();
@@ -1799,12 +2104,7 @@
       if (!state.selectedTrackName) return;
       showToast(`Generating rough mix for ${state.selectedTrackName}...`);
       try {
-        const res = await fetch('/api/generate-rough-mix', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ track: state.selectedTrackName })
-        });
-        const data = await res.json();
+        const { data } = await postJson('/api/generate-rough-mix', { track: state.selectedTrackName });
         showToast(data.message || "Rough mix generation initiated");
         fetchStatus();
       } catch (err) {
@@ -1813,9 +2113,8 @@
     }
 
     function downloadCurrentRoughMix() {
-      const track = state.tracks.find(t => t.name === state.selectedTrackName);
-      if (track && track.mix_qa && track.mix_qa.audio_rel_path) {
-        window.location.href = `/api/download?path=${encodeURIComponent(track.mix_qa.audio_rel_path)}`;
+      if (state.qaRenderPath) {
+        window.location.href = `/api/download?path=${encodeURIComponent(state.qaRenderPath)}`;
       }
     }
 
@@ -1823,9 +2122,7 @@
     function onAudioPlay(currentAudio) {
       if (state.syncPlay) return;
       document.querySelectorAll('audio').forEach(a => {
-        if (a !== currentAudio && !a.paused) {
-          a.pause();
-        }
+        if (a !== currentAudio && !a.paused) a.pause();
       });
     }
 
@@ -1835,9 +2132,7 @@
       if (state.syncPlay) {
         btn.textContent = 'Sync Play All Stems: ON';
         btn.classList.add('btn-cyan');
-        // Play all stem audios from 0
-        const audios = document.querySelectorAll('#stemsGrid audio');
-        audios.forEach(a => {
+        document.querySelectorAll('#stemsGrid audio').forEach(a => {
           a.currentTime = 0;
           a.play().catch(() => {});
         });
@@ -1862,9 +2157,7 @@
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        handleFileInput(e.dataTransfer.files);
-      }
+      if (e.dataTransfer.files.length) handleFileInput(e.dataTransfer.files);
     });
 
     async function handleFileInput(files) {
@@ -1878,21 +2171,15 @@
           showToast(`Skipping ${file.name}: unsupported audio format`);
           continue;
         }
-
         showToast(`Uploading ${file.name}...`);
         try {
           const res = await fetch(
             `/api/upload?target=${encodeURIComponent(target)}&track=${encodeURIComponent(state.selectedTrackName || '')}&filename=${encodeURIComponent(file.name)}`,
-            {
-              method: 'POST',
-              body: file
-            }
+            { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file }
           );
           const data = await res.json();
           if (res.ok && data.status === 'ok') {
-            if (data.track) {
-              state.selectedTrackName = data.track;
-            }
+            if (data.track) state.selectedTrackName = data.track;
             showToast(`Uploaded "${file.name}" -> Processing "${data.track || file.name}"...`);
             await fetchTracks();
             await fetchStatus();
@@ -1910,11 +2197,13 @@
       document.getElementById('logDrawer').classList.toggle('collapsed');
     }
 
+    let toastTimer = null;
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3000);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
     }
 
     function copyToClipboard(text) {
@@ -1926,7 +2215,7 @@
     }
 
     function escapeHtml(str) {
-      if (!str) return '';
+      if (str === null || str === undefined) return '';
       return String(str)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')

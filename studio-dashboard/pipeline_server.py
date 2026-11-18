@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Suno Music Pipeline Studio Dashboard & Automation Server.
 
-Unified, zero-external-dependency multi-threaded HTTP server providing:
-- Clean handover from standalone CLI watcher daemon to unified server daemon.
-- Thread-safe background watcher loop for 6-stage music production automation.
-- REST API for live pipeline status, telemetry, track metadata, and actions.
-- HTTP 206 Partial Content audio streaming for smooth HTML5 browser audition.
-- Safe process launching for FL Studio 2024 (FL64.exe) and Windows Explorer.
-- Single-page Dark DAW Studio Web UI.
+Multi-threaded local HTTP server (standard library only) providing:
+- A background watcher that drives the 6-stage pipeline, with failure
+  tracking so a broken step is reported once instead of retried forever.
+- A REST API for pipeline status, track metadata and actions, including
+  the Humanized Mix renderer (humanized_mix.py).
+- HTTP 206 Partial Content audio streaming for in-browser audition.
+- Launching FL Studio and Windows Explorer for the local user.
+
+Security model: the server binds to 127.0.0.1 and only answers requests
+whose Host is a loopback name (blocks DNS rebinding) and whose Origin, if
+sent, is the dashboard itself (blocks other websites driving the API).
 """
 
 from __future__ import annotations
@@ -16,7 +20,6 @@ import argparse
 import atexit
 import base64
 import ctypes
-import glob
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -30,7 +33,7 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 import urllib.parse
 
 # Ensure local automation directory is on sys.path
@@ -38,7 +41,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import humanized_mix
 import pipeline_automator
+from pipeline_automator import INBOX_STEM_PATTERN, qa_report_path, render_kind, render_track_name, renders_for_track
 
 # --------------------------------------------------------------------------
 # Configuration & Constants
@@ -48,7 +53,7 @@ DEFAULT_BASE_DIR = "C:/Music_Pipeline"
 ENV_BASE_DIR = "MUSIC_PIPELINE_DIR"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
-FL64_EXE = r"C:\Program Files (x86)\Image-Line\FL Studio 2024\FL64.exe"
+FL64_EXE = os.environ.get("FL_STUDIO_EXE", "").strip() or r"C:\Program Files (x86)\Image-Line\FL Studio 2024\FL64.exe"
 
 
 def _resolve_rendered_dir() -> Path:
@@ -65,10 +70,15 @@ def _resolve_rendered_dir() -> Path:
 
 
 RENDERED_DIR = _resolve_rendered_dir()
+RENDERED_STEM_PATTERN = re.compile(r"^(.*)_(bass|drums|instruments|vocals)\.wav$", re.IGNORECASE)
 
 ALLOWED_UPLOAD_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a", ".ogg"}
 MAX_UPLOAD_BYTES = 500 * 1024 * 1024  # 500 MB
-INBOX_STEM_PATTERN = re.compile(r"^(.+)_(vocals|drums|bass|instruments|other|keys)$", re.IGNORECASE)
+
+LOOPBACK_HOSTNAMES = {"127.0.0.1", "localhost", "::1"}
+EXTRA_ALLOWED_HOSTNAMES: set = set()  # filled from --allow-host
+# Content types a browser may send cross-site without a CORS preflight.
+SIMPLE_CONTENT_TYPES = {"text/plain", "application/x-www-form-urlencoded", "multipart/form-data"}
 
 log = logging.getLogger("pipeline_server")
 
@@ -77,9 +87,12 @@ log = logging.getLogger("pipeline_server")
 # --------------------------------------------------------------------------
 
 PROCESSING_LOCK = threading.Lock()
+_STATE_LOCK = threading.Lock()
 IS_BUSY: bool = False
 CURRENT_TASK: str = "Idle"
+QUEUED_JOBS: int = 0
 WATCHER_ENABLED: bool = True
+AUTO_HUMANIZE: bool = True
 ACTIVE_PRESET: str = "gentle"
 POLL_INTERVAL: float = 2.0
 
@@ -87,8 +100,38 @@ POLL_INTERVAL: float = 2.0
 def set_activity(busy: bool, task: str) -> None:
     """Thread-safe update of server activity state."""
     global IS_BUSY, CURRENT_TASK
-    IS_BUSY = busy
-    CURRENT_TASK = task
+    with _STATE_LOCK:
+        IS_BUSY = busy
+        CURRENT_TASK = task
+
+
+def _adjust_queue(delta: int) -> None:
+    global QUEUED_JOBS
+    with _STATE_LOCK:
+        QUEUED_JOBS = max(0, QUEUED_JOBS + delta)
+
+
+def start_job(name: str, fn: Callable[[], None]) -> None:
+    """Run fn in a background thread while holding PROCESSING_LOCK.
+
+    Jobs queue behind each other (and behind the watcher) instead of racing:
+    anything that invalidates markers must do so inside fn, after the lock
+    is held, so the watcher can't pick the track up half-way.
+    """
+    _adjust_queue(1)
+
+    def runner() -> None:
+        with PROCESSING_LOCK:
+            _adjust_queue(-1)
+            try:
+                set_activity(True, name)
+                fn()
+            except Exception as exc:
+                log.error("%s failed: %s", name, exc, exc_info=True)
+            finally:
+                set_activity(False, "Idle")
+
+    threading.Thread(target=runner, daemon=True, name=f"Job:{name[:40]}").start()
 
 
 # --------------------------------------------------------------------------
@@ -125,7 +168,7 @@ def sanitize_track_name(name: str) -> str:
 
 
 def is_pid_running(pid: int) -> bool:
-    """Check if process PID is running on Windows without external dependencies."""
+    """Check if process PID is running without external dependencies."""
     if pid <= 0:
         return False
     try:
@@ -136,9 +179,24 @@ def is_pid_running(pid: int) -> bool:
                 kernel32.CloseHandle(handle)
                 return True
             return False
-        else:
-            os.kill(pid, 0)
-            return True
+        os.kill(pid, 0)
+        return True
+    except Exception:
+        return False
+
+
+def pid_is_python(pid: int) -> bool:
+    """True only if PID is a Python process (guards against a stale PID file
+    pointing at an unrelated program after Windows reuses the number)."""
+    try:
+        if os.name == "nt":
+            res = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
+                capture_output=True, text=True, check=False, timeout=10,
+            )
+            return "python" in res.stdout.lower() or "py.exe" in res.stdout.lower()
+        cmdline = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\x00", b" ").decode("utf-8", "replace")
+        return "python" in cmdline.lower()
     except Exception:
         return False
 
@@ -156,7 +214,7 @@ def terminate_process_tree(pid: int) -> None:
 
 
 def handle_watcher_pid_handover(paths: pipeline_automator.PipelinePaths) -> None:
-    """Terminate previous standalone watcher process and claim PID ownership."""
+    """Terminate a previous standalone watcher process and claim PID ownership."""
     current_pid = os.getpid()
     pid_file = paths.pid_file
     server_pid_file = paths.automation / ".server.pid"
@@ -167,15 +225,14 @@ def handle_watcher_pid_handover(paths: pipeline_automator.PipelinePaths) -> None
             if content:
                 old_pid = int(content)
                 if old_pid != current_pid and is_pid_running(old_pid):
-                    log.info(
-                        "Detected existing standalone watcher process PID %d; terminating for clean handover...",
-                        old_pid,
-                    )
-                    terminate_process_tree(old_pid)
+                    if pid_is_python(old_pid):
+                        log.info("Stopping previous standalone watcher (PID %d) for clean handover...", old_pid)
+                        terminate_process_tree(old_pid)
+                    else:
+                        log.warning("Stale PID file points at PID %d, which is not Python; leaving it alone.", old_pid)
         except Exception as exc:
             log.warning("Error inspecting old watcher PID file %s: %s", pid_file, exc)
 
-    # Write current unified server PID
     pid_file.write_text(str(current_pid), encoding="utf-8")
     server_pid_file.write_text(str(current_pid), encoding="utf-8")
     log.info("Server & Watcher unified PID %d claimed -> %s", current_pid, pid_file)
@@ -197,49 +254,42 @@ def cleanup_pids(paths: pipeline_automator.PipelinePaths) -> None:
 # Mix QA Markdown Parser
 # --------------------------------------------------------------------------
 
+_QA_CACHE: Dict[str, Tuple[int, Dict[str, Any]]] = {}
+_QA_CACHE_LOCK = threading.Lock()
+
+
+def _qa_metric(content: str, label: str, unit: str) -> Optional[float]:
+    m = re.search(re.escape(label) + r"\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*" + re.escape(unit), content)
+    return float(m.group(1)) if m else None
+
+
 def parse_mix_qa_report(report_path: Path) -> Dict[str, Any]:
-    """Parse Mix QA Markdown report into structured telemetry."""
+    """Parse Mix QA Markdown report into structured telemetry (cached by mtime)."""
     if not report_path.is_file():
         return {}
+    mtime = report_path.stat().st_mtime_ns
+    key = str(report_path)
+    with _QA_CACHE_LOCK:
+        hit = _QA_CACHE.get(key)
+        if hit and hit[0] == mtime:
+            return dict(hit[1])
+
     content = report_path.read_text(encoding="utf-8", errors="replace")
+    method = re.search(r"\*\*Loudness Measured With\*\*:\s*`([^`]+)`", content)
     data: Dict[str, Any] = {
         "raw_markdown": content,
-        "integrated_lufs": None,
-        "true_peak_dbtp": None,
-        "crest_factor_db": None,
-        "lra_lu": None,
-        "peak_dbfs": None,
-        "rms_dbfs": None,
+        "report_rel_name": report_path.name,
+        "loudness_method": method.group(1) if method else None,
+        "integrated_lufs": _qa_metric(content, "Integrated Loudness", "LUFS"),
+        "true_peak_dbtp": _qa_metric(content, "True Peak", "dBTP"),
+        "crest_factor_db": _qa_metric(content, "Crest Factor", "dB"),
+        "lra_lu": _qa_metric(content, "Loudness Range (LRA)", "LU"),
+        "peak_dbfs": _qa_metric(content, "Peak Amplitude", "dBFS"),
+        "rms_dbfs": _qa_metric(content, "RMS Level", "dBFS"),
         "bands": [],
         "fixes": [],
     }
 
-    # Extract metrics from overview table
-    m = re.search(r"Integrated Loudness\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*LUFS", content)
-    if m:
-        data["integrated_lufs"] = float(m.group(1))
-
-    m = re.search(r"True Peak\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*dBTP", content)
-    if m:
-        data["true_peak_dbtp"] = float(m.group(1))
-
-    m = re.search(r"Crest Factor\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*dB", content)
-    if m:
-        data["crest_factor_db"] = float(m.group(1))
-
-    m = re.search(r"Loudness Range \(LRA\)\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*LU", content)
-    if m:
-        data["lra_lu"] = float(m.group(1))
-
-    m = re.search(r"Peak Amplitude\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*dBFS", content)
-    if m:
-        data["peak_dbfs"] = float(m.group(1))
-
-    m = re.search(r"RMS Level\s*\*\*\s*\|\s*\*\*([-\d\.]+)\s*dBFS", content)
-    if m:
-        data["rms_dbfs"] = float(m.group(1))
-
-    # Extract 5 Bands
     for title, body in re.findall(r"### (Band \d+: [^\n]+)\n(.*?)(?=\n###|\n##|$)", content, re.DOTALL):
         st = re.search(r"-\s*\*\*Status\*\*:\s*([^\n]+)", body)
         hotspot = re.search(r"at \*\*([0-9:]+)\*\*", body)
@@ -251,14 +301,13 @@ def parse_mix_qa_report(report_path: Path) -> Dict[str, Any]:
             "details": lines,
         })
 
-    # Extract Actionable Fixes
     fix_sec = re.search(r"## 3\. Recommended Actionable Fix List\s*\n+(.*?)(?=\n##|$)", content, re.DOTALL)
     if fix_sec:
         for line in fix_sec.group(1).strip().splitlines():
             line = line.strip().lstrip("-* \t")
             if not line:
                 continue
-            parts = re.split(r"\s+[–—]\s+|\s+-\s+", line, maxsplit=3)
+            parts = re.split(r"\s+[–—]\s+", line, maxsplit=3)
             if len(parts) >= 4:
                 data["fixes"].append({
                     "timestamp": parts[0].strip(),
@@ -267,163 +316,136 @@ def parse_mix_qa_report(report_path: Path) -> Dict[str, Any]:
                     "move": parts[3].strip(),
                 })
             else:
-                data["fixes"].append({
-                    "timestamp": "",
-                    "element": "Mix",
-                    "issue": "",
-                    "move": line,
-                })
+                data["fixes"].append({"timestamp": "", "element": "Mix", "issue": "", "move": line})
 
-    return data
+    with _QA_CACHE_LOCK:
+        _QA_CACHE[key] = (mtime, data)
+    return dict(data)
 
 
 # --------------------------------------------------------------------------
 # Pipeline Telemetry & Data Discovery
 # --------------------------------------------------------------------------
 
+def rel(paths: pipeline_automator.PipelinePaths, p: Path) -> str:
+    return str(p.relative_to(paths.base)).replace("\\", "/")
+
+
+def pending_rough_mix(paths: pipeline_automator.PipelinePaths) -> List[str]:
+    return humanized_mix.pending_rough(paths)
+
+
 def has_pending_work(paths: pipeline_automator.PipelinePaths) -> Optional[str]:
-    """Check if any pipeline stage has pending work to process.
+    """Describe the next pending pipeline step, or None if idle.
 
-    Returns task description if work is pending, or None if idle.
+    Uses the same pending_* definitions the stages themselves use, so the
+    watcher and the stages can never disagree about what's left to do.
     """
-    # 1. 01_Suno_Inbox: unrouted .wav files
-    if paths.inbox.exists():
-        wav_files = [p for p in paths.inbox.glob("*.wav") if not p.name.startswith(".")]
-        if wav_files:
-            for wav in wav_files:
-                match = INBOX_STEM_PATTERN.match(wav.stem)
-                if match:
-                    track_name = match.group(1).strip()
-                    dest = paths.stems / track_name / wav.name
-                    if not dest.exists() or dest.stat().st_size != wav.stat().st_size:
-                        return "Processing 01_Suno_Inbox..."
-                else:
-                    track_name = wav.stem
-                    dest_dir = paths.stems / track_name
-                    if not dest_dir.exists() or not any(not p.name.startswith(".") for p in dest_dir.glob("*.wav")):
-                        return "Processing 01_Suno_Inbox..."
-
-    # 2. 02_Moises_Stems: tracks with .wav files lacking 03_Prepped_Stems/<Track>/.done
-    if paths.stems.exists():
-        for d in paths.stems.iterdir():
-            if d.is_dir() and not d.name.startswith("."):
-                done_marker = paths.prepped / d.name / ".done"
-                if not done_marker.exists() and any(not p.name.startswith(".") for p in d.glob("*.wav")):
-                    return "Running Stem Prep..."
-
-    # 3. 03_Prepped_Stems: tracks with .done lacking MIDI/.midi_done
-    if paths.prepped.exists():
-        for d in paths.prepped.iterdir():
-            if d.is_dir() and not d.name.startswith("."):
-                done_marker = d / ".done"
-                midi_done = d / "MIDI" / ".midi_done"
-                if done_marker.exists() and not midi_done.exists():
-                    return "Generating MIDI & Metadata..."
-
-    # 4. 05_Mix_Renders: renders lacking <stem>_Mix_QA_Report.md
-    if paths.renders.exists():
-        for wav in paths.renders.glob("*.wav"):
-            if not wav.name.startswith("."):
-                report = paths.renders / f"{wav.stem}_Mix_QA_Report.md"
-                if not report.exists():
-                    return "Running Mix QA Analysis..."
-
-    # 5. 03_Prepped_Stems: prepped tracks lacking Mix QA report in 05_Mix_Renders
-    if paths.prepped.exists():
-        for d in sorted(paths.prepped.iterdir()):
-            if d.is_dir() and not d.name.startswith("."):
-                if (d / ".done").exists() and (d / "Audio_Stems").is_dir() and any(
-                    not p.name.startswith(".") for p in (d / "Audio_Stems").glob("*.wav")
-                ):
-                    qa_reports = (
-                        list(paths.renders.glob(f"{glob.escape(d.name)}*_Mix_QA_Report.md"))
-                        if paths.renders.exists()
-                        else []
-                    )
-                    if not qa_reports:
-                        return f"Generating Rough Mix & QA for {d.name}..."
-
+    if pipeline_automator.pending_inbox(paths):
+        return "Processing 01_Suno_Inbox..."
+    if pipeline_automator.pending_stem_tracks(paths):
+        return "Running Stem Prep..."
+    if pipeline_automator.pending_midi_tracks(paths):
+        return "Generating MIDI & Metadata..."
+    if pipeline_automator.pending_mix_renders(paths):
+        return "Running Mix QA Analysis..."
+    rough = pending_rough_mix(paths)
+    if rough:
+        return f"Generating Rough Mix & QA for {rough[0]}..."
+    if AUTO_HUMANIZE:
+        human = humanized_mix.pending_humanized(paths)
+        if human:
+            return f"Rendering Humanized Mix for {human[0]}..."
     return None
+
+
+def rendered_stem_groups() -> Dict[str, Dict[str, str]]:
+    """{base_name: {kind: filename}} for 4-stem sets in FL Studio's Rendered folder."""
+    groups: Dict[str, Dict[str, str]] = {}
+    if not RENDERED_DIR.exists():
+        return groups
+    try:
+        for f in os.listdir(RENDERED_DIR):
+            m = RENDERED_STEM_PATTERN.match(f)
+            if m:
+                groups.setdefault(m.group(1), {})[m.group(2).lower()] = f
+    except OSError as exc:
+        log.warning("Could not list RENDERED_DIR: %s", exc)
+    return groups
 
 
 def get_pipeline_counts(paths: pipeline_automator.PipelinePaths) -> Dict[str, int]:
     """Compute live entity counts across the 6 pipeline stages."""
-    inbox_cnt = len([p for p in paths.inbox.glob("*.wav") if not p.name.startswith(".")]) if paths.inbox.exists() else 0
-    moises_cnt = len([p for p in paths.stems.iterdir() if p.is_dir() and not p.name.startswith(".")]) if paths.stems.exists() else 0
-    prepped_cnt = len([p for p in paths.prepped.iterdir() if p.is_dir() and (p / ".done").exists()]) if paths.prepped.exists() else 0
-    fl_cnt = len(list(paths.fl_project.glob("*/*.flp"))) if paths.fl_project.exists() else 0
-    renders_cnt = len([p for p in paths.renders.glob("*.wav") if not p.name.startswith(".")]) if paths.renders.exists() else 0
-
-    avail_sets = 0
-    if RENDERED_DIR.exists():
-        try:
-            files = os.listdir(RENDERED_DIR)
-            pat = re.compile(r"^(.*)_(bass|drums|instruments|vocals)\.wav$", re.IGNORECASE)
-            groups: Dict[str, set] = {}
-            for f in files:
-                m = pat.match(f)
-                if m:
-                    groups.setdefault(m.group(1), set()).add(m.group(2).lower())
-            avail_sets = sum(1 for stems in groups.values() if len(stems) == 4)
-        except Exception:
-            pass
-
+    vw, vd = pipeline_automator.visible_wavs, pipeline_automator.visible_dirs
     return {
-        "inbox": inbox_cnt,
-        "moises_stems": moises_cnt,
-        "prepped_tracks": prepped_cnt,
-        "fl_projects": fl_cnt,
-        "mix_renders": renders_cnt,
-        "available_rendered_sets": avail_sets,
+        "inbox": len(vw(paths.inbox)),
+        "moises_stems": len(vd(paths.stems)),
+        "prepped_tracks": len([p for p in vd(paths.prepped) if (p / ".done").exists()]),
+        "fl_projects": len(list(paths.fl_project.glob("*/*.flp"))) if paths.fl_project.exists() else 0,
+        "mix_renders": len(vw(paths.renders)),
+        "available_rendered_sets": sum(1 for s in rendered_stem_groups().values() if len(s) == 4),
+        "failures": len(pipeline_automator.failures(paths).all()),
     }
 
 
 def get_recent_logs(log_file: Path, max_lines: int = 60) -> List[str]:
-    """Retrieve the most recent log lines from pipeline.log."""
+    """Return the last log lines, reading only the end of the file."""
     if not log_file.is_file():
         return []
     try:
-        with open(log_file, "r", encoding="utf-8", errors="replace") as f:
-            lines = f.readlines()
-            return [line.rstrip("\r\n") for line in lines[-max_lines:]]
+        with open(log_file, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            f.seek(max(0, size - 64 * 1024))
+            tail = f.read().decode("utf-8", errors="replace")
+        lines = tail.splitlines()
+        if size > 64 * 1024:
+            lines = lines[1:]  # first line is probably cut in half
+        return lines[-max_lines:]
     except Exception as exc:
         return [f"[ERROR] Could not read log file: {exc}"]
 
 
+STAGE_LABELS = {
+    "demucs": "Stem separation (Demucs)",
+    "stem_prep": "Stem prep",
+    "midi": "MIDI generation",
+    "rough_mix": "Rough mix",
+    "humanized_mix": "Humanized mix",
+    "mix_qa": "Mix QA",
+}
+
+
+def _render_entry(paths: pipeline_automator.PipelinePaths, wav: Path) -> Dict[str, Any]:
+    report = qa_report_path(wav)
+    return {
+        "name": wav.name,
+        "kind": render_kind(wav.stem),
+        "rel_path": rel(paths, wav),
+        "size_mb": round(wav.stat().st_size / 1048576, 2),
+        "modified": wav.stat().st_mtime,
+        "qa": parse_mix_qa_report(report) if report.is_file() else None,
+    }
+
+
 def discover_tracks(paths: pipeline_automator.PipelinePaths) -> Dict[str, Any]:
     """Discover all tracks across stages, metadata, stems, triggers, MIDI, and renders."""
+    vw, vd = pipeline_automator.visible_wavs, pipeline_automator.visible_dirs
+    reg = pipeline_automator.failures(paths)
+    all_failures = reg.all()
+
     track_names = set()
-    if paths.inbox.exists():
-        for f in paths.inbox.glob("*.wav"):
-            if f.name.startswith("."):
-                continue
-            m = INBOX_STEM_PATTERN.match(f.stem)
-            t_name = m.group(1).strip() if m else f.stem
-            if t_name:
-                track_names.add(t_name)
-    if paths.stems.exists():
-        for d in paths.stems.iterdir():
-            if d.is_dir() and not d.name.startswith("."):
-                track_names.add(d.name)
-    if paths.prepped.exists():
-        for d in paths.prepped.iterdir():
-            if d.is_dir() and not d.name.startswith("."):
-                track_names.add(d.name)
-    if paths.fl_project.exists():
-        for d in paths.fl_project.iterdir():
-            if d.is_dir() and not d.name.startswith("."):
-                track_names.add(d.name)
-    if paths.renders.exists():
-        for f in paths.renders.glob("*.wav"):
-            if f.name.startswith("."):
-                continue
-            name = re.sub(r"(_RoughMix|_Mix|_Master)$", "", f.stem, flags=re.IGNORECASE)
-            if name:
-                track_names.add(name)
+    for f in vw(paths.inbox):
+        m = INBOX_STEM_PATTERN.match(f.stem)
+        t_name = m.group(1).strip() if m else f.stem
+        if t_name:
+            track_names.add(t_name)
+    for root in (paths.stems, paths.prepped, paths.fl_project):
+        track_names.update(d.name for d in vd(root))
+    for f in vw(paths.renders):
+        track_names.add(render_track_name(f.stem))
 
     tracks_list = []
-    base = paths.base
-
     for name in sorted(track_names):
         track_info: Dict[str, Any] = {
             "name": name,
@@ -433,23 +455,18 @@ def discover_tracks(paths: pipeline_automator.PipelinePaths) -> Dict[str, Any]:
             "prepped_stems": [],
             "drum_triggers": [],
             "midi_files": [],
+            "performed_stems": [],
             "fl_project": {"exists": False, "rel_path": "", "abs_path": "", "size_mb": 0.0},
+            "renders": [],
             "mix_qa": None,
+            "humanize": None,
+            "failures": [],
         }
 
-        # 1. Source stems in 02_Moises_Stems
         src_dir = paths.stems / name
-        if src_dir.is_dir():
-            for f in sorted(src_dir.glob("*.wav")):
-                if f.name.startswith("."):
-                    continue
-                track_info["source_stems"].append({
-                    "name": f.name,
-                    "rel_path": str(f.relative_to(base)).replace("\\", "/"),
-                    "size_mb": round(f.stat().st_size / 1048576, 2),
-                })
+        for f in vw(src_dir):
+            track_info["source_stems"].append({"name": f.name, "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
 
-        # 2. Prepped stems & triggers & MIDI & metadata in 03_Prepped_Stems
         prep_dir = paths.prepped / name
         if prep_dir.is_dir():
             meta_path = prep_dir / "track_metadata.json"
@@ -459,178 +476,120 @@ def discover_tracks(paths: pipeline_automator.PipelinePaths) -> Dict[str, Any]:
                 except Exception:
                     pass
 
-            audio_stems_dir = prep_dir / "Audio_Stems"
-            if audio_stems_dir.is_dir():
-                for f in sorted(audio_stems_dir.glob("*.wav")):
-                    kind = "other"
-                    for k, kw_list in pipeline_automator.STEM_KEYWORDS:
-                        if any(kw in f.name.lower() for kw in kw_list):
-                            kind = k
-                            break
-                    track_info["prepped_stems"].append({
-                        "name": f.name,
-                        "kind": kind,
-                        "rel_path": str(f.relative_to(base)).replace("\\", "/"),
-                        "size_mb": round(f.stat().st_size / 1048576, 2),
-                    })
+            for f in vw(prep_dir / "Audio_Stems"):
+                kind = "other"
+                for k, kw_list in pipeline_automator.STEM_KEYWORDS:
+                    if any(kw in f.name.lower() for kw in kw_list):
+                        kind = k
+                        break
+                track_info["prepped_stems"].append({"name": f.name, "kind": kind, "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
 
-            triggers_dir = prep_dir / "Drum_Triggers"
-            if triggers_dir.is_dir():
-                for f in sorted(triggers_dir.glob("*.wav")):
-                    band = "Perc"
-                    if "kick" in f.name.lower():
-                        band = "Kick"
-                    elif "snare" in f.name.lower():
-                        band = "Snare"
-                    elif "hat" in f.name.lower():
-                        band = "Hat"
-                    track_info["drum_triggers"].append({
-                        "name": f.name,
-                        "band": band,
-                        "rel_path": str(f.relative_to(base)).replace("\\", "/"),
-                        "size_mb": round(f.stat().st_size / 1048576, 2),
-                    })
+            for f in vw(prep_dir / "Drum_Triggers"):
+                low = f.name.lower()
+                band = "Kick" if "kick" in low else "Snare" if "snare" in low else "Hat" if "hat" in low else "Perc"
+                track_info["drum_triggers"].append({"name": f.name, "band": band, "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
+
+            for f in vw(prep_dir / humanized_mix.HUMANIZED_STEMS_DIR):
+                track_info["performed_stems"].append({"name": f.name, "kind": "drums" if "drum" in f.name.lower() else "bass", "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
 
             midi_dir = prep_dir / "MIDI"
             if midi_dir.is_dir():
                 for f in sorted(midi_dir.glob("*.mid")):
-                    role = "MIDI"
-                    if "drums" in f.name.lower() or "fpc" in f.name.lower():
-                        role = "FPC Drums"
-                    elif "bass" in f.name.lower():
-                        role = "Bass"
-                    track_info["midi_files"].append({
-                        "name": f.name,
-                        "role": role,
-                        "rel_path": str(f.relative_to(base)).replace("\\", "/"),
-                        "size_kb": round(f.stat().st_size / 1024, 1),
-                    })
+                    low = f.name.lower()
+                    role = "FPC Drums" if ("drums" in low or "fpc" in low) else "Bass" if "bass" in low else "MIDI"
+                    if "humanized" in low:
+                        role += " (Humanized)"
+                    track_info["midi_files"].append({"name": f.name, "role": role, "rel_path": rel(paths, f), "size_kb": round(f.stat().st_size / 1024, 1)})
 
-        # 3. FL Studio Project
+            settings_path = prep_dir / humanized_mix.SETTINGS_FILE
+            try:
+                track_info["humanize"] = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.is_file() else humanized_mix.HumanizeSettings().to_dict()
+            except (OSError, ValueError):
+                track_info["humanize"] = humanized_mix.HumanizeSettings().to_dict()
+
         flp_path = paths.fl_project / name / f"{name}.flp"
         if flp_path.is_file():
-            track_info["fl_project"] = {
-                "exists": True,
-                "rel_path": str(flp_path.relative_to(base)).replace("\\", "/"),
-                "abs_path": str(flp_path),
-                "size_mb": round(flp_path.stat().st_size / 1048576, 2),
-            }
+            track_info["fl_project"] = {"exists": True, "rel_path": rel(paths, flp_path), "abs_path": str(flp_path), "size_mb": round(flp_path.stat().st_size / 1048576, 2)}
 
-        # 4. Mix QA Report & Audio
-        escaped_name = glob.escape(name)
-        qa_reports = list(paths.renders.glob(f"{escaped_name}*_Mix_QA_Report.md")) if paths.renders.exists() else []
-        if qa_reports:
-            parsed_qa = parse_mix_qa_report(qa_reports[0])
-            render_wavs = [f for f in paths.renders.glob(f"{escaped_name}*.wav") if not f.name.startswith(".")]
-            if render_wavs:
-                parsed_qa["audio_rel_path"] = str(render_wavs[0].relative_to(base)).replace("\\", "/")
-            else:
-                parsed_qa["audio_rel_path"] = None
-            track_info["mix_qa"] = parsed_qa
+        # Renders that belong to exactly this track (no prefix matching)
+        renders = [_render_entry(paths, w) for w in renders_for_track(paths, name)]
+        priority = {"humanized": 0, "render": 1, "rough": 2}
+        renders.sort(key=lambda r: (priority.get(r["kind"], 3), -r["modified"]))
+        track_info["renders"] = renders
+        best = next((r for r in renders if r["qa"]), None)
+        if best:
+            track_info["mix_qa"] = {**best["qa"], "audio_rel_path": best["rel_path"], "render_kind": best["kind"]}
 
-        # 5. Status determination
-        if track_info["mix_qa"] is not None:
+        # Failures for this track (a render's failure is keyed by its file stem)
+        track_failures = [f for f in all_failures if f.get("track") == name or render_track_name(str(f.get("track", ""))) == name]
+        track_info["failures"] = [{**f, "stage_label": STAGE_LABELS.get(f.get("stage", ""), f.get("stage", ""))} for f in track_failures]
+
+        if track_info["failures"]:
+            track_info["status"] = f"Failed: {track_info['failures'][0]['stage_label']}"
+        elif any(r["kind"] == "humanized" and r["qa"] for r in renders):
+            track_info["status"] = "Humanized Mix Ready"
+        elif track_info["mix_qa"] is not None:
             track_info["status"] = "Mix Rendered & Audited"
         elif (prep_dir / "MIDI" / ".midi_done").exists():
             track_info["status"] = "Prepped & Ready"
         elif (prep_dir / ".done").exists():
             track_info["status"] = "Generating MIDI..."
-        elif src_dir.is_dir() and any(not p.name.startswith(".") for p in src_dir.glob("*.wav")):
+        elif vw(src_dir):
             track_info["status"] = "Prepping Stems..."
         else:
             track_info["status"] = "Splitting Stems (Demucs)..."
 
         tracks_list.append(track_info)
 
-    # Discovered Available Rendered sets
     available_rendered = []
-    if RENDERED_DIR.exists():
-        try:
-            files = os.listdir(RENDERED_DIR)
-            pat = re.compile(r"^(.*)_(bass|drums|instruments|vocals)\.wav$", re.IGNORECASE)
-            groups: Dict[str, Dict[str, str]] = {}
-            for f in files:
-                m = pat.match(f)
-                if m:
-                    base_n, kind = m.group(1), m.group(2).lower()
-                    groups.setdefault(base_n, {})[kind] = f
+    for base_n, stems in sorted(rendered_stem_groups().items()):
+        clean_id = sanitize_track_name(base_n)
+        available_rendered.append({
+            "track_name": base_n,
+            "clean_id": clean_id,
+            "stem_count": len(stems),
+            "stems": sorted(stems.keys()),
+            "already_imported": (paths.stems / clean_id).exists() or (paths.prepped / clean_id).exists(),
+        })
 
-            for base_n, stems in sorted(groups.items()):
-                clean_id = sanitize_track_name(base_n)
-                is_imported = (paths.stems / clean_id).exists() or (paths.prepped / clean_id).exists()
-                available_rendered.append({
-                    "track_name": base_n,
-                    "clean_id": clean_id,
-                    "stem_count": len(stems),
-                    "stems": sorted(list(stems.keys())),
-                    "already_imported": is_imported,
-                })
-        except Exception as exc:
-            log.warning("Could not list RENDERED_DIR: %s", exc)
+    inbox_files = [{"name": f.name, "size_mb": round(f.stat().st_size / 1048576, 2), "rel_path": rel(paths, f)} for f in vw(paths.inbox)]
 
-    # Inbox files
-    inbox_files = []
-    if paths.inbox.exists():
-        for f in sorted(paths.inbox.glob("*.wav")):
-            if f.name.startswith("."):
-                continue
-            inbox_files.append({
-                "name": f.name,
-                "size_mb": round(f.stat().st_size / 1048576, 2),
-                "rel_path": str(f.relative_to(base)).replace("\\", "/"),
-            })
-
-    return {
-        "tracks": tracks_list,
-        "available_rendered": available_rendered,
-        "inbox_files": inbox_files,
-    }
+    return {"tracks": tracks_list, "available_rendered": available_rendered, "inbox_files": inbox_files}
 
 
 # --------------------------------------------------------------------------
 # Pipeline Action Helpers
 # --------------------------------------------------------------------------
 
+def invalidate_track_outputs(paths: pipeline_automator.PipelinePaths, track: str, renders: bool = True) -> None:
+    """Remove done-markers (and optionally generated mixes + reports) so a track rebuilds cleanly."""
+    prep = paths.prepped / track
+    (prep / ".done").unlink(missing_ok=True)
+    (prep / "MIDI" / ".midi_done").unlink(missing_ok=True)
+    if renders:
+        for suffix in ("_RoughMix", "_Humanized"):
+            wav = paths.renders / f"{track}{suffix}.wav"
+            wav.unlink(missing_ok=True)
+            qa_report_path(wav).unlink(missing_ok=True)
+    pipeline_automator.failures(paths).clear(track=track)
+    for suffix in ("_RoughMix", "_Humanized"):
+        pipeline_automator.failures(paths).clear(track=f"{track}{suffix}")
+
+
 def generate_rough_mix_wav(
     paths: pipeline_automator.PipelinePaths,
     track_name: str,
     ffmpeg_bin: str = "ffmpeg",
 ) -> Tuple[bool, str]:
-    """Mix prepped stems using ffmpeg amix into 05_Mix_Renders and run Mix QA."""
-    prep_audio_dir = paths.prepped / track_name / "Audio_Stems"
-    if not prep_audio_dir.exists():
-        return False, f"Directory not found: {prep_audio_dir}"
+    """Sum the prepped stems (original drums & bass) into <Track>_RoughMix.wav and run Mix QA.
 
-    stems = sorted(list(prep_audio_dir.glob("*.wav")))
-    if not stems:
-        return False, f"No prepped WAV stems found in {prep_audio_dir}"
-
-    paths.renders.mkdir(parents=True, exist_ok=True)
-    out_wav = paths.renders / f"{track_name}_RoughMix.wav"
-
-    cmd = [ffmpeg_bin, "-y"]
-    for s in stems:
-        cmd.extend(["-i", str(s)])
-    cmd.extend([
-        "-filter_complex", f"amix=inputs={len(stems)}:duration=longest:dropout_transition=0:normalize=0",
-        "-c:a", "pcm_s24le",
-        str(out_wav),
-    ])
-
-    log.info("[%s] Generating rough mix via ffmpeg...", track_name)
-    res = subprocess.run(cmd, capture_output=True, text=True, check=False)
-    if res.returncode != 0:
-        log.error("[%s] ffmpeg rough mix failed: %s", track_name, res.stderr)
-        return False, f"ffmpeg mix failed: {res.stderr}"
-
-    log.info("[%s] Rough mix generated -> %s. Running Mix QA...", track_name, out_wav)
-    qa = pipeline_automator.MixQAReport(out_wav, ffmpeg_bin=ffmpeg_bin)
-    md_content = qa.generate_report()
-    report_path = paths.renders / f"{out_wav.stem}_Mix_QA_Report.md"
-    pipeline_automator.atomic_write_text(report_path, md_content)
-    log.info("[%s] Mix QA report written -> %s", track_name, report_path)
-
-    return True, str(out_wav)
+    Mastered with the same loudness target as the humanized mix, so the two
+    can be A/B compared at equal loudness.
+    """
+    if not pipeline_automator.visible_wavs(paths.prepped / track_name / "Audio_Stems"):
+        return False, f"No prepped WAV stems found for {track_name}"
+    out = humanized_mix.run_rough(paths, track_name, ffmpeg_bin=ffmpeg_bin)
+    return (True, str(out)) if out else (False, "Rough mix failed; see the track's failure details")
 
 
 def import_rendered_track(
@@ -639,74 +598,21 @@ def import_rendered_track(
     preset: str = "gentle",
     ffmpeg_bin: str = "ffmpeg",
 ) -> Tuple[bool, str]:
-    """Import 4-stem set from FL Rendered folder, auto-prep stems, MIDI, and rough mix QA."""
-    if not RENDERED_DIR.exists():
-        return False, f"FL Rendered directory does not exist: {RENDERED_DIR}"
-
-    files = os.listdir(RENDERED_DIR)
-    pat = re.compile(r"^(.*)_(bass|drums|instruments|vocals)\.wav$", re.IGNORECASE)
-    matching_stems: Dict[str, str] = {}
-    for f in files:
-        m = pat.match(f)
-        if m and m.group(1) == base_name:
-            matching_stems[m.group(2).lower()] = f
-
+    """Import a 4-stem set from FL's Rendered folder and run the pipeline on it."""
+    matching_stems = rendered_stem_groups().get(base_name)
     if not matching_stems:
-        return False, f"No matching stems found for base name '{base_name}'"
+        return False, f"No matching stems found for base name '{base_name}' in {RENDERED_DIR}"
 
     clean_id = sanitize_track_name(base_name)
     target_moises = paths.stems / clean_id
     target_moises.mkdir(parents=True, exist_ok=True)
+    for filename in matching_stems.values():
+        shutil.copy2(RENDERED_DIR / filename, target_moises / filename)
+        log.info("[%s] Imported stem %s -> %s", clean_id, filename, target_moises)
 
-    for kind, filename in matching_stems.items():
-        src = RENDERED_DIR / filename
-        dst = target_moises / filename
-        shutil.copy2(src, dst)
-        log.info("[%s] Imported stem %s -> %s", clean_id, filename, dst)
-
-    # Invalidate done markers so stem prep runs cleanly
-    prep_dir = paths.prepped / clean_id
-    if (prep_dir / ".done").exists():
-        (prep_dir / ".done").unlink(missing_ok=True)
-    if (prep_dir / "MIDI" / ".midi_done").exists():
-        (prep_dir / "MIDI" / ".midi_done").unlink(missing_ok=True)
-
-    # 1. Stem prep
-    log.info("[%s] Running stem prep with preset '%s'...", clean_id, preset)
-    pipeline_automator.run_stem_prep(paths, preset=preset)
-
-    # 2. MIDI & Metadata
-    log.info("[%s] Generating MIDI & metadata...", clean_id)
-    pipeline_automator.generate_midi_and_metadata(paths, preset=preset)
-
-    # 3. Rough Mix & QA Report
-    log.info("[%s] Generating Rough Mix & QA report...", clean_id)
-    generate_rough_mix_wav(paths, clean_id, ffmpeg_bin=ffmpeg_bin)
-
+    invalidate_track_outputs(paths, clean_id)
+    run_pipeline_cycle(paths, preset=preset, ffmpeg_bin=ffmpeg_bin, include_inbox=False)
     return True, clean_id
-
-
-def backfill_rough_mixes(
-    paths: pipeline_automator.PipelinePaths,
-    ffmpeg_bin: str = "ffmpeg",
-) -> None:
-    """Generate Rough Mix WAV and Mix QA report for prepped tracks lacking a QA report."""
-    if not paths.prepped.exists():
-        return
-    for d in sorted(paths.prepped.iterdir()):
-        if d.is_dir() and not d.name.startswith("."):
-            audio_stems_dir = d / "Audio_Stems"
-            if (d / ".done").exists() and audio_stems_dir.is_dir() and any(
-                not p.name.startswith(".") for p in audio_stems_dir.glob("*.wav")
-            ):
-                qa_reports = (
-                    list(paths.renders.glob(f"{glob.escape(d.name)}*_Mix_QA_Report.md"))
-                    if paths.renders.exists()
-                    else []
-                )
-                if not qa_reports:
-                    set_activity(True, f"Generating Rough Mix & QA for {d.name}...")
-                    generate_rough_mix_wav(paths, d.name, ffmpeg_bin=ffmpeg_bin)
 
 
 def run_pipeline_cycle(
@@ -715,21 +621,31 @@ def run_pipeline_cycle(
     ffmpeg_bin: str = "ffmpeg",
     include_inbox: bool = True,
 ) -> None:
-    """Execute pipeline stages sequentially with granular stage activity telemetry."""
-    if include_inbox:
-        set_activity(True, "Stage 1/2: Splitting Stems (Demucs)...")
+    """Execute pipeline stages sequentially with stage activity telemetry. Caller holds PROCESSING_LOCK."""
+    if include_inbox and pipeline_automator.pending_inbox(paths):
+        set_activity(True, "Stage 1/2: Routing inbox / Splitting Stems (Demucs)...")
         pipeline_automator.process_inbox(paths)
 
-    set_activity(True, "Stage 2: Tonal Stem Prep & Triggers...")
-    pipeline_automator.run_stem_prep(paths, preset=preset)
+    if pipeline_automator.pending_stem_tracks(paths):
+        set_activity(True, "Stage 2: Tonal Stem Prep & Triggers...")
+        pipeline_automator.run_stem_prep(paths, preset=preset)
 
-    set_activity(True, "Stage 3/4: Generating MIDI & BPM/Key...")
-    pipeline_automator.generate_midi_and_metadata(paths, preset=preset)
+    if pipeline_automator.pending_midi_tracks(paths):
+        set_activity(True, "Stage 3/4: Generating MIDI & BPM/Key...")
+        pipeline_automator.generate_midi_and_metadata(paths, preset=preset)
 
-    backfill_rough_mixes(paths, ffmpeg_bin=ffmpeg_bin)
+    for track in pending_rough_mix(paths):
+        set_activity(True, f"Generating Rough Mix & QA for {track}...")
+        generate_rough_mix_wav(paths, track, ffmpeg_bin=ffmpeg_bin)
 
-    set_activity(True, "Stage 6: Running Mix QA Analyzer...")
-    pipeline_automator.process_mix_renders(paths, ffmpeg_bin=ffmpeg_bin)
+    if AUTO_HUMANIZE:
+        for track in humanized_mix.pending_humanized(paths):
+            set_activity(True, f"Rendering Humanized Mix for {track}...")
+            humanized_mix.run_humanized(paths, track, ffmpeg_bin=ffmpeg_bin)
+
+    if pipeline_automator.pending_mix_renders(paths):
+        set_activity(True, "Stage 6: Running Mix QA Analyzer...")
+        pipeline_automator.process_mix_renders(paths, ffmpeg_bin=ffmpeg_bin)
 
 
 # --------------------------------------------------------------------------
@@ -739,11 +655,7 @@ def run_pipeline_cycle(
 class WatcherThread(threading.Thread):
     """Background polling watcher thread checking pipeline folders."""
 
-    def __init__(
-        self,
-        paths: pipeline_automator.PipelinePaths,
-        ffmpeg_bin: str = "ffmpeg",
-    ) -> None:
+    def __init__(self, paths: pipeline_automator.PipelinePaths, ffmpeg_bin: str = "ffmpeg") -> None:
         super().__init__(daemon=True, name="PipelineWatcherThread")
         self.paths = paths
         self.ffmpeg_bin = ffmpeg_bin
@@ -753,31 +665,22 @@ class WatcherThread(threading.Thread):
         log.info("Background Watcher Thread active (poll interval: %.1fs).", POLL_INTERVAL)
         while not self.stop_event.is_set():
             if WATCHER_ENABLED and not IS_BUSY:
-                task_desc = has_pending_work(self.paths)
-                if task_desc is not None:
-                    # Attempt non-blocking lock acquisition
-                    acquired = PROCESSING_LOCK.acquire(blocking=False)
-                    if acquired:
-                        try:
-                            set_activity(True, task_desc)
-                            run_pipeline_cycle(
-                                self.paths,
-                                preset=ACTIVE_PRESET,
-                                ffmpeg_bin=self.ffmpeg_bin,
-                                include_inbox=True,
-                            )
-                        except Exception as exc:
-                            log.error("Watcher cycle error: %s", exc, exc_info=True)
-                        finally:
-                            set_activity(False, "Idle")
-                            PROCESSING_LOCK.release()
+                try:
+                    task_desc = has_pending_work(self.paths)
+                except Exception as exc:
+                    log.error("Watcher scan error: %s", exc, exc_info=True)
+                    task_desc = None
+                if task_desc is not None and PROCESSING_LOCK.acquire(blocking=False):
+                    try:
+                        set_activity(True, task_desc)
+                        run_pipeline_cycle(self.paths, preset=ACTIVE_PRESET, ffmpeg_bin=self.ffmpeg_bin, include_inbox=True)
+                    except Exception as exc:
+                        log.error("Watcher cycle error: %s", exc, exc_info=True)
+                    finally:
+                        set_activity(False, "Idle")
+                        PROCESSING_LOCK.release()
 
-            # Responsive sleep in slices
-            slices = int(max(1, POLL_INTERVAL / 0.25))
-            for _ in range(slices):
-                if self.stop_event.is_set():
-                    break
-                time.sleep(POLL_INTERVAL / slices)
+            self.stop_event.wait(POLL_INTERVAL)
 
         log.info("Background Watcher Thread cleanly terminated.")
 
@@ -789,6 +692,13 @@ class WatcherThread(threading.Thread):
 # HTTP Request Handler
 # --------------------------------------------------------------------------
 
+def _hostname(netloc: str) -> str:
+    try:
+        return (urllib.parse.urlsplit("//" + netloc).hostname or "").lower()
+    except ValueError:
+        return ""
+
+
 class PipelineRequestHandler(BaseHTTPRequestHandler):
     """REST API & Audio Streaming HTTP Request Handler."""
 
@@ -796,13 +706,28 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
     ffmpeg_bin: str
 
     def log_message(self, format: str, *args: Any) -> None:
-        """Suppress standard HTTP server access spam on console."""
+        """Route access logs to debug level instead of the console."""
         log.debug("%s - - [%s] %s", self.client_address[0], self.log_date_time_string(), format % args)
 
-    def send_cors_headers(self) -> None:
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Range, Authorization")
+    # ----------------------------------------------------------------------
+    # Request guards
+    # ----------------------------------------------------------------------
+
+    def _request_allowed(self) -> bool:
+        """Reject DNS-rebinding (foreign Host) and cross-site (foreign Origin) requests."""
+        host = self.headers.get("Host", "")
+        hostname = _hostname(host)
+        if hostname not in LOOPBACK_HOSTNAMES and hostname not in EXTRA_ALLOWED_HOSTNAMES:
+            self.send_json_response({"status": "error", "message": f"Host '{host}' not allowed"}, status=HTTPStatus.FORBIDDEN)
+            return False
+        origin = self.headers.get("Origin")
+        if origin is not None:
+            origin_netloc = urllib.parse.urlsplit(origin).netloc.lower() if origin != "null" else "null"
+            if origin_netloc != host.lower():
+                log.warning("Blocked cross-origin %s %s from Origin %s", self.command, self.path, origin)
+                self.send_json_response({"status": "error", "message": "Cross-origin request blocked"}, status=HTTPStatus.FORBIDDEN)
+                return False
+        return True
 
     def send_json_response(self, data: Any, status: int = HTTPStatus.OK, head_only: bool = False) -> None:
         body = json.dumps(data, indent=2).encode("utf-8")
@@ -810,15 +735,10 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_cors_headers()
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         if not head_only:
             self.wfile.write(body)
-
-    def do_OPTIONS(self) -> None:
-        self.send_response(HTTPStatus.NO_CONTENT)
-        self.send_cors_headers()
-        self.end_headers()
 
     def do_HEAD(self) -> None:
         self.do_GET(head_only=True)
@@ -828,124 +748,94 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
     # ----------------------------------------------------------------------
 
     def do_GET(self, head_only: bool = False) -> None:
+        if not self._request_allowed():
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
-        # 0. Favicon Handler
         if path == "/favicon.ico":
             self.send_response(HTTPStatus.NO_CONTENT)
-            self.send_cors_headers()
             self.end_headers()
             return
 
-        # 1. UI Root
         if path in ("/", "/index.html"):
             ui_index = SCRIPT_DIR / "ui" / "index.html"
             if not ui_index.is_file():
                 ui_index = self.server_paths.automation / "ui" / "index.html"
             if not ui_index.is_file():
-                self.send_error(HTTPStatus.NOT_FOUND, f"UI not found at {ui_index}")
+                self.send_error(HTTPStatus.NOT_FOUND, "UI not found")
                 return
             body = ui_index.read_bytes()
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-            self.send_cors_headers()
+            self.send_header("X-Frame-Options", "DENY")
             self.end_headers()
             if not head_only:
                 self.wfile.write(body)
             return
 
-        # 2. GET /api/status
         if path == "/api/status":
-            counts = get_pipeline_counts(self.server_paths)
-            recent_logs = get_recent_logs(self.server_paths.logs / "pipeline.log", max_lines=60)
-            status_data = {
+            with _STATE_LOCK:
+                busy, task, queued = IS_BUSY, CURRENT_TASK, QUEUED_JOBS
+            self.send_json_response({
                 "watcher_running": WATCHER_ENABLED,
+                "auto_humanize": AUTO_HUMANIZE,
                 "pid": os.getpid(),
                 "preset": ACTIVE_PRESET,
                 "poll_interval": POLL_INTERVAL,
-                "is_busy": IS_BUSY,
-                "current_task": CURRENT_TASK,
-                "counts": counts,
-                "logs": recent_logs,
-            }
-            self.send_json_response(status_data, head_only=head_only)
+                "is_busy": busy,
+                "current_task": task,
+                "queued_jobs": queued,
+                "counts": get_pipeline_counts(self.server_paths),
+                "logs": get_recent_logs(self.server_paths.logs / "pipeline.log", max_lines=60),
+            }, head_only=head_only)
             return
 
-        # 3. GET /api/tracks
         if path == "/api/tracks":
-            tracks_data = discover_tracks(self.server_paths)
-            self.send_json_response(tracks_data, head_only=head_only)
+            self.send_json_response(discover_tracks(self.server_paths), head_only=head_only)
             return
 
-        # 4. GET /api/audio?path=<rel_path> (HTTP 206 Partial Content)
-        if path == "/api/audio":
+        if path in ("/api/audio", "/api/download"):
             rel_param = query.get("path", [""])[0]
             if not rel_param:
                 self.send_error(HTTPStatus.BAD_REQUEST, "Missing 'path' parameter")
                 return
-
             safe, abs_target = is_safe_path(self.server_paths.base, rel_param)
             if not safe or abs_target is None:
                 self.send_error(HTTPStatus.FORBIDDEN, "Access denied: Path outside pipeline sandbox")
                 return
-
             if not abs_target.is_file():
-                self.send_error(HTTPStatus.NOT_FOUND, f"Audio file not found: {rel_param}")
+                self.send_error(HTTPStatus.NOT_FOUND, "File not found")
                 return
-
-            self.stream_audio_file(abs_target, head_only=head_only)
-            return
-
-        # 5. GET /api/download?path=<rel_path>
-        if path == "/api/download":
-            rel_param = query.get("path", [""])[0]
-            if not rel_param:
-                self.send_error(HTTPStatus.BAD_REQUEST, "Missing 'path' parameter")
-                return
-
-            safe, abs_target = is_safe_path(self.server_paths.base, rel_param)
-            if not safe or abs_target is None:
-                self.send_error(HTTPStatus.FORBIDDEN, "Access denied: Path outside pipeline sandbox")
-                return
-
-            if not abs_target.is_file():
-                self.send_error(HTTPStatus.NOT_FOUND, f"File not found: {rel_param}")
-                return
-
-            # Determine content type
-            ext = abs_target.suffix.lower()
-            mime_types = {
-                ".wav": "audio/wav",
-                ".mid": "audio/midi",
-                ".midi": "audio/midi",
-                ".json": "application/json",
-                ".md": "text/markdown",
-                ".txt": "text/plain",
-                ".flp": "application/octet-stream",
-            }
-            ctype = mime_types.get(ext, "application/octet-stream")
-            file_size = abs_target.stat().st_size
-
-            self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", ctype)
-            self.send_header("Content-Length", str(file_size))
-            self.send_header("Content-Disposition", f'attachment; filename="{abs_target.name}"')
-            self.send_cors_headers()
-            self.end_headers()
-
-            if not head_only:
-                try:
-                    with open(abs_target, "rb") as f:
-                        shutil.copyfileobj(f, self.wfile, length=64 * 1024)
-                except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, OSError):
-                    pass
+            if path == "/api/audio":
+                self.stream_audio_file(abs_target, head_only=head_only)
+            else:
+                self.send_download(abs_target, head_only=head_only)
             return
 
         self.send_error(HTTPStatus.NOT_FOUND, f"Endpoint {path} not found")
+
+    def send_download(self, abs_target: Path, head_only: bool = False) -> None:
+        mime_types = {
+            ".wav": "audio/wav", ".mid": "audio/midi", ".midi": "audio/midi", ".json": "application/json",
+            ".md": "text/markdown", ".txt": "text/plain", ".flp": "application/octet-stream",
+        }
+        ctype = mime_types.get(abs_target.suffix.lower(), "application/octet-stream")
+        safe_name = re.sub(r'[^A-Za-z0-9._ ()-]', "_", abs_target.name)
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(abs_target.stat().st_size))
+        self.send_header("Content-Disposition", f'attachment; filename="{safe_name}"')
+        self.end_headers()
+        if not head_only:
+            try:
+                with open(abs_target, "rb") as f:
+                    shutil.copyfileobj(f, self.wfile, length=64 * 1024)
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError, OSError):
+                pass
 
     def stream_audio_file(self, abs_path: Path, head_only: bool = False) -> None:
         """Stream audio file with full HTTP 206 Partial Content byte-range support."""
@@ -958,7 +848,6 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(file_size))
             self.send_header("Accept-Ranges", "bytes")
             self.send_header("Cache-Control", "no-cache")
-            self.send_cors_headers()
             self.end_headers()
             if not head_only:
                 try:
@@ -972,54 +861,42 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
         if not m:
             self.send_response(HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
             self.send_header("Content-Range", f"bytes */{file_size}")
-            self.send_cors_headers()
             self.end_headers()
             return
 
         raw_start, raw_end = m.group(1), m.group(2)
         if raw_start and raw_end:
-            start = int(raw_start)
-            end = int(raw_end)
+            start, end = int(raw_start), int(raw_end)
         elif raw_start:
-            start = int(raw_start)
-            end = file_size - 1
+            start, end = int(raw_start), file_size - 1
         elif raw_end:
-            length = int(raw_end)
-            start = max(0, file_size - length)
-            end = file_size - 1
+            start, end = max(0, file_size - int(raw_end)), file_size - 1
         else:
-            start = 0
-            end = file_size - 1
+            start, end = 0, file_size - 1
 
         if start > end or start >= file_size:
             self.send_response(HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
             self.send_header("Content-Range", f"bytes */{file_size}")
-            self.send_cors_headers()
             self.end_headers()
             return
 
         end = min(end, file_size - 1)
         chunk_len = end - start + 1
-
         self.send_response(HTTPStatus.PARTIAL_CONTENT)
         self.send_header("Content-Type", "audio/wav")
         self.send_header("Content-Range", f"bytes {start}-{end}/{file_size}")
         self.send_header("Content-Length", str(chunk_len))
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Cache-Control", "no-cache")
-        self.send_cors_headers()
         self.end_headers()
-
         if head_only:
             return
 
         with open(abs_path, "rb") as f:
             f.seek(start)
             bytes_left = chunk_len
-            buf_size = 64 * 1024
             while bytes_left > 0:
-                read_sz = min(buf_size, bytes_left)
-                data = f.read(read_sz)
+                data = f.read(min(64 * 1024, bytes_left))
                 if not data:
                     break
                 try:
@@ -1032,271 +909,238 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
     # POST Endpoints
     # ----------------------------------------------------------------------
 
-    def do_POST(self) -> None:
-        global WATCHER_ENABLED, ACTIVE_PRESET
+    def _track_param(self, body_json: Dict[str, Any]) -> Optional[str]:
+        """Validate a 'track' parameter: must be a single plain folder name."""
+        track = str(body_json.get("track", "")).strip()
+        if not track or track in (".", "..") or "/" in track or "\\" in track or "\x00" in track:
+            self.send_json_response({"status": "error", "message": "Missing or invalid 'track' parameter"}, status=HTTPStatus.BAD_REQUEST)
+            return None
+        return track
 
+    def do_POST(self) -> None:
+        global WATCHER_ENABLED, ACTIVE_PRESET, AUTO_HUMANIZE
+
+        if not self._request_allowed():
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
-        content_length = int(self.headers.get("Content-Length", 0))
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            content_length = -1
+        if content_length < 0:
+            self.send_json_response({"status": "error", "message": "Invalid Content-Length"}, status=HTTPStatus.BAD_REQUEST)
+            return
         content_type = self.headers.get("Content-Type", "").split(";")[0].strip().lower()
 
         if path == "/api/upload":
             self._handle_upload(query, content_length, content_type)
             return
 
+        # All other endpoints take JSON. Requiring the JSON content type means a
+        # cross-site "simple" request (text/plain, forms) can never reach them.
+        if content_type != "application/json":
+            self.close_connection = True
+            self.send_json_response({"status": "error", "message": "Content-Type must be application/json"}, status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+            return
+        if content_length > 1024 * 1024:
+            self.close_connection = True
+            self.send_json_response({"status": "error", "message": "Request body too large"}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+            return
+
         body_bytes = self.rfile.read(content_length) if content_length > 0 else b""
+        try:
+            body_json = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
+            if not isinstance(body_json, dict):
+                raise ValueError("JSON body must be an object")
+        except Exception as exc:
+            self.send_json_response({"status": "error", "message": f"Invalid JSON: {exc}"}, status=HTTPStatus.BAD_REQUEST)
+            return
 
-        body_json: Dict[str, Any] = {}
-        if body_bytes:
-            try:
-                body_json = json.loads(body_bytes.decode("utf-8"))
-            except Exception:
-                pass
+        paths = self.server_paths
+        ffmpeg_bin = self.ffmpeg_bin
 
-        # 1. POST /api/watcher
+        def preset_from_body() -> str:
+            preset = body_json.get("preset", ACTIVE_PRESET)
+            return preset if preset in pipeline_automator.PRESETS else ACTIVE_PRESET
+
         if path == "/api/watcher":
             if "running" in body_json:
                 WATCHER_ENABLED = bool(body_json["running"])
-            if "preset" in body_json and body_json["preset"] in pipeline_automator.PRESETS:
+            if "auto_humanize" in body_json:
+                AUTO_HUMANIZE = bool(body_json["auto_humanize"])
+            if body_json.get("preset") in pipeline_automator.PRESETS:
                 ACTIVE_PRESET = body_json["preset"]
-            log.info("Watcher state updated: running=%s, preset=%s", WATCHER_ENABLED, ACTIVE_PRESET)
-            self.send_json_response({"status": "ok", "watcher_running": WATCHER_ENABLED, "preset": ACTIVE_PRESET})
+            log.info("Watcher state updated: running=%s, preset=%s, auto_humanize=%s", WATCHER_ENABLED, ACTIVE_PRESET, AUTO_HUMANIZE)
+            self.send_json_response({"status": "ok", "watcher_running": WATCHER_ENABLED, "preset": ACTIVE_PRESET, "auto_humanize": AUTO_HUMANIZE})
             return
 
-        # 2. POST /api/run-once
         if path == "/api/run-once":
-            if "preset" in body_json and body_json["preset"] in pipeline_automator.PRESETS:
+            if body_json.get("preset") in pipeline_automator.PRESETS:
                 ACTIVE_PRESET = body_json["preset"]
-
             if IS_BUSY:
                 self.send_json_response({"status": "busy", "message": f"Processing already in progress: {CURRENT_TASK}"}, status=HTTPStatus.CONFLICT)
                 return
-
-            def worker() -> None:
-                acquired = PROCESSING_LOCK.acquire(blocking=True)
-                if acquired:
-                    try:
-                        run_pipeline_cycle(
-                            self.server_paths,
-                            preset=ACTIVE_PRESET,
-                            ffmpeg_bin=self.ffmpeg_bin,
-                            include_inbox=True,
-                        )
-                    except Exception as exc:
-                        log.error("Error during manual pipeline run: %s", exc, exc_info=True)
-                    finally:
-                        set_activity(False, "Idle")
-                        PROCESSING_LOCK.release()
-
-            t = threading.Thread(target=worker, daemon=True, name="ManualRunThread")
-            t.start()
-            self.send_json_response({"status": "started", "message": "Pipeline run started in background", "preset": ACTIVE_PRESET})
+            preset = ACTIVE_PRESET
+            start_job("Manual pipeline pass", lambda: run_pipeline_cycle(paths, preset=preset, ffmpeg_bin=ffmpeg_bin, include_inbox=True))
+            self.send_json_response({"status": "started", "message": "Pipeline run started in background", "preset": preset})
             return
 
-        # 3. POST /api/reprocess
         if path == "/api/reprocess":
-            track = body_json.get("track", "").strip()
-            preset = body_json.get("preset", ACTIVE_PRESET)
-            if preset not in pipeline_automator.PRESETS:
-                preset = ACTIVE_PRESET
-
-            if not track:
-                self.send_json_response({"status": "error", "message": "Missing 'track' parameter"}, status=HTTPStatus.BAD_REQUEST)
+            track = self._track_param(body_json)
+            if track is None:
                 return
+            preset = preset_from_body()
 
-            safe, abs_prep = is_safe_path(self.server_paths.prepped, track)
-            if not safe or abs_prep is None:
-                self.send_json_response({"status": "error", "message": "Unsafe track path"}, status=HTTPStatus.FORBIDDEN)
-                return
+            def reprocess() -> None:
+                # Invalidate only after the lock is held, so the watcher can't
+                # grab the track in between and process it with another preset.
+                invalidate_track_outputs(paths, track)
+                run_pipeline_cycle(paths, preset=preset, ffmpeg_bin=ffmpeg_bin, include_inbox=False)
 
-            # Invalidate done markers for this track
-            (abs_prep / ".done").unlink(missing_ok=True)
-            (abs_prep / "MIDI" / ".midi_done").unlink(missing_ok=True)
-
-            def reprocess_worker() -> None:
-                with PROCESSING_LOCK:
-                    try:
-                        set_activity(True, f"Re-processing track {track}...")
-                        run_pipeline_cycle(
-                            self.server_paths,
-                            preset=preset,
-                            ffmpeg_bin=self.ffmpeg_bin,
-                            include_inbox=False,
-                        )
-                    except Exception as exc:
-                        log.error("Reprocess error on %s: %s", track, exc, exc_info=True)
-                    finally:
-                        set_activity(False, "Idle")
-
-            t = threading.Thread(target=reprocess_worker, daemon=True, name="ReprocessWorker")
-            t.start()
-            self.send_json_response({"status": "ok", "message": f"Reprocessing {track} initiated", "track": track, "preset": preset})
+            start_job(f"Re-processing track {track}...", reprocess)
+            self.send_json_response({"status": "ok", "message": f"Re-processing {track} queued", "track": track, "preset": preset})
             return
 
-        # 4. POST /api/import-rendered
         if path == "/api/import-rendered":
-            base_name = body_json.get("base_name", "").strip()
-            preset = body_json.get("preset", ACTIVE_PRESET)
-            if preset not in pipeline_automator.PRESETS:
-                preset = ACTIVE_PRESET
-
+            base_name = str(body_json.get("base_name", "")).strip()
             if not base_name:
                 self.send_json_response({"status": "error", "message": "Missing 'base_name'"}, status=HTTPStatus.BAD_REQUEST)
                 return
-
-            def import_worker() -> None:
-                with PROCESSING_LOCK:
-                    try:
-                        clean = sanitize_track_name(base_name)
-                        set_activity(True, f"Importing rendered stems for {clean}...")
-                        import_rendered_track(base_name, self.server_paths, preset=preset, ffmpeg_bin=self.ffmpeg_bin)
-                    except Exception as exc:
-                        log.error("Import rendered stems error on %s: %s", base_name, exc, exc_info=True)
-                    finally:
-                        set_activity(False, "Idle")
-
-            t = threading.Thread(target=import_worker, daemon=True, name="ImportWorker")
-            t.start()
-            self.send_json_response({"status": "ok", "message": f"Import started for {base_name}", "base_name": base_name, "preset": preset})
+            if base_name not in rendered_stem_groups():
+                self.send_json_response({"status": "error", "message": f"No rendered stem set named '{base_name}'"}, status=HTTPStatus.NOT_FOUND)
+                return
+            preset = preset_from_body()
+            start_job(f"Importing rendered stems for {sanitize_track_name(base_name)}...",
+                      lambda: import_rendered_track(base_name, paths, preset=preset, ffmpeg_bin=ffmpeg_bin))
+            self.send_json_response({"status": "ok", "message": f"Import queued for {base_name}", "base_name": base_name, "preset": preset})
             return
 
-        # 5. POST /api/generate-rough-mix
         if path == "/api/generate-rough-mix":
-            track = body_json.get("track", "").strip()
-            if not track:
-                self.send_json_response({"status": "error", "message": "Missing 'track' parameter"}, status=HTTPStatus.BAD_REQUEST)
+            track = self._track_param(body_json)
+            if track is None:
                 return
-
-            safe, abs_prep = is_safe_path(self.server_paths.prepped, track)
-            if not safe or abs_prep is None:
-                self.send_json_response({"status": "error", "message": "Unsafe track path"}, status=HTTPStatus.FORBIDDEN)
+            if not (paths.prepped / track / "Audio_Stems").is_dir():
+                self.send_json_response({"status": "error", "message": f"No prepped stems for {track}"}, status=HTTPStatus.NOT_FOUND)
                 return
-
-            def mix_worker() -> None:
-                with PROCESSING_LOCK:
-                    try:
-                        set_activity(True, f"Generating rough mix for {track}...")
-                        generate_rough_mix_wav(self.server_paths, track, ffmpeg_bin=self.ffmpeg_bin)
-                    except Exception as exc:
-                        log.error("Mix generation error on %s: %s", track, exc, exc_info=True)
-                    finally:
-                        set_activity(False, "Idle")
-
-            t = threading.Thread(target=mix_worker, daemon=True, name="RoughMixWorker")
-            t.start()
-            self.send_json_response({"status": "ok", "message": f"Rough mix generation started for {track}", "track": track})
+            start_job(f"Generating rough mix for {track}...", lambda: generate_rough_mix_wav(paths, track, ffmpeg_bin=ffmpeg_bin))
+            self.send_json_response({"status": "ok", "message": f"Rough mix queued for {track}", "track": track})
             return
 
-        # 6. POST /api/open-flp
+        if path == "/api/humanize":
+            track = self._track_param(body_json)
+            if track is None:
+                return
+            if not (paths.prepped / track / "MIDI" / ".midi_done").exists():
+                self.send_json_response({"status": "error", "message": f"{track} has no MIDI yet; wait for stages 3/4 to finish"}, status=HTTPStatus.CONFLICT)
+                return
+            settings = humanized_mix.HumanizeSettings.from_dict(body_json.get("settings") or {})
+            if body_json.get("new_take"):
+                settings.seed = int.from_bytes(os.urandom(4), "big") & 0x7FFFFFFF
+            start_job(f"Rendering Humanized Mix for {track}...",
+                      lambda: humanized_mix.run_humanized(paths, track, settings, ffmpeg_bin=ffmpeg_bin))
+            self.send_json_response({"status": "ok", "message": f"Humanized mix queued for {track}", "track": track, "settings": settings.to_dict()})
+            return
+
+        if path == "/api/clear-failure":
+            track = self._track_param(body_json)
+            if track is None:
+                return
+            reg = pipeline_automator.failures(paths)
+            reg.clear(track=track)
+            for suffix in pipeline_automator.RENDER_SUFFIXES:
+                reg.clear(track=f"{track}{suffix}")
+            self.send_json_response({"status": "ok", "message": f"Cleared failures for {track}; the watcher will retry"})
+            return
+
         if path == "/api/open-flp":
-            track = body_json.get("track", "").strip()
-            if not track:
-                self.send_json_response({"status": "error", "message": "Missing 'track' parameter"}, status=HTTPStatus.BAD_REQUEST)
+            track = self._track_param(body_json)
+            if track is None:
                 return
-
-            flp_target = self.server_paths.fl_project / track / f"{track}.flp"
-            safe, abs_flp = is_safe_path(self.server_paths.fl_project, flp_target)
+            safe, abs_flp = is_safe_path(paths.fl_project, paths.fl_project / track / f"{track}.flp")
             if not safe or abs_flp is None or not abs_flp.is_file():
-                self.send_json_response({"status": "error", "message": f"FLP not found at {flp_target}"}, status=HTTPStatus.NOT_FOUND)
+                self.send_json_response({"status": "error", "message": f"No FL project found for {track}"}, status=HTTPStatus.NOT_FOUND)
                 return
-
             if not os.path.isfile(FL64_EXE):
-                self.send_json_response({"status": "error", "message": f"FL64.exe not found at {FL64_EXE}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+                self.send_json_response({"status": "error", "message": f"FL64.exe not found at {FL64_EXE} (set FL_STUDIO_EXE)"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
                 return
-
             try:
                 subprocess.Popen([FL64_EXE, str(abs_flp)], shell=False)
-                log.info("[%s] Launched FL Studio 2024 with %s", track, abs_flp)
-                self.send_json_response({"status": "ok", "message": f"Launched FL Studio with {abs_flp.name}", "path": str(abs_flp)})
+                log.info("[%s] Launched FL Studio with %s", track, abs_flp)
+                self.send_json_response({"status": "ok", "message": f"Launched FL Studio with {abs_flp.name}"})
             except Exception as exc:
                 self.send_json_response({"status": "error", "message": f"Could not launch FL Studio: {exc}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
 
-        # 7. POST /api/open-folder
         if path == "/api/open-folder":
-            rel_folder = body_json.get("rel_path", "").strip()
-            safe, abs_folder = is_safe_path(self.server_paths.base, rel_folder)
+            rel_folder = str(body_json.get("rel_path", "")).strip()
+            safe, abs_folder = is_safe_path(paths.base, rel_folder)
             if not safe or abs_folder is None:
                 self.send_json_response({"status": "error", "message": "Unsafe folder path"}, status=HTTPStatus.FORBIDDEN)
                 return
-
             if not abs_folder.is_dir():
-                abs_folder.mkdir(parents=True, exist_ok=True)
-
+                self.send_json_response({"status": "error", "message": "Folder does not exist yet"}, status=HTTPStatus.NOT_FOUND)
+                return
             try:
-                subprocess.Popen(["explorer.exe", str(abs_folder)], shell=False)
-                log.info("Opened Explorer at %s", abs_folder)
+                opener = ["explorer.exe"] if os.name == "nt" else (["open"] if sys.platform == "darwin" else ["xdg-open"])
+                subprocess.Popen(opener + [str(abs_folder)], shell=False)
                 self.send_json_response({"status": "ok", "path": str(abs_folder)})
             except Exception as exc:
-                self.send_json_response({"status": "error", "message": f"Could not open explorer: {exc}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+                self.send_json_response({"status": "error", "message": f"Could not open folder: {exc}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
 
         self.send_error(HTTPStatus.NOT_FOUND, f"POST endpoint {path} not found")
 
     def _handle_upload(self, query: Dict[str, List[str]], content_length: int, content_type: str) -> None:
         """Handle raw binary streaming upload and backward-compatible JSON base64 upload."""
-        if content_length > MAX_UPLOAD_BYTES:
+        if content_length > MAX_UPLOAD_BYTES * 4 // 3 + 4096:
+            self.close_connection = True
+            self.send_json_response({"status": "error", "message": "Upload exceeds 500 MB limit"}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+            return
+        if content_type in SIMPLE_CONTENT_TYPES:
             self.close_connection = True
             self.send_json_response(
-                {"status": "error", "message": "Upload exceeds 500 MB limit"},
-                status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+                {"status": "error", "message": "Send audio as application/octet-stream (or audio/*), or JSON with data_base64"},
+                status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             )
             return
 
         is_json_mode = content_type == "application/json" or (not content_type and "filename" not in query)
-        body_json: Dict[str, Any] = {}
         decoded_json_bytes: Optional[bytes] = None
 
         if is_json_mode:
             body_bytes = self.rfile.read(content_length) if content_length > 0 else b""
             if not body_bytes:
-                self.send_json_response(
-                    {"status": "error", "message": "Empty request body"},
-                    status=HTTPStatus.BAD_REQUEST,
-                )
+                self.send_json_response({"status": "error", "message": "Empty request body"}, status=HTTPStatus.BAD_REQUEST)
                 return
             try:
                 body_json = json.loads(body_bytes.decode("utf-8"))
             except Exception as exc:
-                self.send_json_response(
-                    {"status": "error", "message": f"Invalid JSON payload: {exc}"},
-                    status=HTTPStatus.BAD_REQUEST,
-                )
+                self.send_json_response({"status": "error", "message": f"Invalid JSON payload: {exc}"}, status=HTTPStatus.BAD_REQUEST)
                 return
-
             target = str(body_json.get("target") or query.get("target", ["inbox"])[0]).strip()
             track = str(body_json.get("track") or query.get("track", [""])[0]).strip()
             raw_filename = str(body_json.get("filename") or query.get("filename", [""])[0])
-
             if "data_base64" not in body_json:
-                self.send_json_response(
-                    {"status": "error", "message": "Missing 'data_base64' in JSON upload payload"},
-                    status=HTTPStatus.BAD_REQUEST,
-                )
+                self.send_json_response({"status": "error", "message": "Missing 'data_base64' in JSON upload payload"}, status=HTTPStatus.BAD_REQUEST)
                 return
             try:
                 decoded_json_bytes = base64.b64decode(body_json["data_base64"])
             except Exception as exc:
-                self.send_json_response(
-                    {"status": "error", "message": f"Invalid base64 data: {exc}"},
-                    status=HTTPStatus.BAD_REQUEST,
-                )
+                self.send_json_response({"status": "error", "message": f"Invalid base64 data: {exc}"}, status=HTTPStatus.BAD_REQUEST)
                 return
-
             if len(decoded_json_bytes) > MAX_UPLOAD_BYTES:
-                self.send_json_response(
-                    {"status": "error", "message": "Decoded upload exceeds 500 MB limit"},
-                    status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-                )
+                self.send_json_response({"status": "error", "message": "Decoded upload exceeds 500 MB limit"}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
                 return
         else:
+            if content_length > MAX_UPLOAD_BYTES:
+                self.close_connection = True
+                self.send_json_response({"status": "error", "message": "Upload exceeds 500 MB limit"}, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+                return
             if content_length <= 0:
-                self.send_json_response(
-                    {"status": "error", "message": "Empty binary upload body"},
-                    status=HTTPStatus.BAD_REQUEST,
-                )
+                self.send_json_response({"status": "error", "message": "Empty binary upload body"}, status=HTTPStatus.BAD_REQUEST)
                 return
             target = str(query.get("target", ["inbox"])[0]).strip()
             track = str(query.get("track", [""])[0]).strip()
@@ -1307,58 +1151,40 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
         sanitized = os.path.basename(sanitized.replace("\\", "/"))
         sanitized = sanitized.replace("/", "").replace("\\", "").strip()
         if not sanitized or sanitized in (".", ".."):
-            self.send_json_response(
-                {"status": "error", "message": "Missing or invalid filename"},
-                status=HTTPStatus.BAD_REQUEST,
-            )
+            self.send_json_response({"status": "error", "message": "Missing or invalid filename"}, status=HTTPStatus.BAD_REQUEST)
             return
 
         ext = Path(sanitized).suffix.lower()
         if ext not in ALLOWED_UPLOAD_EXTENSIONS:
             self.send_json_response(
-                {
-                    "status": "error",
-                    "message": f"Unsupported file format '{ext}'. Allowed: .wav, .mp3, .flac, .m4a, .ogg",
-                },
+                {"status": "error", "message": f"Unsupported file format '{ext}'. Allowed: .wav, .mp3, .flac, .m4a, .ogg"},
                 status=HTTPStatus.BAD_REQUEST,
             )
             return
 
-        stem_name = Path(sanitized).stem.strip()
-        if not stem_name or stem_name in (".", ".."):
-            self.send_json_response(
-                {"status": "error", "message": "Invalid filename stem"},
-                status=HTTPStatus.BAD_REQUEST,
-            )
+        # Track names become folder names and appear in the UI: keep them to [A-Za-z0-9_]
+        raw_stem = Path(sanitized).stem.strip()
+        if not raw_stem or raw_stem in (".", ".."):
+            self.send_json_response({"status": "error", "message": "Invalid filename stem"}, status=HTTPStatus.BAD_REQUEST)
             return
+        stem_name = sanitize_track_name(raw_stem)
 
+        paths = self.server_paths
         if target == "inbox":
-            dest_dir = self.server_paths.inbox
+            dest_dir = paths.inbox
         elif target == "moises":
-            dest_dir = self.server_paths.stems / sanitize_track_name(track or stem_name)
+            dest_dir = paths.stems / sanitize_track_name(track or stem_name)
         elif target == "renders":
-            dest_dir = self.server_paths.renders
+            dest_dir = paths.renders
         else:
-            self.send_json_response(
-                {"status": "error", "message": f"Invalid upload target '{target}'"},
-                status=HTTPStatus.BAD_REQUEST,
-            )
+            self.send_json_response({"status": "error", "message": f"Invalid upload target '{target}'"}, status=HTTPStatus.BAD_REQUEST)
             return
 
         final_wav_path = dest_dir / f"{stem_name}.wav"
-        safe_base, abs_base_target = is_safe_path(self.server_paths.base, final_wav_path)
+        safe_base, abs_base_target = is_safe_path(paths.base, final_wav_path)
         safe_dir, abs_dir_target = is_safe_path(dest_dir, final_wav_path.name)
-        if (
-            not safe_base
-            or not safe_dir
-            or abs_base_target is None
-            or abs_dir_target is None
-            or abs_base_target != abs_dir_target
-        ):
-            self.send_json_response(
-                {"status": "error", "message": "Unsafe destination file path"},
-                status=HTTPStatus.FORBIDDEN,
-            )
+        if not safe_base or not safe_dir or abs_base_target is None or abs_dir_target is None or abs_base_target != abs_dir_target:
+            self.send_json_response({"status": "error", "message": "Unsafe destination file path"}, status=HTTPStatus.FORBIDDEN)
             return
 
         final_wav_path = abs_base_target
@@ -1366,7 +1192,7 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         ts_ms = int(time.time() * 1000)
-        tmp_in = dest_dir / f".upload_{ts_ms}_{sanitized}.tmp"
+        tmp_in = dest_dir / f".upload_{ts_ms}_{stem_name}{ext}.tmp"
         tmp_wav = dest_dir / f".upload_{ts_ms}_{stem_name}.tmp.wav"
 
         try:
@@ -1374,105 +1200,66 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
                 tmp_in.write_bytes(decoded_json_bytes)
             else:
                 remaining = content_length
-                written = 0
                 with open(tmp_in, "wb") as f:
                     while remaining > 0:
                         chunk = self.rfile.read(min(64 * 1024, remaining))
                         if not chunk:
                             raise EOFError("Client disconnected before upload completed")
-                        written += len(chunk)
-                        if written > MAX_UPLOAD_BYTES:
-                            raise ValueError("Upload exceeds 500 MB limit")
                         f.write(chunk)
                         remaining -= len(chunk)
 
-            if ext in {".mp3", ".flac", ".m4a", ".ogg"}:
-                cmd = [
-                    self.ffmpeg_bin,
-                    "-hide_banner",
-                    "-nostdin",
-                    "-loglevel",
-                    "error",
-                    "-y",
-                    "-i",
-                    str(tmp_in),
-                    "-c:a",
-                    "pcm_s24le",
-                    str(tmp_wav),
-                ]
-                res = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    shell=False,
-                    timeout=120,
-                    check=False,
-                )
+            if ext != ".wav":
+                cmd = [self.ffmpeg_bin, "-hide_banner", "-nostdin", "-loglevel", "error", "-y",
+                       "-i", str(tmp_in), "-c:a", "pcm_s24le", str(tmp_wav)]
+                res = subprocess.run(cmd, capture_output=True, text=True, shell=False, timeout=120, check=False)
                 tmp_in.unlink(missing_ok=True)
                 if res.returncode != 0 or not tmp_wav.is_file():
                     tmp_wav.unlink(missing_ok=True)
                     err_detail = (res.stderr or "").strip() or f"ffmpeg exit code {res.returncode}"
-                    self.send_json_response(
-                        {"status": "error", "message": f"Audio transcoding failed: {err_detail}"},
-                        status=HTTPStatus.BAD_REQUEST,
-                    )
+                    self.send_json_response({"status": "error", "message": f"Audio transcoding failed: {err_detail}"}, status=HTTPStatus.BAD_REQUEST)
                     return
             else:
                 tmp_wav = tmp_in
 
-            # Determine canonical track_name and perform scoped invalidation
             if target == "inbox":
                 m = INBOX_STEM_PATTERN.match(final_wav_path.stem)
                 if m:
                     track_name = m.group(1).strip()
-                    (self.server_paths.stems / track_name / final_wav_path.name).unlink(missing_ok=True)
-                    (self.server_paths.prepped / track_name / ".done").unlink(missing_ok=True)
-                    (self.server_paths.prepped / track_name / "MIDI" / ".midi_done").unlink(missing_ok=True)
+                    (paths.stems / track_name / final_wav_path.name).unlink(missing_ok=True)
                 else:
                     track_name = final_wav_path.stem
-                    stems_track_dir = self.server_paths.stems / track_name
-                    if stems_track_dir.is_dir():
-                        for old_wav in stems_track_dir.glob("*.wav"):
-                            old_wav.unlink(missing_ok=True)
-                    (self.server_paths.prepped / track_name / ".done").unlink(missing_ok=True)
-                    (self.server_paths.prepped / track_name / "MIDI" / ".midi_done").unlink(missing_ok=True)
-                    (self.server_paths.renders / f"{track_name}_RoughMix_Mix_QA_Report.md").unlink(missing_ok=True)
-
+                    for old_wav in pipeline_automator.visible_wavs(paths.stems / track_name):
+                        old_wav.unlink(missing_ok=True)
+                invalidate_track_outputs(paths, track_name)
+                pipeline_automator.failures(paths).clear("demucs", track_name)
                 os.replace(tmp_wav, final_wav_path)
             elif target == "moises":
                 track_name = sanitize_track_name(track or final_wav_path.stem)
                 os.replace(tmp_wav, final_wav_path)
-                (self.server_paths.prepped / track_name / ".done").unlink(missing_ok=True)
-                (self.server_paths.prepped / track_name / "MIDI" / ".midi_done").unlink(missing_ok=True)
-            else:  # target == "renders"
-                track_name = re.sub(r"(_RoughMix|_Mix|_Master)$", "", final_wav_path.stem, flags=re.IGNORECASE)
+                invalidate_track_outputs(paths, track_name)
+            else:  # renders
+                track_name = render_track_name(final_wav_path.stem)
                 os.replace(tmp_wav, final_wav_path)
-                (self.server_paths.renders / f"{final_wav_path.stem}_Mix_QA_Report.md").unlink(missing_ok=True)
+                qa_report_path(final_wav_path).unlink(missing_ok=True)
+                pipeline_automator.failures(paths).clear("mix_qa", final_wav_path.stem)
 
             final_size = final_wav_path.stat().st_size
             log.info("Uploaded %s -> %s (%d bytes, track=%s)", sanitized, final_wav_path, final_size, track_name)
-            rel_out = str(final_wav_path.relative_to(self.server_paths.base)).replace("\\", "/")
             self.send_json_response({
                 "status": "ok",
                 "filename": final_wav_path.name,
                 "track": track_name,
-                "rel_path": rel_out,
+                "rel_path": rel(paths, final_wav_path),
                 "size_bytes": final_size,
             })
         except subprocess.TimeoutExpired:
             tmp_in.unlink(missing_ok=True)
             tmp_wav.unlink(missing_ok=True)
-            self.send_json_response(
-                {"status": "error", "message": "Audio transcoding timed out (120s limit)"},
-                status=HTTPStatus.REQUEST_TIMEOUT,
-            )
+            self.send_json_response({"status": "error", "message": "Audio transcoding timed out (120s limit)"}, status=HTTPStatus.REQUEST_TIMEOUT)
         except Exception as exc:
             tmp_in.unlink(missing_ok=True)
             tmp_wav.unlink(missing_ok=True)
-            self.send_json_response(
-                {"status": "error", "message": f"Upload failed: {exc}"},
-                status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            )
+            self.send_json_response({"status": "error", "message": f"Upload failed: {exc}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # --------------------------------------------------------------------------
@@ -1494,45 +1281,48 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--base-dir", default=os.environ.get(ENV_BASE_DIR, DEFAULT_BASE_DIR), help="Pipeline base directory")
     parser.add_argument("--host", default=DEFAULT_HOST, help=f"Binding host (default: {DEFAULT_HOST})")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Binding port (default: {DEFAULT_PORT})")
+    parser.add_argument("--allow-host", action="append", default=[],
+                        help="Extra hostname the dashboard may be reached by (e.g. a LAN IP when using --host 0.0.0.0). Repeatable.")
     parser.add_argument("--preset", choices=pipeline_automator.PRESETS, default="gentle", help="Default stem prep filter preset")
     parser.add_argument("--poll-interval", type=float, default=2.0, help="Watcher poll interval in seconds")
     parser.add_argument("--no-watcher", action="store_true", help="Start web dashboard with background watcher paused")
+    parser.add_argument("--no-auto-humanize", action="store_true", help="Don't render a Humanized Mix automatically for new tracks")
     parser.add_argument("--ffmpeg", default="ffmpeg", help="FFmpeg executable name or path")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose debug logging")
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    global WATCHER_ENABLED, ACTIVE_PRESET, POLL_INTERVAL
+    global WATCHER_ENABLED, ACTIVE_PRESET, POLL_INTERVAL, AUTO_HUMANIZE
 
     args = parse_args(argv)
     base_dir = Path(args.base_dir).expanduser().resolve()
     paths = pipeline_automator.PipelinePaths(base_dir)
     paths.ensure_dirs()
 
-    # Logging setup
     setup_server_logging(paths.logs, verbose=args.verbose)
     log.info("================================================================")
     log.info("Starting Suno Music Pipeline Studio Dashboard Server...")
     log.info("Base Directory : %s", base_dir)
     log.info("Listening on   : http://%s:%d", args.host, args.port)
     log.info("Default Preset : %s", args.preset)
-    log.info("Watcher Active : %s", not args.no_watcher)
+    log.info("Watcher Active : %s | Auto Humanize: %s", not args.no_watcher, not args.no_auto_humanize)
     log.info("================================================================")
 
     ACTIVE_PRESET = args.preset
     POLL_INTERVAL = args.poll_interval
     WATCHER_ENABLED = not args.no_watcher
+    AUTO_HUMANIZE = not args.no_auto_humanize
+    EXTRA_ALLOWED_HOSTNAMES.update(h.strip().lower() for h in args.allow_host if h.strip())
+    if args.host not in ("127.0.0.1", "localhost", "::1"):
+        log.warning("Binding to %s exposes the dashboard to your network. It has no login; use --allow-host only on trusted networks.", args.host)
 
-    # Handover: Cleanly terminate previous standalone watcher and record server PID
     handle_watcher_pid_handover(paths)
     atexit.register(cleanup_pids, paths)
 
-    # Initialize Watcher background thread
     watcher_thread = WatcherThread(paths, ffmpeg_bin=args.ffmpeg)
     watcher_thread.start()
 
-    # Inject paths into request handler
     PipelineRequestHandler.server_paths = paths
     PipelineRequestHandler.ffmpeg_bin = args.ffmpeg
 
@@ -1548,13 +1338,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     signal.signal(signal.SIGTERM, shutdown_signal_handler)
 
     try:
-        log.info("Pipeline Studio Dashboard running. Open in browser: http://%s:%d", args.host, args.port)
+        log.info("Pipeline Studio Dashboard running. Open in browser: http://localhost:%d", args.port)
         server.serve_forever()
     except BaseException as exc:
         log.error("Fatal exception in server loop: %s", exc, exc_info=True)
         return 1
     finally:
-        log.info("Server finally block executing...")
         watcher_thread.stop()
         server.server_close()
         cleanup_pids(paths)

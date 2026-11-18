@@ -14,7 +14,9 @@ set "FOUND_PID=0"
 if exist "%PID_FILE%" (
     set /p WATCHER_PID=<"%PID_FILE%"
     call echo [INFO] Found Watcher PID: %%WATCHER_PID%%
-    call taskkill /PID %%WATCHER_PID%% /T /F >nul 2>&1
+    rem Only kill it if that PID is still a Python process (a stale PID file
+    rem may point at an unrelated program after Windows reuses the number).
+    call taskkill /PID %%WATCHER_PID%% /FI "IMAGENAME eq python*" /T /F >nul 2>&1
     del /F /Q "%PID_FILE%" >nul 2>&1
     set "FOUND_PID=1"
 )
@@ -22,7 +24,7 @@ if exist "%PID_FILE%" (
 if exist "%SERVER_PID_FILE%" (
     set /p SERVER_PID=<"%SERVER_PID_FILE%"
     call echo [INFO] Found Server PID: %%SERVER_PID%%
-    call taskkill /PID %%SERVER_PID%% /T /F >nul 2>&1
+    call taskkill /PID %%SERVER_PID%% /FI "IMAGENAME eq python*" /T /F >nul 2>&1
     del /F /Q "%SERVER_PID_FILE%" >nul 2>&1
     set "FOUND_PID=1"
 )

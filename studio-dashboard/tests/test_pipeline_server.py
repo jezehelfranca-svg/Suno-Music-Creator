@@ -20,6 +20,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import wave
+from typing import Any, Dict, Optional, Tuple
 
 STUDIO_DIR = Path(__file__).resolve().parent.parent
 if str(STUDIO_DIR) not in sys.path:
@@ -29,16 +30,24 @@ import pipeline_automator
 import pipeline_server
 
 
+from tests.fixtures import make_prepped_track, make_render
+
+
 class TestPipelineServerHelpers(unittest.TestCase):
     """Test helper logic: path sandboxing, name sanitization, report parsing."""
 
     def setUp(self) -> None:
-        self.base_dir = Path("C:/Music_Pipeline").resolve()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.base_dir = Path(self.tmp.name).resolve()
+        self.paths = pipeline_automator.PipelinePaths(self.base_dir)
+        self.paths.ensure_dirs()
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
 
     def test_is_safe_path_valid(self) -> None:
         safe, target = pipeline_server.is_safe_path(self.base_dir, "05_Mix_Renders/Venus_in_Versace_RoughMix.wav")
         self.assertTrue(safe)
-        self.assertIsNotNone(target)
         self.assertEqual(target, self.base_dir / "05_Mix_Renders" / "Venus_in_Versace_RoughMix.wav")
 
     def test_is_safe_path_traversal(self) -> None:
@@ -47,7 +56,8 @@ class TestPipelineServerHelpers(unittest.TestCase):
         self.assertIsNone(target)
 
     def test_is_safe_path_absolute_outside(self) -> None:
-        safe, target = pipeline_server.is_safe_path(self.base_dir, "C:/Windows/System32/cmd.exe")
+        outside = Path(tempfile.gettempdir()).resolve().parent / "cmd.exe"
+        safe, target = pipeline_server.is_safe_path(self.base_dir, str(outside))
         self.assertFalse(safe)
         self.assertIsNone(target)
 
@@ -57,36 +67,68 @@ class TestPipelineServerHelpers(unittest.TestCase):
         self.assertEqual(pipeline_server.sanitize_track_name("From the Depths ext v1.2.2"), "From_the_Depths_ext_v1_2_2")
         self.assertEqual(pipeline_server.sanitize_track_name("Glowing Coal (Cover) (1)"), "Glowing_Coal_Cover_1")
         self.assertEqual(pipeline_server.sanitize_track_name("The Corrs - What Can I Do _ Aisling, Dub 4"), "The_Corrs_What_Can_I_Do_Aisling_Dub_4")
+        self.assertEqual(pipeline_server.sanitize_track_name("Don't Stop');alert(1)//"), "Don_t_Stop_alert_1")
 
-    def test_parse_mix_qa_report(self) -> None:
-        report_path = self.base_dir / "05_Mix_Renders" / "Venus_in_Versace_RoughMix_Mix_QA_Report.md"
-        if not report_path.is_file():
-            self.skipTest(f"Report file {report_path} not found")
-
-        qa = pipeline_server.parse_mix_qa_report(report_path)
-        self.assertIsNotNone(qa)
-        self.assertEqual(qa.get("integrated_lufs"), -26.4)
-        self.assertEqual(qa.get("true_peak_dbtp"), -14.0)
-        self.assertEqual(qa.get("crest_factor_db"), 14.7)
-        self.assertEqual(qa.get("lra_lu"), 3.9)
-        self.assertGreaterEqual(len(qa.get("bands", [])), 5)
-        self.assertGreaterEqual(len(qa.get("fixes", [])), 4)
-
-        # Check fix structure
-        first_fix = qa["fixes"][0]
-        self.assertIn("timestamp", first_fix)
-        self.assertIn("element", first_fix)
-        self.assertIn("issue", first_fix)
-        self.assertIn("move", first_fix)
+    def test_parse_mix_qa_report_roundtrip(self) -> None:
+        wav = make_render(self.paths, "Song_RoughMix")
+        report = pipeline_automator.write_qa_report(wav, ffmpeg_bin="definitely-not-ffmpeg")
+        qa = pipeline_server.parse_mix_qa_report(report)
+        self.assertEqual(qa["loudness_method"], "built-in BS.1770 meter")
+        self.assertIsNotNone(qa["integrated_lufs"])
+        self.assertIsNotNone(qa["true_peak_dbtp"])
+        self.assertEqual(len(qa["bands"]), 5)
+        self.assertGreaterEqual(len(qa["fixes"]), 1)
+        for fix in qa["fixes"]:
+            self.assertEqual(set(fix), {"timestamp", "element", "issue", "move"})
 
     def test_has_pending_work_idle(self) -> None:
-        paths = pipeline_automator.PipelinePaths(self.base_dir)
-        # When all tracks are up to date and inbox empty, has_pending_work returns None
-        self.assertIsNone(pipeline_server.has_pending_work(paths))
+        self.assertIsNone(pipeline_server.has_pending_work(self.paths))
+
+    def test_renders_match_exact_track_names(self) -> None:
+        """'Song' must not pick up 'Song2' renders (old prefix-glob bug)."""
+        make_render(self.paths, "Song2_RoughMix")
+        make_render(self.paths, "Song_Humanized")
+        self.assertEqual([p.name for p in pipeline_automator.renders_for_track(self.paths, "Song")], ["Song_Humanized.wav"])
+        self.assertEqual([p.name for p in pipeline_automator.renders_for_track(self.paths, "Song2")], ["Song2_RoughMix.wav"])
+
+    def test_failed_step_is_not_retried_until_inputs_change(self) -> None:
+        stems = self.paths.stems / "Broken"
+        stems.mkdir(parents=True)
+        wav = make_render(self.paths, "tmp")
+        target = stems / "Broken_drums.wav"
+        wav.replace(target)
+        self.assertEqual(pipeline_server.has_pending_work(self.paths), "Running Stem Prep...")
+
+        # stem_prep.py is missing -> failure is recorded, not retried every poll
+        pipeline_automator.run_stem_prep(self.paths, stem_prep_path=self.base_dir / "missing.py")
+        self.assertIsNone(pipeline_server.has_pending_work(self.paths))
+        tracks = {t["name"]: t for t in pipeline_server.discover_tracks(self.paths)["tracks"]}
+        self.assertEqual(tracks["Broken"]["status"], "Failed: Stem prep")
+        self.assertIn("missing.py", tracks["Broken"]["failures"][0]["error"])
+
+        # Touching the input makes it eligible again
+        os.utime(target, ns=(time.time_ns(), time.time_ns() + 5_000_000_000))
+        self.assertEqual(pipeline_server.has_pending_work(self.paths), "Running Stem Prep...")
+
+    def test_invalidate_track_outputs_removes_stale_mixes(self) -> None:
+        td = make_prepped_track(self.paths, "Track", seconds=4.0)
+        (td / "MIDI").mkdir()
+        (td / "MIDI" / ".midi_done").write_text("x")
+        for stem in ("Track_RoughMix", "Track_Humanized"):
+            w = make_render(self.paths, stem, seconds=1.0)
+            pipeline_automator.qa_report_path(w).write_text("report")
+        keep = make_render(self.paths, "Track_Master", seconds=1.0)  # the user's own export stays
+
+        pipeline_server.invalidate_track_outputs(self.paths, "Track")
+        self.assertFalse((td / ".done").exists())
+        self.assertFalse((td / "MIDI" / ".midi_done").exists())
+        self.assertFalse((self.paths.renders / "Track_RoughMix.wav").exists())
+        self.assertFalse((self.paths.renders / "Track_Humanized_Mix_QA_Report.md").exists())
+        self.assertTrue(keep.exists())
 
 
 class TestPipelineServerHTTP(unittest.TestCase):
-    """Integration test suite executing live HTTP requests against PipelineRequestHandler."""
+    """Integration tests executing live HTTP requests against a temp pipeline."""
 
     server: pipeline_server.ThreadingHTTPServer
     server_thread: threading.Thread
@@ -94,129 +136,133 @@ class TestPipelineServerHTTP(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        base_dir = Path("C:/Music_Pipeline").resolve()
-        paths = pipeline_automator.PipelinePaths(base_dir)
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.paths = pipeline_automator.PipelinePaths(Path(cls.tmp.name))
+        cls.paths.ensure_dirs()
+        make_prepped_track(cls.paths, "Venus_in_Versace", seconds=6.0)
+        cls.render = make_render(cls.paths, "Venus_in_Versace_RoughMix", seconds=4.0)
+        pipeline_automator.write_qa_report(cls.render, ffmpeg_bin="definitely-not-ffmpeg")
 
-        # Bind to ephemeral port
-        pipeline_server.PipelineRequestHandler.server_paths = paths
+        pipeline_server.PipelineRequestHandler.server_paths = cls.paths
         pipeline_server.PipelineRequestHandler.ffmpeg_bin = "ffmpeg"
         pipeline_server.ThreadingHTTPServer.allow_reuse_address = True
         cls.server = pipeline_server.ThreadingHTTPServer(("127.0.0.1", 0), pipeline_server.PipelineRequestHandler)
         port = cls.server.server_address[1]
         cls.base_url = f"http://127.0.0.1:{port}"
-
         cls.server_thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.server_thread.start()
-        time.sleep(0.3)
 
     @classmethod
     def tearDownClass(cls) -> None:
         cls.server.shutdown()
         cls.server.server_close()
+        cls.tmp.cleanup()
+
+    def _post(self, path: str, body: Any, headers: Optional[Dict[str, str]] = None) -> Tuple[int, Dict[str, Any]]:
+        data = body if isinstance(body, bytes) else json.dumps(body).encode("utf-8")
+        req = urllib.request.Request(f"{self.base_url}{path}", data=data,
+                                     headers=headers if headers is not None else {"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req) as resp:
+                return resp.status, json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as err:
+            return err.code, json.loads(err.read().decode("utf-8") or "{}")
 
     def test_get_root_serves_html(self) -> None:
-        req = urllib.request.Request(f"{self.base_url}/")
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(f"{self.base_url}/") as resp:
             self.assertEqual(resp.status, HTTPStatus.OK)
             self.assertIn("text/html", resp.headers.get("Content-Type", ""))
             body = resp.read().decode("utf-8")
             self.assertIn("SUNO", body)
             self.assertIn("FL STUDIO", body)
+            self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
 
     def test_get_favicon_returns_no_content(self) -> None:
-        req = urllib.request.Request(f"{self.base_url}/favicon.ico")
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(f"{self.base_url}/favicon.ico") as resp:
             self.assertEqual(resp.status, HTTPStatus.NO_CONTENT)
 
     def test_get_status_json(self) -> None:
-        req = urllib.request.Request(f"{self.base_url}/api/status")
-        with urllib.request.urlopen(req) as resp:
-            self.assertEqual(resp.status, HTTPStatus.OK)
-            self.assertIn("application/json", resp.headers.get("Content-Type", ""))
+        with urllib.request.urlopen(f"{self.base_url}/api/status") as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            self.assertIn("watcher_running", data)
-            self.assertIn("pid", data)
-            self.assertIn("preset", data)
-            self.assertIn("counts", data)
-            self.assertIn("logs", data)
-            self.assertIsInstance(data["counts"], dict)
-            self.assertIsInstance(data["logs"], list)
+        for key in ("watcher_running", "pid", "preset", "counts", "logs", "auto_humanize", "queued_jobs"):
+            self.assertIn(key, data)
+        self.assertIsInstance(data["counts"], dict)
 
-    def test_get_tracks_discovers_venus_in_versace(self) -> None:
-        req = urllib.request.Request(f"{self.base_url}/api/tracks")
-        with urllib.request.urlopen(req) as resp:
-            self.assertEqual(resp.status, HTTPStatus.OK)
+    def test_get_tracks_discovers_fixture_track(self) -> None:
+        with urllib.request.urlopen(f"{self.base_url}/api/tracks") as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            self.assertIn("tracks", data)
-            self.assertIn("available_rendered", data)
-            tracks = data["tracks"]
-
-            venus = next((t for t in tracks if t["name"] == "Venus_in_Versace"), None)
-            self.assertIsNotNone(venus, "Venus_in_Versace must be discovered in tracks list")
-            self.assertIn(venus["status"], ("Mix Rendered & Audited", "Prepped & Ready"))
-            self.assertGreaterEqual(len(venus["source_stems"]), 4)
-            self.assertGreaterEqual(len(venus["prepped_stems"]), 4)
-            self.assertGreaterEqual(len(venus["drum_triggers"]), 3)
-            self.assertGreaterEqual(len(venus["midi_files"]), 2)
-            self.assertTrue(venus["fl_project"]["exists"])
-            self.assertIsNotNone(venus["mix_qa"])
-            self.assertEqual(venus["mix_qa"]["integrated_lufs"], -26.4)
+        venus = next((t for t in data["tracks"] if t["name"] == "Venus_in_Versace"), None)
+        self.assertIsNotNone(venus)
+        self.assertEqual(venus["status"], "Mix Rendered & Audited")
+        self.assertEqual(len(venus["prepped_stems"]), 4)
+        self.assertEqual(len(venus["drum_triggers"]), 3)
+        self.assertEqual(venus["mix_qa"]["render_kind"], "rough")
+        self.assertIsNotNone(venus["mix_qa"]["integrated_lufs"])
+        self.assertEqual(venus["humanize"]["drums_mode"], "replace")
 
     def test_audio_streaming_range_and_full(self) -> None:
-        rel_path = "05_Mix_Renders/Venus_in_Versace_RoughMix.wav"
-
-        # 1. Full content request (no Range header) -> 200 OK
-        req_full = urllib.request.Request(f"{self.base_url}/api/audio?path={urllib.parse.quote(rel_path)}")
-        with urllib.request.urlopen(req_full) as resp:
+        url = f"{self.base_url}/api/audio?path={urllib.parse.quote('05_Mix_Renders/Venus_in_Versace_RoughMix.wav')}"
+        with urllib.request.urlopen(url) as resp:
             self.assertEqual(resp.status, HTTPStatus.OK)
-            self.assertEqual(resp.headers.get("Content-Type"), "audio/wav")
             self.assertEqual(resp.headers.get("Accept-Ranges"), "bytes")
-            total_len = int(resp.headers.get("Content-Length", "0"))
-            self.assertGreater(total_len, 1000000)
-
-        # 2. Byte Range request -> 206 Partial Content
-        req_range = urllib.request.Request(f"{self.base_url}/api/audio?path={urllib.parse.quote(rel_path)}")
-        req_range.add_header("Range", "bytes=0-1023")
-        with urllib.request.urlopen(req_range) as resp:
+            self.assertEqual(int(resp.headers.get("Content-Length", "0")), self.render.stat().st_size)
+        req = urllib.request.Request(url, headers={"Range": "bytes=0-1023"})
+        with urllib.request.urlopen(req) as resp:
             self.assertEqual(resp.status, HTTPStatus.PARTIAL_CONTENT)
-            self.assertEqual(resp.headers.get("Content-Type"), "audio/wav")
             self.assertEqual(resp.headers.get("Content-Length"), "1024")
             self.assertTrue(resp.headers.get("Content-Range", "").startswith("bytes 0-1023/"))
-            chunk = resp.read()
-            self.assertEqual(len(chunk), 1024)
+            self.assertEqual(len(resp.read()), 1024)
 
     def test_audio_streaming_traversal_blocked(self) -> None:
-        # Path traversal should return 403 Forbidden
-        req = urllib.request.Request(f"{self.base_url}/api/audio?path=../../Windows/win.ini")
+        with self.assertRaises(urllib.error.HTTPError) as ctx:
+            urllib.request.urlopen(f"{self.base_url}/api/audio?path=../../Windows/win.ini")
+        self.assertEqual(ctx.exception.code, HTTPStatus.FORBIDDEN)
+
+    def test_post_watcher_toggle(self) -> None:
+        status, data = self._post("/api/watcher", {"running": False, "preset": "bright-tame"})
+        self.assertEqual(status, HTTPStatus.OK)
+        self.assertFalse(data["watcher_running"])
+        self.assertEqual(data["preset"], "bright-tame")
+        status, _ = self._post("/api/watcher", {"running": True, "preset": "gentle"})
+        self.assertEqual(status, HTTPStatus.OK)
+
+    # --- security -----------------------------------------------------------
+
+    def test_cross_origin_post_is_blocked(self) -> None:
+        before = pipeline_server.WATCHER_ENABLED
+        status, _ = self._post("/api/watcher", {"running": not before},
+                               headers={"Content-Type": "application/json", "Origin": "https://evil.example"})
+        self.assertEqual(status, HTTPStatus.FORBIDDEN)
+        self.assertEqual(pipeline_server.WATCHER_ENABLED, before)
+
+    def test_same_origin_post_is_allowed(self) -> None:
+        host = self.base_url.split("//")[1]
+        status, _ = self._post("/api/watcher", {"preset": "gentle"},
+                               headers={"Content-Type": "application/json", "Origin": f"http://{host}"})
+        self.assertEqual(status, HTTPStatus.OK)
+
+    def test_text_plain_post_is_rejected(self) -> None:
+        """A cross-site 'simple' request (no CORS preflight) must not reach the API."""
+        status, _ = self._post("/api/run-once", b'{"preset":"gentle"}', headers={"Content-Type": "text/plain"})
+        self.assertEqual(status, HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+        status, _ = self._post("/api/upload?target=inbox&filename=x.wav", b"RIFF", headers={"Content-Type": "text/plain"})
+        self.assertEqual(status, HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+
+    def test_foreign_host_header_is_rejected(self) -> None:
+        """DNS rebinding: a page on attacker.com resolving to 127.0.0.1 sends Host: attacker.com."""
+        req = urllib.request.Request(f"{self.base_url}/api/tracks", headers={"Host": "attacker.example:8765"})
         with self.assertRaises(urllib.error.HTTPError) as ctx:
             urllib.request.urlopen(req)
         self.assertEqual(ctx.exception.code, HTTPStatus.FORBIDDEN)
 
-    def test_post_watcher_toggle(self) -> None:
-        body = json.dumps({"running": False, "preset": "bright-tame"}).encode("utf-8")
-        req = urllib.request.Request(
-            f"{self.base_url}/api/watcher",
-            data=body,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req) as resp:
-            self.assertEqual(resp.status, HTTPStatus.OK)
-            data = json.loads(resp.read().decode("utf-8"))
-            self.assertEqual(data["status"], "ok")
-            self.assertFalse(data["watcher_running"])
-            self.assertEqual(data["preset"], "bright-tame")
+    def test_track_parameter_rejects_paths(self) -> None:
+        status, _ = self._post("/api/reprocess", {"track": "../../etc"})
+        self.assertEqual(status, HTTPStatus.BAD_REQUEST)
 
-        # Restore watcher
-        body_restore = json.dumps({"running": True, "preset": "gentle"}).encode("utf-8")
-        req_restore = urllib.request.Request(
-            f"{self.base_url}/api/watcher",
-            data=body_restore,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req_restore) as resp:
-            self.assertEqual(resp.status, HTTPStatus.OK)
+    def test_ui_has_no_inline_handlers_with_interpolated_names(self) -> None:
+        """Track names must never be pasted into inline JS (old XSS / apostrophe bug)."""
+        html = (STUDIO_DIR / "ui" / "index.html").read_text(encoding="utf-8")
+        self.assertNotRegex(html, r"on(click|change)=\"[^\"]*\$\{")
 
 
 class TestUploadAndDiscoveryDirectives(unittest.TestCase):
@@ -414,6 +460,7 @@ class TestUploadAndDiscoveryDirectives(unittest.TestCase):
         (s4_prep / "MIDI").mkdir(parents=True)
         (s4_prep / ".done").write_text("done")
         (s4_prep / "MIDI" / ".midi_done").write_text("midi")
+        (s4_prep / "track_metadata.json").write_text("{}")
 
         discovered = pipeline_server.discover_tracks(self.paths)
         by_name = {t["name"]: t for t in discovered["tracks"]}
@@ -430,6 +477,7 @@ class TestUploadAndDiscoveryDirectives(unittest.TestCase):
         (self.paths.stems / "Stage2" / "Stage2_drums.wav").unlink()
         (s3_prep / "MIDI").mkdir(parents=True)
         (s3_prep / "MIDI" / ".midi_done").write_text("midi")
+        (s3_prep / "track_metadata.json").write_text("{}")
         self.assertEqual(
             pipeline_server.has_pending_work(self.paths),
             "Generating Rough Mix & QA for Stage3...",

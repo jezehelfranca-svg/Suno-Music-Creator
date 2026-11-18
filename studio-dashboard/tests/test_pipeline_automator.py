@@ -6,6 +6,7 @@ from __future__ import annotations
 import math
 import os
 from pathlib import Path
+import re
 import struct
 import sys
 import tempfile
@@ -18,7 +19,9 @@ STUDIO_DIR = Path(__file__).resolve().parent.parent
 if str(STUDIO_DIR) not in sys.path:
     sys.path.insert(0, str(STUDIO_DIR))
 
+import humanized_mix as hm
 import pipeline_automator as pa
+from tests.fixtures import make_prepped_track
 
 
 class TestSMFMidiWriter(unittest.TestCase):
@@ -190,16 +193,142 @@ class TestMixQAReport(unittest.TestCase):
             # Verify required sections
             self.assertIn("# Mix QA Analysis Report: Test_Mix", report)
             self.assertIn("1. Loudness & Dynamic Range Overview", report)
-            self.assertIn("2. Five-Band Frequency & Pocket Assessment", report)
+            self.assertIn("2. Five-Band Frequency & Stereo Assessment", report)
             self.assertIn("Band 1: Harshness / Fizz (8–16 kHz)", report)
             self.assertIn("Band 2: Sibilance (5.5–10 kHz)", report)
-            self.assertIn("Band 3: Low-End Balance: Sub (20–120 Hz) vs. Mud (150–400 Hz)", report)
-            self.assertIn("Band 4: Loudness & True Peak / Transients", report)
-            self.assertIn("Band 5: Timing & Pocket Assessment", report)
+            self.assertIn("Band 3: Low-Mid Mud (150–400 Hz)", report)
+            self.assertIn("Band 4: Sub (20–120 Hz)", report)
+            self.assertIn("Band 5: Stereo Image & Mono Compatibility", report)
             self.assertIn("3. Recommended Actionable Fix List", report)
-            # Verify fix item format MM:SS - element - issue - suggested FL Studio move
             self.assertIn(" – ", report)
+            # No canned advice: nothing about pocket/lay-back that wasn't measured
+            self.assertNotIn("lay-back", report)
             self.assertIn("Fruity", report)
+
+
+class TestLoudnessMeter(unittest.TestCase):
+    """The built-in BS.1770 meter must match the standard's reference values."""
+
+    def test_reference_sine(self) -> None:
+        sr = 48000
+        t = np.arange(sr * 10) / sr
+        x = np.sin(2 * np.pi * 997 * t)
+        one_channel = pa.measure_loudness(np.column_stack([x, np.zeros_like(x)]), sr)
+        self.assertAlmostEqual(one_channel["lufs"], -3.01, delta=0.05)  # ITU-R BS.1770 reference
+        self.assertAlmostEqual(one_channel["true_peak"], 0.0, delta=0.1)
+        quiet = pa.measure_loudness(np.column_stack([x, x]) * 0.1, sr)
+        self.assertAlmostEqual(quiet["lufs"], -20.0, delta=0.1)
+
+    def test_qa_without_ffmpeg_reports_measured_values_not_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            wav = Path(tmp_dir) / "Quiet_Mix.wav"
+            sr = 44100
+            t = np.arange(sr * 6) / sr
+            x = 0.02 * np.sin(2 * np.pi * 440 * t)
+            sf.write(str(wav), np.column_stack([x, x]), sr)
+            report = pa.MixQAReport(wav, ffmpeg_bin="definitely-not-ffmpeg").generate_report()
+            self.assertIn("built-in BS.1770 meter", report)
+            self.assertNotIn("-14.0 LUFS**", report)  # the old invented fallback value
+            m = re.search(r"Integrated Loudness\*\* \| \*\*([-\d\.]+) LUFS", report)
+            self.assertIsNotNone(m)
+            self.assertLess(float(m.group(1)), -25.0)
+
+
+class TestTempoAndGrid(unittest.TestCase):
+
+    def test_refine_tempo_fixes_estimator_error_and_finds_pickup(self) -> None:
+        true_bpm, pickup = 120.0, 0.25
+        onsets = [pickup + i * 0.5 for i in range(64)]
+        bpm, downbeat = pa.refine_tempo(onsets, 119.4)  # autocorrelation was 0.6 BPM off
+        self.assertAlmostEqual(bpm, true_bpm, delta=0.02)
+        self.assertAlmostEqual(downbeat, pickup, delta=0.005)
+
+    def test_drum_transcription_is_deterministic_and_grid_aware(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            paths = pa.PipelinePaths(Path(tmp_dir))
+            paths.ensure_dirs()
+            td = make_prepped_track(paths, "Demo", seconds=8.0, pickup=0.25)
+            a, downbeat, bpm = pa.transcribe_drum_hits("Demo", td / "Drum_Triggers", 119.0)
+            b, _, _ = pa.transcribe_drum_hits("Demo", td / "Drum_Triggers", 119.0)
+            self.assertEqual(a, b)  # no random jitter in transcription
+            self.assertAlmostEqual(bpm, 120.0, delta=0.1)
+            self.assertAlmostEqual(downbeat % 0.5, 0.25, delta=0.01)
+            # Backbeat snares (beats 2 and 4) map to the main snare pad despite the pickup
+            snares = [n for n in a if n["role"] == "snare"]
+            self.assertTrue(snares)
+            self.assertTrue(all(n["pitch"] == pa.FPC_SNARE_MAIN for n in snares if n["vel"] > 0.6))
+
+
+class TestHumanizedMix(unittest.TestCase):
+
+    def test_smf_roundtrip(self) -> None:
+        notes = [{"start": 0.5, "dur": 0.25, "pitch": 36, "vel": 0.8}, {"start": 1.0, "dur": 0.5, "pitch": 40, "vel": 0.5}]
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            mid = Path(tmp_dir) / "x.mid"
+            pa.write_smf_midi(mid, [pa.notes_to_midi_track("t", notes, 100.0, channel=9)])
+            back, bpm = hm.read_smf(mid)
+        self.assertAlmostEqual(bpm, 100.0, places=1)
+        self.assertEqual([n["pitch"] for n in back], [36, 40])
+        for orig, got in zip(notes, back):
+            self.assertAlmostEqual(orig["start"], got["start"], delta=0.01)
+            self.assertAlmostEqual(orig["dur"], got["dur"], delta=0.01)
+            self.assertAlmostEqual(orig["vel"], got["vel"], delta=0.01)
+
+    def test_humanize_zero_is_quantized_and_seed_is_repeatable(self) -> None:
+        notes = [{"start": 0.5 * i, "dur": 0.1, "pitch": 36 if i % 2 == 0 else 38, "vel": 0.7} for i in range(16)]
+        parts = {"drums": notes}
+        zero = hm.humanize_notes(parts, 120.0, 0.0, hm.HumanizeSettings(humanize=0.0), seed=1)["drums"]
+        self.assertEqual([n["start"] for n in zero], [n["start"] for n in notes])
+        s = hm.HumanizeSettings(humanize=0.8)
+        a = hm.humanize_notes(parts, 120.0, 0.0, s, seed=5)["drums"]
+        b = hm.humanize_notes(parts, 120.0, 0.0, s, seed=5)["drums"]
+        c = hm.humanize_notes(parts, 120.0, 0.0, s, seed=6)["drums"]
+        self.assertEqual(a, b)
+        self.assertNotEqual([n["start"] for n in a], [n["start"] for n in c])
+        offsets = np.array([h["start"] - n["start"] for h, n in zip(a, notes)])
+        self.assertLess(np.max(np.abs(offsets)), 0.040)  # human, not sloppy: under 40 ms
+        self.assertGreater(np.std(offsets), 0.001)
+        # Backbeat snares sit behind the beat on average (lay-back)
+        snare_off = [h["start"] - n["start"] for h, n in zip(a, notes) if n["pitch"] == 38]
+        kick_off = [h["start"] - n["start"] for h, n in zip(a, notes) if n["pitch"] == 36]
+        self.assertGreater(np.mean(snare_off), np.mean(kick_off))
+
+    def test_render_humanized_mix_end_to_end(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            paths = pa.PipelinePaths(Path(tmp_dir))
+            paths.ensure_dirs()
+            td = make_prepped_track(paths, "Demo", seconds=8.0)
+            self.assertEqual(pa.generate_midi_and_metadata(paths), 1)
+            self.assertEqual(hm.pending_humanized(paths), ["Demo"])
+
+            result = hm.run_humanized(paths, "Demo", hm.HumanizeSettings(target_lufs=-14.0), ffmpeg_bin="definitely-not-ffmpeg")
+            self.assertIsNotNone(result, pa.failures(paths).all())
+            self.assertEqual(result["drum_samples"], {"kick": 4, "snare": 4, "hat": 4})  # sampled from the stem
+            self.assertAlmostEqual(result["loudness"]["lufs"], -14.0, delta=0.3)
+            self.assertLessEqual(result["loudness"]["true_peak"], -1.0)
+            for f in ("05_Mix_Renders/Demo_Humanized.wav", "05_Mix_Renders/Demo_Humanized_Mix_QA_Report.md",
+                      "03_Prepped_Stems/Demo/MIDI/Demo_FPC_Drums_Humanized.mid",
+                      "03_Prepped_Stems/Demo/Humanized_Stems/Demo_Drums_Performed.wav",
+                      "03_Prepped_Stems/Demo/humanize_settings.json"):
+                self.assertTrue((paths.base / f).is_file(), f)
+            self.assertEqual(hm.pending_humanized(paths), [])
+
+            rough = hm.render_rough_mix(paths, "Demo", ffmpeg_bin="definitely-not-ffmpeg")
+            self.assertTrue(rough.is_file())
+
+    def test_failed_render_is_recorded_once(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            paths = pa.PipelinePaths(Path(tmp_dir))
+            paths.ensure_dirs()
+            td = paths.prepped / "Empty"
+            (td / "MIDI").mkdir(parents=True)
+            (td / "Audio_Stems").mkdir()
+            (td / "MIDI" / ".midi_done").write_text("x")
+            (td / "Audio_Stems" / "Empty_vocals_prep.wav").write_bytes(b"not a wav")
+            self.assertEqual(hm.pending_humanized(paths), ["Empty"])
+            self.assertIsNone(hm.run_humanized(paths, "Empty"))
+            self.assertEqual(hm.pending_humanized(paths), [])  # blocked until inputs change
+            self.assertEqual(pa.failures(paths).for_track("Empty")[0]["stage"], "humanized_mix")
 
 
 class TestFileOperations(unittest.TestCase):
