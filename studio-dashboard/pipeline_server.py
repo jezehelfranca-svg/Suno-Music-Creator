@@ -44,7 +44,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 import humanized_mix
 import pipeline_automator
-from pipeline_automator import INBOX_STEM_PATTERN, qa_report_path, render_kind, render_track_name, renders_for_track
+from pipeline_automator import invalidate_track_outputs, INBOX_STEM_PATTERN, qa_report_path, render_kind, render_track_name, renders_for_track
 
 # --------------------------------------------------------------------------
 # Configuration & Constants
@@ -490,27 +490,23 @@ def discover_tracks(paths: pipeline_automator.PipelinePaths) -> Dict[str, Any]:
                     pass
 
             for f in vw(prep_dir / "Audio_Stems"):
-                kind = "other"
-                for k, kw_list in pipeline_automator.STEM_KEYWORDS:
-                    if any(kw in f.name.lower() for kw in kw_list):
-                        kind = k
-                        break
+                kind = pipeline_automator.stem_kind(f, prep_dir.name)
                 stat = f.stat()
                 track_info["prepped_stems"].append({"name": f.name, "kind": kind, "rel_path": rel(paths, f),
                                                     "modified": stat.st_mtime, "size_mb": round(stat.st_size / 1048576, 2)})
 
             for f in vw(prep_dir / "Drum_Triggers"):
-                low = f.name.lower()
+                low = f.name.lower().removeprefix(prep_dir.name.lower() + "_")
                 band = "Kick" if "kick" in low else "Snare" if "snare" in low else "Hat" if "hat" in low else "Perc"
                 track_info["drum_triggers"].append({"name": f.name, "band": band, "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
 
             for f in vw(prep_dir / humanized_mix.HUMANIZED_STEMS_DIR):
-                track_info["performed_stems"].append({"name": f.name, "kind": "drums" if "drum" in f.name.lower() else "bass", "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
+                track_info["performed_stems"].append({"name": f.name, "kind": "drums" if f.name.lower().endswith("_drums_performed.wav") else "bass", "rel_path": rel(paths, f), "size_mb": round(f.stat().st_size / 1048576, 2)})
 
             midi_dir = prep_dir / "MIDI"
             if midi_dir.is_dir():
                 for f in sorted(midi_dir.glob("*.mid")):
-                    low = f.name.lower()
+                    low = f.name.lower().removeprefix(prep_dir.name.lower() + "_")
                     role = "FPC Drums" if ("drums" in low or "fpc" in low) else "Bass" if "bass" in low else "MIDI"
                     if "humanized" in low:
                         role += " (Humanized)"
@@ -575,21 +571,6 @@ def discover_tracks(paths: pipeline_automator.PipelinePaths) -> Dict[str, Any]:
 # --------------------------------------------------------------------------
 # Pipeline Action Helpers
 # --------------------------------------------------------------------------
-
-def invalidate_track_outputs(paths: pipeline_automator.PipelinePaths, track: str, renders: bool = True) -> None:
-    """Remove done-markers (and optionally generated mixes + reports) so a track rebuilds cleanly."""
-    prep = paths.prepped / track
-    (prep / ".done").unlink(missing_ok=True)
-    (prep / "MIDI" / ".midi_done").unlink(missing_ok=True)
-    if renders:
-        for suffix in ("_RoughMix", "_Humanized"):
-            wav = paths.renders / f"{track}{suffix}.wav"
-            wav.unlink(missing_ok=True)
-            qa_report_path(wav).unlink(missing_ok=True)
-    pipeline_automator.failures(paths).clear(track=track)
-    for suffix in ("_RoughMix", "_Humanized"):
-        pipeline_automator.failures(paths).clear(track=f"{track}{suffix}")
-
 
 def generate_rough_mix_wav(
     paths: pipeline_automator.PipelinePaths,
@@ -1309,16 +1290,18 @@ class PipelineRequestHandler(BaseHTTPRequestHandler):
 
             if target == "inbox":
                 m = INBOX_STEM_PATTERN.match(final_wav_path.stem)
-                if m:
-                    track_name = m.group(1).strip()
-                    (paths.stems / track_name / final_wav_path.name).unlink(missing_ok=True)
-                else:
-                    track_name = final_wav_path.stem
-                    for old_wav in pipeline_automator.visible_wavs(paths.stems / track_name):
-                        old_wav.unlink(missing_ok=True)
-                invalidate_track_outputs(paths, track_name)
-                pipeline_automator.failures(paths).clear("demucs", track_name)
-                os.replace(tmp_wav, final_wav_path)
+                track_name = m.group(1).strip() if m else final_wav_path.stem
+                with PROCESSING_LOCK:
+                    os.replace(tmp_wav, final_wav_path)
+                    routed = paths.stems / track_name
+                    old_stems = [routed / final_wav_path.name] if m else pipeline_automator.visible_wavs(routed)
+                    existing = [wav for wav in old_stems if wav.is_file()]
+                    if existing:
+                        backup = Path(tempfile.mkdtemp(prefix=".previous-stems-", dir=routed))
+                        for wav in existing:
+                            os.replace(wav, backup / wav.name)
+                    invalidate_track_outputs(paths, track_name)
+                    pipeline_automator.failures(paths).clear("demucs", track_name)
             elif target == "moises":
                 track_name = dest_dir.name
                 with PROCESSING_LOCK:

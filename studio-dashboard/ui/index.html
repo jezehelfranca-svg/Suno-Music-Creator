@@ -1330,7 +1330,7 @@
         </p>
 
         <div class="human-card" style="margin-bottom:18px;">
-          <h4>A/B Listen (equal loudness)</h4>
+          <h4>Compare renders</h4>
           <div id="abPlayers"><div class="hint">No mixes yet.</div></div>
         </div>
 
@@ -1339,7 +1339,7 @@
             <h4>Performance Feel</h4>
             <div class="ctrl-row"><span>Humanize</span><input type="range" id="hHumanize" min="0" max="1" step="0.05"><span class="ctrl-val" id="hHumanizeVal"></span></div>
             <div class="ctrl-row"><span>Swing (16ths)</span><input type="range" id="hSwing" min="0" max="1" step="0.05"><span class="ctrl-val" id="hSwingVal"></span></div>
-            <div class="hint">0 = quantized machine. 0.5 = tight session player. 1 = loose live feel.</div>
+            <div class="hint">Layer keeps the source MIDI timing. In Original mode, Swing affects the MIDI export only. In Replace mode, set Humanize and Swing to zero to keep the written timing.</div>
           </div>
           <div class="human-card">
             <h4>Drums</h4>
@@ -1943,6 +1943,10 @@
     function updateModeVisibility() {
       const dm = document.getElementById('hDrumsMode').value;
       const bm = document.getElementById('hBassMode').value;
+      document.getElementById('hSwing').disabled = dm === 'layer' && bm === 'layer';
+      document.getElementById('hDrumsBlend').disabled = dm !== 'layer';
+      document.getElementById('hBassBlend').disabled = bm !== 'layer';
+      document.getElementById('hKeepCymbals').disabled = dm !== 'replace';
       document.getElementById('hDrumsBlend').closest('.ctrl-row').style.opacity = dm === 'layer' ? 1 : 0.35;
       document.getElementById('hKeepCymbals').closest('.ctrl-row').style.opacity = dm === 'replace' ? 1 : 0.35;
       document.getElementById('hBassBlend').closest('.ctrl-row').style.opacity = bm === 'layer' ? 1 : 0.35;
@@ -1975,7 +1979,7 @@
       const rows = [
         rough && ['Original (rough mix)', rough],
         human && ['Humanized mix', human],
-        ...exports.map(r => ['FL export: ' + r.name, r]),
+        ...exports.map(r => ['External render: ' + r.name, r]),
       ].filter(Boolean);
       renderGrid('abPlayers', [track.name, rows.map(([l, r]) => [l, r.rel_path, r.modified])],
         () => rows.map(([label, r]) => {
@@ -2001,9 +2005,9 @@
       if (!newTake && track.humanize && track.humanize.seed != null) settings.seed = track.humanize.seed;
       showToast(newTake ? `Rendering a new take for ${track.name}...` : `Rendering humanized mix for ${track.name}...`);
       try {
-        const { data } = await postJson('/api/humanize', { track: track.name, settings, new_take: !!newTake });
-        showToast(data.message || 'Humanized mix queued');
-        state.humanFormDirty = false;
+        const { ok, data } = await postJson('/api/humanize', { track: track.name, settings, new_take: !!newTake });
+        showToast(data.message || (ok ? 'Humanized mix queued' : 'Render request failed'));
+        if (!ok) return;
         fetchStatus();
       } catch (err) {
         showToast('Error starting humanized mix');

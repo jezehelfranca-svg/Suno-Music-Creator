@@ -145,9 +145,11 @@ TRIGGER_BANDS: Tuple[Tuple[str, str, float, int], ...] = (
 # --------------------------------------------------------------------------
 
 
-def classify_stem(name: "str | os.PathLike[str]") -> str:
+def classify_stem(name: "str | os.PathLike[str]", track: str = "") -> str:
     """Return the stem kind ('vocals', 'drums', 'bass', 'other') for a filename."""
     stem = Path(name).stem.lower()
+    if track:
+        stem = stem.removeprefix(track.lower() + "_")
     for kind, words in _KIND_KEYWORDS:
         if any(w in stem for w in words):
             return kind
@@ -463,7 +465,7 @@ class StemPrepper:
             stems_out.mkdir(parents=True, exist_ok=True)
 
         for wav in sources:
-            kind = classify_stem(wav)
+            kind = classify_stem(wav, track)
             jobs: List[Tuple[Path, List[str]]] = []
             dest = stems_out / f"{wav.stem}{PREP_SUFFIX}.wav"
             jobs.append((dest, build_ffmpeg_cmd(wav, dest, build_prep_filter(kind, self.preset), self.ffmpeg)))
@@ -471,6 +473,11 @@ class StemPrepper:
                 if not self.dry_run:
                     triggers_out.mkdir(parents=True, exist_ok=True)
                 jobs.extend(build_trigger_cmds(wav, triggers_out, self.ffmpeg))
+
+            if kind != "drums" and not self.dry_run:
+                # Older versions classified the song title as well as the role.
+                for band_name in ("Kick", "Snare", "Hat"):
+                    trigger_output_path(wav, triggers_out, band_name).unlink(missing_ok=True)
 
             for dest, cmd in jobs:
                 if self.stop_event.is_set():

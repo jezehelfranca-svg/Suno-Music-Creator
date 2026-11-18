@@ -11,6 +11,7 @@ import struct
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import numpy as np
 import soundfile as sf
@@ -330,6 +331,36 @@ class TestHumanizedMix(unittest.TestCase):
             self.assertEqual(hm.pending_humanized(paths), [])  # blocked until inputs change
             self.assertEqual(pa.failures(paths).for_track("Empty")[0]["stage"], "humanized_mix")
 
+    def test_layer_and_zero_feel_preserve_written_offsets(self) -> None:
+        parts = {"drums": [{"start": 0.500, "dur": 0.1, "pitch": 36, "vel": 0.9},
+                           {"start": 0.514, "dur": 0.1, "pitch": 42, "vel": 0.6}],
+                 "bass": [{"start": 0.625, "dur": 0.1, "pitch": 48, "vel": 0.8}]}
+        for settings in (hm.HumanizeSettings(drums_mode="layer", bass_mode="layer", swing=1),
+                         hm.HumanizeSettings(humanize=0, swing=0)):
+            result = hm.humanize_notes(parts, 120, 0, settings, 42)
+            for part in parts:
+                self.assertEqual([n["start"] for n in result[part]], [n["start"] for n in parts[part]])
+
+    def test_song_title_does_not_choose_the_bus(self) -> None:
+        for track in ("Drum Circle", "Vox Pop", "Sub Rosa"):
+            for role in ("vocals", "drums", "bass", "instruments"):
+                self.assertEqual(pa.stem_kind(Path(f"{track}_{role}_prep.wav"), track), role)
+
+    def test_coincident_cross_role_hits_are_not_isolated_samples(self) -> None:
+        kit = hm.extract_one_shots(np.zeros((8000, 2)), 8000,
+                                   {"kick": [(0.2, 1)], "snare": [(0.2, 1)]})
+        self.assertFalse(kit)
+
+    def test_quiet_copy_of_kick_is_not_transcribed_as_snare(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            folder = Path(tmp_dir)
+            audio = np.zeros(8000)
+            audio[2000:2200] = np.hanning(200)
+            for role, gain in (("Kick", 1), ("Snare", 0.01)):
+                sf.write(folder / f"{role}_Trigger.wav", audio * gain, 8000)
+            notes, _, _ = pa.transcribe_drum_hits("Demo", folder, 120, 0)
+            self.assertEqual([n["pitch"] for n in notes], [pa.FPC_KICK])
+
     def test_simultaneous_drum_hits_do_not_flam(self) -> None:
         defaults = hm.HumanizeSettings()
         self.assertEqual(defaults.keep_cymbals, 0.0)
@@ -370,6 +401,45 @@ class TestFileOperations(unittest.TestCase):
             p_bin = Path(tmp_dir) / "data.bin"
             pa.atomic_write_bytes(p_bin, b"\x01\x02\x03")
             self.assertEqual(p_bin.read_bytes(), b"\x01\x02\x03")
+
+    def test_routing_preserves_newer_import_and_survives_copy_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            paths = pa.PipelinePaths(Path(tmp_dir))
+            paths.ensure_dirs()
+            src = paths.inbox / "Demo_bass.wav"
+            src.write_bytes(b"inbox")
+            dest = paths.stems / "Demo" / src.name
+            dest.parent.mkdir()
+            dest.write_bytes(b"manual edit")
+            os.utime(src, (100, 100))
+            self.assertEqual(pa.pending_inbox(paths), [])
+            marker = paths.prepped / "Demo" / ".done"
+            marker.parent.mkdir()
+            marker.touch()
+            os.utime(dest, (50, 50))
+            with mock.patch.object(pa.shutil, "copy2", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    pa.process_inbox(paths)
+            self.assertTrue(marker.exists())
+            self.assertEqual(dest.read_bytes(), b"manual edit")
+
+    def test_same_size_inbox_revision_reopens_completed_track(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            paths = pa.PipelinePaths(Path(tmp_dir))
+            paths.ensure_dirs()
+            src = paths.inbox / "Demo_bass.wav"
+            src.write_bytes(b"first")
+            self.assertEqual(pa.process_inbox(paths), 1)
+            td = paths.prepped / "Demo"
+            td.mkdir()
+            marker = td / ".done"
+            marker.touch()
+            self.assertEqual(pa.pending_inbox(paths), [])
+            src.write_bytes(b"later")
+            self.assertEqual(pa.pending_inbox(paths), ["Demo"])
+            self.assertEqual(pa.process_inbox(paths), 1)
+            self.assertFalse(marker.exists())
+            self.assertEqual((paths.stems / "Demo" / src.name).read_bytes(), b"later")
 
     def test_inbox_grouped_stem_routing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
